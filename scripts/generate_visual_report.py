@@ -28,8 +28,6 @@ BOOL_COLUMNS = {
     "reengaged",
     "source_salesforce_dropped",
     "source_salesforce_returning",
-    "source_zendesk",
-    "source_slack",
 }
 
 
@@ -45,21 +43,18 @@ REPORT_FIELDS = [
     "returned_date",
     "days_to_return",
     "cancellation_reason",
-    "normalized_reason",
     "macro_cadence",
     "cg_involvement",
     "cg_escalation_status",
-    "cg_escalation_timing",
     "onboarding_call_offered",
     "salesloft_meeting_detected",
     "slack_intervention_detected",
     "install_completed",
     "converted",
     "reengaged",
+    "outcome",
     "match_method",
     "match_score",
-    "source_zendesk",
-    "source_slack",
 ]
 
 
@@ -144,7 +139,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
     .controls {{
       display: grid;
-      grid-template-columns: minmax(240px, 2fr) repeat(5, minmax(140px, 1fr));
+      grid-template-columns: minmax(240px, 2fr) repeat(4, minmax(140px, 1fr));
       gap: 10px;
       align-items: end;
       margin-bottom: 16px;
@@ -168,7 +163,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
     .kpis {{
       display: grid;
-      grid-template-columns: repeat(6, minmax(130px, 1fr));
+      grid-template-columns: repeat(4, minmax(130px, 1fr));
       gap: 10px;
       margin-bottom: 16px;
     }}
@@ -370,23 +365,13 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       <label>Cadence
         <select id="cadence"></select>
       </label>
-      <label>Status
-        <select id="status">
-          <option value="">All</option>
-          <option value="reengaged">Re-engaged</option>
-          <option value="installed">Installed</option>
-          <option value="rise">Rise</option>
-          <option value="slack">Slack intervention</option>
-          <option value="salesloft">Salesloft meeting</option>
-        </select>
-      </label>
     </section>
 
     <section class="kpis" id="kpis"></section>
 
     <section class="grid">
       <div class="panel">
-        <div class="panel-header"><h2>Service Level Mix</h2><span id="service-count"></span></div>
+        <div class="panel-header"><h2>Service Level</h2><span id="service-count"></span></div>
         <div class="bars" id="service-bars"></div>
       </div>
       <div class="panel">
@@ -394,7 +379,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         <div class="bars" id="reason-bars"></div>
       </div>
       <div class="panel">
-        <div class="panel-header"><h2>Creator Growth Timing</h2><span id="cg-count"></span></div>
+        <div class="panel-header"><h2>Creator Growth</h2><span id="cg-count"></span></div>
         <div class="bars" id="cg-bars"></div>
       </div>
       <div class="panel">
@@ -421,7 +406,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
               <th>Dropped</th>
               <th>Reason</th>
               <th>Cadence</th>
-              <th>CG Timing</th>
+              <th>CG Involvement</th>
               <th>Call</th>
               <th>Salesloft</th>
               <th>Slack</th>
@@ -443,8 +428,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       service: document.getElementById('service'),
       vertical: document.getElementById('vertical'),
       owner: document.getElementById('owner'),
-      cadence: document.getElementById('cadence'),
-      status: document.getElementById('status')
+      cadence: document.getElementById('cadence')
     }};
 
     function text(value) {{
@@ -469,9 +453,14 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return clean || 'Unknown';
     }}
 
-    function populateSelect(id, key) {{
+    function cadenceValue(value) {{
+      const clean = text(value).trim();
+      return clean && clean !== 'Unknown' ? clean : 'None';
+    }}
+
+    function populateSelect(id, key, formatter = optionValue) {{
       const select = document.getElementById(id);
-      const values = [...new Set(RECORDS.map(row => optionValue(row[key])))].sort((a, b) => a.localeCompare(b));
+      const values = [...new Set(RECORDS.map(row => formatter(row[key])))].sort((a, b) => a.localeCompare(b));
       select.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
     }}
 
@@ -489,18 +478,12 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         if (fields.service.value && optionValue(row.service_level) !== fields.service.value) return false;
         if (fields.vertical.value && optionValue(row.vertical) !== fields.vertical.value) return false;
         if (fields.owner.value && optionValue(row.onboarding_owner) !== fields.owner.value) return false;
-        if (fields.cadence.value && optionValue(row.macro_cadence) !== fields.cadence.value) return false;
-        if (fields.status.value === 'reengaged' && !truthy(row.reengaged)) return false;
-        if (fields.status.value === 'installed' && !truthy(row.install_completed)) return false;
-        if (fields.status.value === 'rise' && text(row.service_level).toLowerCase() !== 'rise') return false;
-        if (fields.status.value === 'slack' && !truthy(row.slack_intervention_detected)) return false;
-        if (fields.status.value === 'salesloft' && !truthy(row.salesloft_meeting_detected)) return false;
+        if (fields.cadence.value && cadenceValue(row.macro_cadence) !== fields.cadence.value) return false;
         if (!query) return true;
         const haystack = [
           row.creator_project_name,
           row.lead_contact,
           row.onboarding_owner,
-          row.normalized_reason,
           row.cancellation_reason,
           row.previous_ad_network,
           row.vertical,
@@ -513,22 +496,18 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function summarize(rows) {{
       const total = rows.length;
       const reengaged = rows.filter(row => truthy(row.reengaged)).length;
-      const installed = rows.filter(row => truthy(row.install_completed)).length;
+      const installedAfter357 = rows.filter(row => truthy(row.install_completed) && cadenceValue(row.macro_cadence) === '3/5/7').length;
       const rise = rows.filter(row => text(row.service_level).toLowerCase() === 'rise').length;
-      const zendesk = rows.filter(row => truthy(row.source_zendesk)).length;
-      const slack = rows.filter(row => truthy(row.source_slack) || truthy(row.slack_intervention_detected)).length;
-      return {{ total, reengaged, installed, rise, zendesk, slack }};
+      return {{ total, reengaged, installedAfter357, rise }};
     }}
 
     function renderKpis(rows) {{
       const s = summarize(rows);
       const tiles = [
-        ['Dropped creators', s.total, 'Filtered lifecycle rows'],
-        ['Re-engaged', s.reengaged, pct(s.reengaged, s.total)],
-        ['Installed', s.installed, pct(s.installed, s.total)],
-        ['Rise creators', s.rise, pct(s.rise, s.total)],
-        ['Zendesk enriched', s.zendesk, pct(s.zendesk, s.total)],
-        ['Slack enriched', s.slack, pct(s.slack, s.total)]
+        ['Dropped onboards', s.total, 'Filtered lifecycle rows'],
+        ['Returned', s.reengaged, pct(s.reengaged, s.total)],
+        ['Re-engaged & Installed', s.installedAfter357, pct(s.installedAfter357, s.total)],
+        ['Rise creators', s.rise, pct(s.rise, s.total)]
       ];
       document.getElementById('kpis').innerHTML = tiles.map(([label, value, note]) => `
         <div class="tile">
@@ -539,10 +518,10 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       `).join('');
     }}
 
-    function groupCounts(rows, key, limit = 8) {{
+    function groupCounts(rows, key, limit = 8, formatter = optionValue) {{
       const counts = new Map();
       rows.forEach(row => {{
-        const value = optionValue(row[key]);
+        const value = formatter(row[key]);
         counts.set(value, (counts.get(value) || 0) + 1);
       }});
       return [...counts.entries()]
@@ -577,8 +556,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function outcome(row) {{
-      if (truthy(row.install_completed)) return '<span class="status">Installed</span>';
-      if (truthy(row.reengaged)) return '<span class="status warn">Returned</span>';
+      if (text(row.outcome).trim()) return `<span class="${{row.outcome === 'Dropped' ? 'status no' : row.outcome === 'Returned' ? 'status warn' : 'status'}}">${{escapeHtml(row.outcome)}}</span>`;
+      if (truthy(row.install_completed) && cadenceValue(row.macro_cadence) === '3/5/7') {{
+        return '<span class="status">Re-engaged &amp; Installed</span>';
+      }}
+      if (truthy(row.reengaged) || text(row.returned_date).trim()) return '<span class="status warn">Returned</span>';
       return '<span class="status no">Dropped</span>';
     }}
 
@@ -594,9 +576,9 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <td>${{escapeHtml(row.previous_ad_network || 'Unknown')}}</td>
           <td>${{escapeHtml(row.onboarding_owner || 'Unknown')}}</td>
           <td>${{escapeHtml(row.dropped_date)}}</td>
-          <td>${{escapeHtml(row.normalized_reason || 'Unknown')}}</td>
-          <td>${{escapeHtml(row.macro_cadence || 'Unknown')}}</td>
-          <td>${{escapeHtml(row.cg_escalation_timing || 'Unknown')}}</td>
+          <td>${{escapeHtml(row.cancellation_reason || 'Unknown')}}</td>
+          <td>${{escapeHtml(cadenceValue(row.macro_cadence))}}</td>
+          <td>${{escapeHtml(row.cg_involvement || 'None')}}</td>
           <td>${{statusPill(row.onboarding_call_offered)}}</td>
           <td>${{statusPill(row.salesloft_meeting_detected)}}</td>
           <td>${{statusPill(row.slack_intervention_detected)}}</td>
@@ -610,12 +592,12 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       const rows = filtered();
       renderKpis(rows);
       renderBars('service-bars', groupCounts(rows, 'service_level'), '');
-      renderBars('reason-bars', groupCounts(rows, 'normalized_reason'), 'amber');
-      renderBars('cg-bars', groupCounts(rows, 'cg_escalation_timing'), 'blue');
+      renderBars('reason-bars', groupCounts(rows, 'cancellation_reason'), 'amber');
+      renderBars('cg-bars', groupCounts(rows, 'cg_involvement'), 'blue');
       renderBars('network-bars', groupCounts(rows, 'previous_ad_network'), 'rose');
       document.getElementById('service-count').textContent = `${{groupCounts(rows, 'service_level', 50).length}} segments`;
-      document.getElementById('reason-count').textContent = `${{groupCounts(rows, 'normalized_reason', 50).length}} reasons`;
-      document.getElementById('cg-count').textContent = `${{groupCounts(rows, 'cg_escalation_timing', 50).length}} groups`;
+      document.getElementById('reason-count').textContent = `${{groupCounts(rows, 'cancellation_reason', 50).length}} reasons`;
+      document.getElementById('cg-count').textContent = `${{groupCounts(rows, 'cg_involvement', 50).length}} groups`;
       document.getElementById('network-count').textContent = `${{groupCounts(rows, 'previous_ad_network', 50).length}} networks`;
       renderTable(rows);
     }}
@@ -623,7 +605,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     populateSelect('service', 'service_level');
     populateSelect('vertical', 'vertical');
     populateSelect('owner', 'onboarding_owner');
-    populateSelect('cadence', 'macro_cadence');
+    populateSelect('cadence', 'macro_cadence', cadenceValue);
     Object.values(fields).forEach(control => control.addEventListener('input', render));
     Object.values(fields).forEach(control => control.addEventListener('change', render));
     render();

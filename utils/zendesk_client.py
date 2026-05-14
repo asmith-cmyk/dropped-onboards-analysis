@@ -48,7 +48,7 @@ def infer_macro_cadence(row: pd.Series) -> str:
         return "3/7/10"
     if day3 or day5 or day7 or day10:
         return "Partial"
-    return "Unknown"
+    return "None"
 
 
 def normalize_zendesk_dataframe(df: pd.DataFrame) -> pd.DataFrame:

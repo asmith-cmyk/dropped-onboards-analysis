@@ -20,8 +20,9 @@ def run() -> Path:
     classifications = read_csv_if_exists(settings.processed_data_dir / "cancellation_reasons.csv")
     zendesk = read_csv_if_exists(settings.raw_data_dir / "zendesk_onboarding_followups.csv")
     slack = read_csv_if_exists(settings.raw_data_dir / "slack_interventions.csv")
+    manual_overrides = read_csv_if_exists(settings.data_dir / "manual_lifecycle_overrides.csv")
 
-    master = build_master_creator_lifecycle(matches, classifications, zendesk, slack)
+    master = build_master_creator_lifecycle(matches, classifications, zendesk, slack, manual_overrides)
     processed_path = settings.processed_data_dir / "master_creator_lifecycle.csv"
     output_path = settings.output_dir / "master_creator_lifecycle.csv"
     write_csv(master, processed_path)
@@ -38,4 +39,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

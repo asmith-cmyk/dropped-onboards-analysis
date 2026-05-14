@@ -37,14 +37,14 @@ def derive_cg_timing(row: pd.Series) -> str:
             return "Early CG involvement"
         return "Late CG involvement"
     if "assisted" in involvement or clean_blank(row.get("cg_effort")):
-        return "CG involvement - timing unknown"
+        return "Assisted"
     return "No CG involvement"
 
 
 def link_zendesk(matches: pd.DataFrame, zendesk: pd.DataFrame) -> pd.DataFrame:
     out = matches.copy()
     for column, default in (
-        ("macro_cadence", "Unknown"),
+        ("macro_cadence", "None"),
         ("meeting_offered_zendesk", False),
         ("ticket_reopened", False),
         ("zendesk_ticket_count", 0),
@@ -67,8 +67,8 @@ def link_zendesk(matches: pd.DataFrame, zendesk: pd.DataFrame) -> pd.DataFrame:
         if related.empty:
             continue
         out.at[idx, "zendesk_ticket_count"] = len(related)
-        cadences = [value for value in related["macro_cadence"].dropna().unique() if value and value != "Unknown"]
-        out.at[idx, "macro_cadence"] = cadences[0] if cadences else "Unknown"
+        cadences = [value for value in related["macro_cadence"].dropna().unique() if value and value != "None"]
+        out.at[idx, "macro_cadence"] = cadences[0] if cadences else "None"
         out.at[idx, "meeting_offered_zendesk"] = bool(related["meeting_offered"].fillna(False).any())
         out.at[idx, "ticket_reopened"] = bool(related["ticket_reopened"].fillna(False).any())
     return out
@@ -135,14 +135,14 @@ def build_reengagement_output(timeline: pd.DataFrame) -> pd.DataFrame:
     output["Returned Date"] = master.get("returned_date", "")
     output["Days_to_Return"] = master.get("days_to_return", "")
     output["CG Involvement"] = master.get("cg_involvement", "")
-    output["Macro Cadence"] = master.get("macro_cadence", "Unknown")
+    output["Macro Cadence"] = master.get("macro_cadence", "None")
     output["Meeting Offered"] = bool_series(master.get("onboarding_call_offered", False), index=master.index)
     output["Re-engaged"] = bool_series(master.get("reengaged", False), index=master.index)
     output["Installed"] = bool_series(master.get("install_completed", False), index=master.index)
     output["Converted"] = bool_series(master.get("converted", False), index=master.index)
+    output["Outcome"] = master.get("outcome", "")
     output["Onboarding Owner"] = master.get("onboarding_owner", "")
     output["Lead Contact"] = master.get("lead_contact", "")
-    output["CG Timing"] = master.get("cg_escalation_timing", "")
     output["Match Method"] = master.get("match_method", "")
     output["Match Score"] = master.get("match_score", "")
 
@@ -160,9 +160,9 @@ def build_reengagement_output(timeline: pd.DataFrame) -> pd.DataFrame:
         "Re-engaged",
         "Installed",
         "Converted",
+        "Outcome",
         "Onboarding Owner",
         "Lead Contact",
-        "CG Timing",
         "Match Method",
         "Match Score",
     ]
@@ -173,7 +173,8 @@ def cohort_summary(df: pd.DataFrame, cohort_type: str, column: str) -> pd.DataFr
     if column not in df.columns:
         return pd.DataFrame()
     working = df.copy()
-    working[column] = working[column].replace("", "Unknown").fillna("Unknown")
+    fallback = "None" if column == "macro_cadence" else "Unknown"
+    working[column] = working[column].replace("", fallback).fillna(fallback)
     rows = []
     for value, group in working.groupby(column, dropna=False):
         total = len(group)
@@ -184,7 +185,7 @@ def cohort_summary(df: pd.DataFrame, cohort_type: str, column: str) -> pd.DataFr
         rows.append(
             {
                 "cohort_type": cohort_type,
-                "cohort_value": value or "Unknown",
+                "cohort_value": value or fallback,
                 "total_dropped": total,
                 "reengaged_count": reengaged,
                 "reengagement_rate": round(reengaged / total, 4) if total else 0,
@@ -203,8 +204,7 @@ def build_cohort_analysis(reengaged_output: pd.DataFrame) -> pd.DataFrame:
         ("Vertical", "vertical"),
         ("Service Level", "service_level"),
         ("Previous Ad Network", "previous_ad_network"),
-        ("Creator Growth Involvement", "cg_involvement"),
-        ("Creator Growth Timing", "cg_escalation_timing"),
+        ("Creator Growth", "cg_involvement"),
         ("Macro Cadence", "macro_cadence"),
         ("Onboarding Owner", "onboarding_owner"),
     ]
@@ -247,7 +247,7 @@ def build_cancellation_reason_analysis(
 
 
 def build_creator_growth_analysis(reengaged_output: pd.DataFrame) -> pd.DataFrame:
-    return cohort_summary(reengaged_output, "CG Escalation Timing", "cg_escalation_timing")
+    return cohort_summary(reengaged_output, "Creator Growth", "cg_involvement")
 
 
 def build_rise_creator_analysis(reengaged_output: pd.DataFrame) -> pd.DataFrame:
@@ -305,11 +305,13 @@ def write_executive_summary(
     total = len(reengaged_output)
     reengaged = int(bool_series(reengaged_output["reengaged"]).sum()) if total else 0
     installed = int(bool_series(reengaged_output["install_completed"]).sum()) if total else 0
+    installed_after_357 = int(
+        (bool_series(reengaged_output.get("install_completed", False), index=reengaged_output.index)
+        & (reengaged_output.get("macro_cadence", "").fillna("").astype(str).str.strip() == "3/5/7")).sum()
+    ) if total else 0
     rate = reengaged / total if total else 0
     install_rate = installed / total if total else 0
     median_days = pd.to_numeric(reengaged_output["days_to_return"], errors="coerce").dropna().median()
-    zendesk_covered = int(bool_series(reengaged_output.get("source_zendesk", False), index=reengaged_output.index).sum()) if total else 0
-    slack_covered = int(bool_series(reengaged_output.get("source_slack", False), index=reengaged_output.index).sum()) if total else 0
 
     if cohort_analysis.empty:
         top_cohorts = pd.DataFrame()
@@ -328,8 +330,7 @@ def write_executive_summary(
         f"- Re-engagement rate: {rate:.1%}",
         f"- Install/conversion rate among dropped creators: {install_rate:.1%}",
         f"- Median days to return: {median_days:.1f}" if pd.notna(median_days) else "- Median days to return: unavailable",
-        f"- Zendesk-enriched creators: {zendesk_covered}/{total}",
-        f"- Slack-enriched creators: {slack_covered}/{total}",
+        f"- Re-engaged & Installed after 3/5/7 follow-up: {installed_after_357}/{total}",
         "",
         "## Strongest Cohorts",
         "",
@@ -346,7 +347,7 @@ def write_executive_summary(
 
     lines.extend(["", "## Creator Growth", ""])
     if cg_analysis.empty:
-        lines.append("- Creator Growth timing could not be assessed from available data.")
+        lines.append("- Creator Growth involvement could not be assessed from available data.")
     else:
         for _, row in cg_analysis.iterrows():
             lines.append(

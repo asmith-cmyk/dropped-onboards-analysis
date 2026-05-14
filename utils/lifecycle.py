@@ -5,6 +5,7 @@ import pandas as pd
 from utils.analysis import bool_series, derive_cg_timing, link_slack, link_zendesk
 from utils.columns import format_date_for_output
 from utils.io import clean_blank
+from utils.text import normalize_creator_name
 
 
 MASTER_COLUMNS = [
@@ -50,6 +51,7 @@ MASTER_COLUMNS = [
     "install_completed",
     "converted",
     "reengaged",
+    "outcome",
     "returning_project_name",
     "returning_lead_contact",
     "returning_previous_ad_network",
@@ -58,8 +60,6 @@ MASTER_COLUMNS = [
     "match_score",
     "source_salesforce_dropped",
     "source_salesforce_returning",
-    "source_zendesk",
-    "source_slack",
 ]
 
 
@@ -89,6 +89,115 @@ def _format_datetime(series: pd.Series) -> pd.Series:
 def _format_days(series: pd.Series) -> pd.Series:
     numeric = pd.to_numeric(series, errors="coerce")
     return numeric.astype("Int64").astype(str).replace("<NA>", "")
+
+
+def _is_present(value: object) -> bool:
+    if value is None or pd.isna(value):
+        return False
+    return clean_blank(value) != ""
+
+
+def _coerce_bool(value: object) -> bool:
+    return clean_blank(value).lower() in {"1", "true", "yes", "y", "booked", "installed", "converted"}
+
+
+def _outcome_series(df: pd.DataFrame) -> pd.Series:
+    installed = bool_series(_series_or_default(df, "install_completed", False), index=df.index)
+    reengaged = bool_series(_series_or_default(df, "reengaged", False), index=df.index)
+    cadence = _series_or_default(df, "macro_cadence", "None").fillna("").astype(str).str.strip()
+    outcome = pd.Series("Dropped", index=df.index)
+    outcome.loc[reengaged] = "Returned"
+    outcome.loc[installed & (cadence == "3/5/7")] = "Re-engaged & Installed"
+    return outcome
+
+
+def _recalculate_lifecycle_flags(lifecycle: pd.DataFrame) -> pd.DataFrame:
+    out = lifecycle.copy()
+    dropped = pd.to_datetime(_series_or_default(out, "dropped_date"), errors="coerce")
+    returned = pd.to_datetime(_series_or_default(out, "returned_date"), errors="coerce")
+    install = pd.to_datetime(_series_or_default(out, "install_date"), errors="coerce")
+    scheduled_install = pd.to_datetime(_series_or_default(out, "scheduled_install_date"), errors="coerce")
+
+    returned = returned.fillna(install).fillna(scheduled_install)
+    out["returned_date"] = format_date_for_output(returned)
+    out["days_to_return"] = _format_days((returned - dropped).dt.days)
+
+    install_completed = bool_series(_series_or_default(out, "install_completed", False), index=out.index) | install.notna()
+    reengaged = bool_series(_series_or_default(out, "reengaged", False), index=out.index) | returned.notna()
+    converted = bool_series(_series_or_default(out, "converted", False), index=out.index) | install_completed
+
+    out["install_completed"] = install_completed
+    out["converted"] = converted
+    out["reengaged"] = reengaged
+    out["source_salesforce_returning"] = bool_series(
+        _series_or_default(out, "source_salesforce_returning", False), index=out.index
+    ) | reengaged
+    out["outcome"] = _outcome_series(out)
+    return out
+
+
+def apply_manual_overrides(lifecycle: pd.DataFrame, overrides: pd.DataFrame) -> pd.DataFrame:
+    """Apply explicit lifecycle corrections by creator key.
+
+    Manual overrides are intentionally small and auditable. They are useful when a
+    signal is confirmed in Slack or Salesforce but is not yet present in the
+    exported source files available to the automated pipeline.
+    """
+    if lifecycle.empty or overrides.empty:
+        return lifecycle
+
+    out = lifecycle.copy()
+    if "creator_key" not in out.columns:
+        out["creator_key"] = out["creator_project_name"].map(normalize_creator_name)
+
+    manual = overrides.copy()
+    if "creator_key" not in manual.columns:
+        source_names = manual["creator_project_name"] if "creator_project_name" in manual.columns else pd.Series("", index=manual.index)
+        manual["creator_key"] = source_names.map(normalize_creator_name)
+    manual["creator_key"] = manual["creator_key"].fillna("").map(clean_blank)
+
+    bool_columns = {
+        "ticket_reopened",
+        "cg_escalation_status",
+        "onboarding_call_offered",
+        "salesloft_meeting_detected",
+        "slack_intervention_detected",
+        "rescue_intervention_detected",
+        "install_completed",
+        "converted",
+        "reengaged",
+        "source_salesforce_dropped",
+        "source_salesforce_returning",
+    }
+    numeric_columns = {
+        "zendesk_ticket_count",
+        "slack_intervention_count",
+        "match_score",
+        "reason_confidence_score",
+    }
+    skip_columns = {"creator_key", "manual_note", "override_note", "notes"}
+
+    for _, override in manual.iterrows():
+        creator_key = override.get("creator_key", "")
+        if not creator_key:
+            continue
+        matches = out.index[out["creator_key"] == creator_key]
+        if matches.empty:
+            continue
+        idx = matches[0]
+        for column, value in override.items():
+            if column in skip_columns or column not in out.columns or not _is_present(value):
+                continue
+            if column in bool_columns:
+                out.at[idx, column] = _coerce_bool(value)
+            elif column in numeric_columns:
+                out.at[idx, column] = pd.to_numeric(value, errors="coerce")
+            else:
+                out.at[idx, column] = value
+
+    out["macro_cadence"] = _series_or_default(out, "macro_cadence", "None").replace({"": "None", "Unknown": "None"})
+    out = _recalculate_lifecycle_flags(out)
+    return out
 
 
 def _attach_classifications(matches: pd.DataFrame, classifications: pd.DataFrame) -> pd.DataFrame:
@@ -146,6 +255,7 @@ def build_master_creator_lifecycle(
     classifications: pd.DataFrame,
     zendesk: pd.DataFrame,
     slack: pd.DataFrame,
+    manual_overrides: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Build the canonical creator lifecycle fact table.
 
@@ -213,7 +323,7 @@ def build_master_creator_lifecycle(
     lifecycle["normalized_reason"] = _series_or_default(enriched, "normalized_category").replace("", "Unknown")
     lifecycle["reason_confidence_score"] = _series_or_default(enriched, "confidence_score")
     lifecycle["reason_classification_method"] = _series_or_default(enriched, "classification_method")
-    lifecycle["macro_cadence"] = _series_or_default(enriched, "macro_cadence", "Unknown").replace("", "Unknown")
+    lifecycle["macro_cadence"] = _series_or_default(enriched, "macro_cadence", "None").replace({"": "None", "Unknown": "None"})
     lifecycle["zendesk_ticket_count"] = _numeric_or_default(enriched, "zendesk_ticket_count").astype(int)
     lifecycle["ticket_reopened"] = _bool_or_default(enriched, "ticket_reopened")
     lifecycle["cg_involvement"] = _series_or_default(enriched, "cg_involvement")
@@ -232,6 +342,7 @@ def build_master_creator_lifecycle(
     lifecycle["install_completed"] = install_completed
     lifecycle["converted"] = install_completed
     lifecycle["reengaged"] = reengaged
+    lifecycle["outcome"] = _outcome_series(lifecycle)
     lifecycle["returning_project_name"] = _series_or_default(enriched, "returning_creator")
     lifecycle["returning_lead_contact"] = _series_or_default(enriched, "returning_lead_contact")
     lifecycle["returning_previous_ad_network"] = _series_or_default(enriched, "returning_previous_ad_network")
@@ -240,8 +351,6 @@ def build_master_creator_lifecycle(
     lifecycle["match_score"] = _series_or_default(enriched, "match_score")
     lifecycle["source_salesforce_dropped"] = True
     lifecycle["source_salesforce_returning"] = reengaged
-    lifecycle["source_zendesk"] = lifecycle["zendesk_ticket_count"] > 0
-    lifecycle["source_slack"] = lifecycle["slack_intervention_count"] > 0
 
     lifecycle["cg_escalation_timing"] = lifecycle.apply(
         lambda row: derive_cg_timing(
@@ -262,7 +371,14 @@ def build_master_creator_lifecycle(
             lifecycle[column] = ""
 
     lifecycle = lifecycle[MASTER_COLUMNS]
+    if manual_overrides is not None and not manual_overrides.empty:
+        lifecycle = apply_manual_overrides(lifecycle, manual_overrides)
+    lifecycle = _recalculate_lifecycle_flags(lifecycle)
+    lifecycle = lifecycle[MASTER_COLUMNS]
     for column in lifecycle.select_dtypes(include=["object"]).columns:
         lifecycle[column] = lifecycle[column].map(clean_blank)
         lifecycle[column] = lifecycle[column].str.replace(r"\s+", " ", regex=True).str.strip()
+    lifecycle["macro_cadence"] = lifecycle["macro_cadence"].replace("", "None")
+    lifecycle["cg_involvement"] = lifecycle["cg_involvement"].replace("", "None")
+    lifecycle["outcome"] = _outcome_series(lifecycle)
     return lifecycle.sort_values(["dropped_date", "creator_project_name"], na_position="last")

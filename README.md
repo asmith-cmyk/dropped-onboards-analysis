@@ -165,9 +165,9 @@ Core field groups:
 - Zendesk cadence: `macro_cadence`, `zendesk_ticket_count`, `ticket_reopened`
 - Creator Growth: `cg_involvement`, `cg_effort`, `cg_escalation_status`, `cg_escalation_timing`, `cg_first_touch_at`, `cg_days_from_drop`
 - Human-touch indicators: `onboarding_call_offered`, `salesloft_meeting_detected`, `first_salesloft_meeting_at`, `slack_intervention_detected`, `slack_intervention_count`, `rescue_intervention_detected`
-- Outcomes: `install_completed`, `converted`, `reengaged`
+- Outcomes: `install_completed`, `converted`, `reengaged`, `outcome`
 - Match diagnostics: `returning_project_name`, `returning_lead_contact`, `returning_previous_ad_network`, `returning_owner`, `match_method`, `match_score`
-- Source coverage: `source_salesforce_dropped`, `source_salesforce_returning`, `source_zendesk`, `source_slack`
+- Source coverage: `source_salesforce_dropped`, `source_salesforce_returning`
 
 `reengaged_creators.csv` is now a leadership-friendly view derived from the master table. It includes:
 

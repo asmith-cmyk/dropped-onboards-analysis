@@ -1,30 +1,29 @@
 # Onboarding Lifecycle Executive Summary
 
-Generated from the master lifecycle dataset with 54 dropped onboarding creators and 0 matched returning creators.
+Generated from the master lifecycle dataset with 54 dropped onboarding creators and 1 matched returning creators.
 
 ## Headline Metrics
 
-- Re-engagement rate: 0.0%
+- Re-engagement rate: 1.9%
 - Install/conversion rate among dropped creators: 0.0%
-- Median days to return: unavailable
-- Zendesk-enriched creators: 0/54
-- Slack-enriched creators: 0/54
+- Median days to return: 41.0
+- Re-engaged & Installed after 3/5/7 follow-up: 0/54
 
 ## Strongest Cohorts
 
-- Macro Cadence = Unknown: 0.0% re-engagement (0/54).
-- Service Level = Insider: 0.0% re-engagement (0/30).
-- Creator Growth Involvement = Assisted: 0.0% re-engagement (0/27).
-- Creator Growth Involvement = Non-Assisted: 0.0% re-engagement (0/27).
-- Creator Growth Timing = CG involvement - timing unknown: 0.0% re-engagement (0/27).
-- Creator Growth Timing = No CG involvement: 0.0% re-engagement (0/27).
+- Vertical = Health and Wellness: 100.0% re-engagement (1/1).
+- Onboarding Owner = Antoinette Smith: 10.0% re-engagement (1/10).
+- Previous Ad Network = AdSense: 9.1% re-engagement (1/11).
+- Creator Growth = Assisted: 3.7% re-engagement (1/27).
+- Service Level = Insider: 3.3% re-engagement (1/30).
+- Macro Cadence = None: 1.8% re-engagement (1/54).
+- Creator Growth = Non-Assisted: 0.0% re-engagement (0/27).
 - Previous Ad Network = Mediavine: 0.0% re-engagement (0/22).
-- Service Level = Rise: 0.0% re-engagement (0/20).
 
 ## Creator Growth
 
-- CG involvement - timing unknown: 0.0% re-engagement across 27 creators.
-- No CG involvement: 0.0% re-engagement across 27 creators.
+- Assisted: 3.7% re-engagement across 27 creators.
+- Non-Assisted: 0.0% re-engagement across 27 creators.
 
 ## Rise Creators
 
