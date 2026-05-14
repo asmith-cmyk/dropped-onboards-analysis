@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Raw exports can contain sensitive operational data. Nightly automation refreshes them.
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Keep generated business outputs visible; they are intentionally committed by the workflow.

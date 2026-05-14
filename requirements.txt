@@ -1,0 +1,9 @@
+pandas>=2.2.0
+numpy>=1.26.0
+requests>=2.31.0
+simple-salesforce>=1.12.6
+slack-sdk>=3.27.0
+openai>=1.40.0
+rapidfuzz>=3.9.0
+python-dateutil>=2.9.0
+
