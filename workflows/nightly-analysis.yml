@@ -1,0 +1,70 @@
+name: Nightly dropped onboarding analysis
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-analysis:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Pull Salesforce reports
+        env:
+          SALESFORCE_USERNAME: ${{ secrets.SALESFORCE_USERNAME }}
+          SALESFORCE_PASSWORD: ${{ secrets.SALESFORCE_PASSWORD }}
+          SALESFORCE_SECURITY_TOKEN: ${{ secrets.SALESFORCE_SECURITY_TOKEN }}
+          SALESFORCE_DOMAIN: ${{ secrets.SALESFORCE_DOMAIN }}
+          SALESFORCE_API_VERSION: ${{ vars.SALESFORCE_API_VERSION }}
+          SALESFORCE_DROPPED_REPORT_ID: ${{ vars.SALESFORCE_DROPPED_REPORT_ID }}
+          SALESFORCE_RETURNING_REPORT_ID: ${{ vars.SALESFORCE_RETURNING_REPORT_ID }}
+        run: python scripts/pull_salesforce_reports.py --force-api
+
+      - name: Pull Zendesk data
+        env:
+          ZENDESK_SUBDOMAIN: ${{ secrets.ZENDESK_SUBDOMAIN }}
+          ZENDESK_EMAIL: ${{ secrets.ZENDESK_EMAIL }}
+          ZENDESK_API_TOKEN: ${{ secrets.ZENDESK_API_TOKEN }}
+          ZENDESK_SEARCH_QUERY: ${{ vars.ZENDESK_SEARCH_QUERY }}
+        run: python scripts/pull_zendesk_data.py
+
+      - name: Pull Slack data
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_NAMES: ${{ vars.SLACK_CHANNEL_NAMES }}
+          SLACK_START_DATE: ${{ vars.SLACK_START_DATE }}
+        run: python scripts/pull_slack_data.py
+
+      - name: Generate outputs
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          USE_OPENAI_CLASSIFICATION: ${{ vars.USE_OPENAI_CLASSIFICATION }}
+        run: python scripts/generate_outputs.py
+
+      - name: Commit updated outputs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add outputs/*.csv outputs/*.md outputs/*.html docs/index.html docs/.nojekyll
+          if git diff --staged --quiet; then
+            echo "No output changes to commit."
+          else
+            git commit -m "Refresh dropped onboarding analysis outputs"
+            git push
+          fi
