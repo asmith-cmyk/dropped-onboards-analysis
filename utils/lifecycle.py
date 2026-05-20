@@ -115,6 +115,20 @@ def _coerce_bool(value: object) -> bool:
     return clean_blank(value).lower() in {"1", "true", "yes", "y", "booked", "installed", "converted"}
 
 
+def _cg_involvement_label(series: pd.Series) -> pd.Series:
+    normalized = series.fillna("").astype(str).str.strip().str.lower()
+    assisted = (
+        (
+            normalized.str.contains("assisted", regex=False)
+            | normalized.isin({"1", "true", "yes", "y"})
+        )
+        & ~normalized.str.contains("non", regex=False)
+        & ~normalized.str.contains("not", regex=False)
+        & ~normalized.isin({"", "none", "no", "false", "0", "not assisted"})
+    )
+    return pd.Series("Not Assisted", index=series.index).where(~assisted, "Assisted")
+
+
 def _outcome_series(df: pd.DataFrame) -> pd.Series:
     installed = bool_series(_series_or_default(df, "install_completed", False), index=df.index)
     reengaged = bool_series(_series_or_default(df, "reengaged", False), index=df.index)
@@ -340,10 +354,10 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     lifecycle["salesforce_lead_id"] = ""
     lifecycle["creator_key"] = d["creator_name"].map(normalize_creator_name)
     lifecycle["lead_key"] = ""
-    lifecycle["vertical"] = ""
-    lifecycle["service_level"] = ""
-    lifecycle["previous_ad_network"] = ""
-    lifecycle["onboarding_owner"] = ""
+    lifecycle["vertical"] = d.get("vertical", "")
+    lifecycle["service_level"] = d.get("service_level", "")
+    lifecycle["previous_ad_network"] = d.get("previous_ad_network", "")
+    lifecycle["onboarding_owner"] = d.get("onboarding_owner", "")
     lifecycle["monthly_pageviews"] = ""
     lifecycle["dropped_status"] = d["status"]
     lifecycle["dropped_date"] = format_date_for_output(dropped_date)
@@ -351,7 +365,7 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     lifecycle["scheduled_install_date"] = format_date_for_output(expected_install)
     lifecycle["install_date"] = ""
     lifecycle["days_to_return"] = _format_days((expected_install - dropped_date).dt.days)
-    lifecycle["cancellation_reason"] = ""
+    lifecycle["cancellation_reason"] = d.get("dropped_reason", "")
     lifecycle["raw_description"] = ""
     lifecycle["normalized_reason"] = "Unknown"
     lifecycle["reason_confidence_score"] = ""
@@ -359,7 +373,7 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     lifecycle["macro_cadence"] = "None"
     lifecycle["zendesk_ticket_count"] = 0
     lifecycle["ticket_reopened"] = False
-    lifecycle["cg_involvement"] = "None"
+    lifecycle["cg_involvement"] = "Not Assisted"
     lifecycle["cg_effort"] = ""
     lifecycle["cg_escalation_status"] = False
     lifecycle["cg_escalation_timing"] = "No CG involvement"
@@ -469,7 +483,7 @@ def build_master_creator_lifecycle(
     lifecycle["macro_cadence"] = _series_or_default(enriched, "macro_cadence", "None").replace({"": "None", "Unknown": "None"})
     lifecycle["zendesk_ticket_count"] = _numeric_or_default(enriched, "zendesk_ticket_count").astype(int)
     lifecycle["ticket_reopened"] = _bool_or_default(enriched, "ticket_reopened")
-    lifecycle["cg_involvement"] = _series_or_default(enriched, "cg_involvement")
+    lifecycle["cg_involvement"] = _cg_involvement_label(_series_or_default(enriched, "cg_involvement"))
     lifecycle["cg_effort"] = _series_or_default(enriched, "cg_effort")
     lifecycle["cg_escalation_status"] = cg_escalated
     lifecycle["cg_first_touch_at"] = _format_datetime(cg_first_touch)
@@ -530,6 +544,8 @@ def build_master_creator_lifecycle(
         lifecycle[column] = lifecycle[column].map(clean_blank)
         lifecycle[column] = lifecycle[column].str.replace(r"\s+", " ", regex=True).str.strip()
     lifecycle["macro_cadence"] = lifecycle["macro_cadence"].replace("", "None")
-    lifecycle["cg_involvement"] = lifecycle["cg_involvement"].replace("", "None")
+    missing_reason = lifecycle["cancellation_reason"].str.lower().isin({"", "dropped", "canceled", "cancelled"})
+    lifecycle.loc[missing_reason, "cancellation_reason"] = "No reason captured"
+    lifecycle["cg_involvement"] = _cg_involvement_label(lifecycle["cg_involvement"])
     lifecycle["outcome"] = _outcome_series(lifecycle)
     return lifecycle.sort_values(["dropped_date", "creator_project_name"], na_position="last")

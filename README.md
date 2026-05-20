@@ -41,8 +41,11 @@ Confirmed returning report fields:
 Snowflake:
 
 - `ANALYTICS.ADTHRIVE.SITE_HISTORY`
+- `ANALYTICS.ADTHRIVE.SITE_EXTENDED`
+- `ANALYTICS.ADTHRIVE.DROPPED_REASON`
 - `snowflake_dropped_2025.csv` captures all sites with `Dropped`, `Canceled`, or `Cancelled` history in 2025.
 - `snowflake_returned_2026.csv` captures those 2025 dropped/canceled sites that later appear in `Install`, `Checkup`, or `Active` with a 2026 expected install date.
+- Snowflake enrichment supplies service level, vertical, previous ad network, onboarding owner, and dropped/canceled reason where available.
 
 Zendesk:
 

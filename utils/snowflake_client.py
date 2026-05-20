@@ -12,15 +12,36 @@ from utils.config import Settings
 
 DROPPED_2025_QUERY = """
 WITH dropped_2025 AS (
-    SELECT DISTINCT
-        id AS site_id,
-        name AS creator_name,
-        company_name,
-        status,
-        TO_TIMESTAMP_NTZ(updated_at) AS actual_close_date
+    SELECT
+        sh.id AS site_id,
+        sh.name AS creator_name,
+        sh.company_name,
+        sh.status,
+        TO_TIMESTAMP_NTZ(sh.updated_at) AS actual_close_date,
+        COALESCE(NULLIF(se.service_level, ''), NULLIF(se.service, ''), NULLIF(se.tier, '')) AS service_level,
+        NULLIF(se.primary_vertical, '') AS vertical,
+        NULLIF(se.previous_ad_network, '') AS previous_ad_network,
+        COALESCE(NULLIF(se.site_manager, ''), NULLIF(se.ad_manager, '')) AS onboarding_owner,
+        COALESCE(
+            NULLIF(dr_history.text, ''),
+            NULLIF(dr_current.text, ''),
+            NULLIF(se.non_standard_reason, ''),
+            'No reason captured'
+        ) AS dropped_reason,
+        ROW_NUMBER() OVER (
+            PARTITION BY sh.id
+            ORDER BY TO_TIMESTAMP_NTZ(sh.updated_at) DESC
+        ) AS row_num
     FROM ANALYTICS.ADTHRIVE.SITE_HISTORY
-    WHERE status IN ('Dropped', 'Canceled', 'Cancelled')
-      AND YEAR(TO_TIMESTAMP_NTZ(updated_at)) = 2025
+    sh
+    LEFT JOIN ANALYTICS.ADTHRIVE.SITE_EXTENDED se
+        ON sh.id = se.site_id
+    LEFT JOIN ANALYTICS.ADTHRIVE.DROPPED_REASON dr_history
+        ON sh.dropped_reason_id = dr_history.id
+    LEFT JOIN ANALYTICS.ADTHRIVE.DROPPED_REASON dr_current
+        ON se.dropped_reason_id = dr_current.id
+    WHERE sh.status IN ('Dropped', 'Canceled', 'Cancelled')
+      AND YEAR(TO_TIMESTAMP_NTZ(sh.updated_at)) = 2025
 )
 
 SELECT
@@ -28,8 +49,14 @@ SELECT
     creator_name,
     company_name,
     status,
-    actual_close_date
+    actual_close_date,
+    service_level,
+    vertical,
+    previous_ad_network,
+    onboarding_owner,
+    dropped_reason
 FROM dropped_2025
+WHERE row_num = 1
 ORDER BY actual_close_date DESC
 """
 

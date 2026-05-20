@@ -300,6 +300,25 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       text-transform: uppercase;
       letter-spacing: 0;
     }}
+    .sort-button {{
+      border: 0;
+      background: transparent;
+      color: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0;
+      min-height: 0;
+      font: inherit;
+      font-weight: inherit;
+      text-transform: inherit;
+      cursor: pointer;
+    }}
+    .sort-indicator {{
+      color: var(--teal);
+      display: inline-block;
+      min-width: 8px;
+    }}
     td {{
       font-size: 12px;
     }}
@@ -400,21 +419,21 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         <table>
           <thead>
             <tr>
-              <th>Creator</th>
-              <th>Lead</th>
-              <th>Service</th>
-              <th>Vertical</th>
-              <th>Network</th>
-              <th>Owner</th>
-              <th>Dropped</th>
-              <th>Reason</th>
-              <th>Cadence</th>
-              <th>CG Involvement</th>
-              <th>Call</th>
-              <th>Salesloft</th>
-              <th>Slack</th>
-              <th>Returned</th>
-              <th>Outcome</th>
+              <th><button class="sort-button" type="button" data-sort="creator_project_name">Creator <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="lead">Lead <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="service_level">Service <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="vertical">Vertical <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="previous_ad_network">Network <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="onboarding_owner">Owner <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="dropped_date">Dropped <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="reason">Reason <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="macro_cadence">Cadence <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="cg_involvement">CG Involvement <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="onboarding_call_offered">Call <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="salesloft_meeting_detected">Salesloft <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="slack_intervention_detected">Slack <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="returned_date">Returned <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="outcome">Outcome <span class="sort-indicator"></span></button></th>
             </tr>
           </thead>
           <tbody id="creator-rows"></tbody>
@@ -425,6 +444,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 
   <script>
     const RECORDS = {data_json};
+    const sortState = {{ key: 'dropped_date', direction: 'asc' }};
 
     const fields = {{
       search: document.getElementById('search'),
@@ -459,6 +479,73 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function cadenceValue(value) {{
       const clean = text(value).trim();
       return clean && clean !== 'Unknown' ? clean : 'None';
+    }}
+
+    function reasonValue(row) {{
+      const reason = text(row.cancellation_reason).trim();
+      return reason && !['Dropped', 'Canceled', 'Cancelled'].includes(reason) ? reason : 'No reason captured';
+    }}
+
+    function displayValue(row, key) {{
+      if (key === 'lead') return text(row.lead_contact || row.company_name);
+      if (key === 'reason') return reasonValue(row);
+      if (key === 'macro_cadence') return cadenceValue(row.macro_cadence);
+      if (key === 'cg_involvement') return text(row.cg_involvement || 'Not Assisted');
+      if (['onboarding_call_offered', 'salesloft_meeting_detected', 'slack_intervention_detected'].includes(key)) {{
+        return truthy(row[key]) ? 'Yes' : 'No';
+      }}
+      return text(row[key]);
+    }}
+
+    function dateSortValue(value) {{
+      const clean = text(value).trim();
+      if (!clean) return Number.POSITIVE_INFINITY;
+      const parsed = Date.parse(clean);
+      return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
+    }}
+
+    function sortValue(row, key) {{
+      if (['dropped_date', 'returned_date'].includes(key)) return dateSortValue(row[key]);
+      if (['onboarding_call_offered', 'salesloft_meeting_detected', 'slack_intervention_detected'].includes(key)) {{
+        return truthy(row[key]) ? 1 : 0;
+      }}
+      const value = displayValue(row, key).trim().toLowerCase();
+      return value || 'zzzzzz';
+    }}
+
+    function sortMissing(row, key) {{
+      if (['dropped_date', 'returned_date'].includes(key)) return !text(row[key]).trim();
+      const value = displayValue(row, key).trim();
+      return !value || value === 'Unknown' || value === 'No reason captured';
+    }}
+
+    function sortRows(rows) {{
+      return [...rows].sort((a, b) => {{
+        const leftMissing = sortMissing(a, sortState.key);
+        const rightMissing = sortMissing(b, sortState.key);
+        if (leftMissing !== rightMissing) return leftMissing ? 1 : -1;
+        const left = sortValue(a, sortState.key);
+        const right = sortValue(b, sortState.key);
+        let comparison;
+        if (typeof left === 'number' && typeof right === 'number') {{
+          comparison = left - right;
+        }} else {{
+          comparison = String(left).localeCompare(String(right), undefined, {{ numeric: true, sensitivity: 'base' }});
+        }}
+        if (comparison === 0) {{
+          comparison = text(a.creator_project_name).localeCompare(text(b.creator_project_name), undefined, {{ sensitivity: 'base' }});
+        }}
+        return sortState.direction === 'asc' ? comparison : -comparison;
+      }});
+    }}
+
+    function updateSortIndicators() {{
+      document.querySelectorAll('.sort-button').forEach(button => {{
+        const active = button.dataset.sort === sortState.key;
+        button.setAttribute('aria-sort', active ? (sortState.direction === 'asc' ? 'ascending' : 'descending') : 'none');
+        const indicator = button.querySelector('.sort-indicator');
+        if (indicator) indicator.textContent = active ? (sortState.direction === 'asc' ? '▲' : '▼') : '';
+      }});
     }}
 
     function populateSelect(id, key, formatter = optionValue) {{
@@ -582,9 +669,9 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <td>${{escapeHtml(row.previous_ad_network || 'Unknown')}}</td>
           <td>${{escapeHtml(row.onboarding_owner || 'Unknown')}}</td>
           <td>${{escapeHtml(row.dropped_date)}}</td>
-          <td>${{escapeHtml(row.cancellation_reason || row.dropped_status || 'Unknown')}}</td>
+          <td>${{escapeHtml(reasonValue(row))}}</td>
           <td>${{escapeHtml(cadenceValue(row.macro_cadence))}}</td>
-          <td>${{escapeHtml(row.cg_involvement || 'None')}}</td>
+          <td>${{escapeHtml(row.cg_involvement || 'Not Assisted')}}</td>
           <td>${{statusPill(row.onboarding_call_offered)}}</td>
           <td>${{statusPill(row.salesloft_meeting_detected)}}</td>
           <td>${{statusPill(row.slack_intervention_detected)}}</td>
@@ -595,7 +682,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function render() {{
-      const rows = filtered();
+      const rows = sortRows(filtered());
       renderKpis(rows);
       renderBars('service-bars', groupCounts(rows, 'service_level'), '');
       renderBars('reason-bars', groupCounts(rows, 'cancellation_reason'), 'amber');
@@ -606,6 +693,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       document.getElementById('cg-count').textContent = `${{groupCounts(rows, 'cg_involvement', 50).length}} groups`;
       document.getElementById('network-count').textContent = `${{groupCounts(rows, 'previous_ad_network', 50).length}} networks`;
       renderTable(rows);
+      updateSortIndicators();
     }}
 
     populateSelect('service', 'service_level');
@@ -614,6 +702,18 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     populateSelect('cadence', 'macro_cadence', cadenceValue);
     Object.values(fields).forEach(control => control.addEventListener('input', render));
     Object.values(fields).forEach(control => control.addEventListener('change', render));
+    document.querySelectorAll('.sort-button').forEach(button => {{
+      button.addEventListener('click', () => {{
+        const key = button.dataset.sort;
+        if (sortState.key === key) {{
+          sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+        }} else {{
+          sortState.key = key;
+          sortState.direction = 'asc';
+        }}
+        render();
+      }});
+    }});
     render();
   </script>
 </body>

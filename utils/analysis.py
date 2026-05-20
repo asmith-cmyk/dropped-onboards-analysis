@@ -28,7 +28,7 @@ def derive_cg_timing(row: pd.Series) -> str:
     involvement = normalize_text(row.get("cg_involvement", ""))
     event_at = pd.to_datetime(row.get("first_cg_touch_at", ""), errors="coerce")
     dropped_at = pd.to_datetime(row.get("dropped_date", ""), errors="coerce")
-    if "non assisted" in involvement or involvement in {"none", "no", ""}:
+    if "non assisted" in involvement or "not assisted" in involvement or involvement in {"none", "no", ""}:
         if pd.isna(event_at):
             return "No CG involvement"
     if pd.notna(event_at) and pd.notna(dropped_at):
@@ -36,7 +36,7 @@ def derive_cg_timing(row: pd.Series) -> str:
         if days <= 7:
             return "Early CG involvement"
         return "Late CG involvement"
-    if "assisted" in involvement or clean_blank(row.get("cg_effort")):
+    if ("assisted" in involvement and "not assisted" not in involvement and "non assisted" not in involvement) or clean_blank(row.get("cg_effort")):
         return "Assisted"
     return "No CG involvement"
 
