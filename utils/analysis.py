@@ -7,12 +7,17 @@ import pandas as pd
 from utils.columns import format_date_for_output
 from utils.io import clean_blank
 from utils.text import normalize_creator_name, normalize_text
+from utils.zendesk_client import infer_macro_cadence
 
 
 def as_bool(series: pd.Series) -> pd.Series:
     if series.empty:
         return pd.Series(dtype=bool)
-    return series.fillna(False).astype(bool)
+    if series.dtype == bool:
+        return series.fillna(False)
+    return series.fillna("").astype(str).str.strip().str.lower().isin(
+        {"1", "true", "yes", "y", "booked", "installed", "converted"}
+    )
 
 
 def bool_series(series: pd.Series | bool | object, index=None) -> pd.Series:
@@ -67,10 +72,13 @@ def link_zendesk(matches: pd.DataFrame, zendesk: pd.DataFrame) -> pd.DataFrame:
         if related.empty:
             continue
         out.at[idx, "zendesk_ticket_count"] = len(related)
-        cadences = [value for value in related["macro_cadence"].dropna().unique() if value and value != "None"]
-        out.at[idx, "macro_cadence"] = cadences[0] if cadences else "None"
-        out.at[idx, "meeting_offered_zendesk"] = bool(related["meeting_offered"].fillna(False).any())
-        out.at[idx, "ticket_reopened"] = bool(related["ticket_reopened"].fillna(False).any())
+        macro_flags = {
+            column: bool(as_bool(related[column]).any()) if column in related.columns else False
+            for column in ("macro_day_3", "macro_day_5", "macro_day_7", "macro_day_10")
+        }
+        out.at[idx, "macro_cadence"] = infer_macro_cadence(pd.Series(macro_flags))
+        out.at[idx, "meeting_offered_zendesk"] = bool(as_bool(related["meeting_offered"]).any())
+        out.at[idx, "ticket_reopened"] = bool(as_bool(related["ticket_reopened"]).any())
     return out
 
 

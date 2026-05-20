@@ -103,57 +103,57 @@ Love Food Not Cooking,Food,Insider,Mediavine,2025-12-19,,,Not Assisted,None,Fals
 The Vegan 8,Food,Insider,No ads,2025-12-19,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Brandi Doming,snowflake_site_id,100
 EconoFact,Other,Insider,No ads,2025-12-22,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Michael Klein,snowflake_site_id,100
 Discover Over There,Travel,Insider,Mediavine,2025-12-26,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Chihuei Liu,snowflake_site_id,100
-Aviation A2Z,Travel,Luminary,Freestar,2026-01-06,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Bhavya Velani,,0.0
-My Name Is Snickerdoodle,Food,Rise,Mediavine,2026-01-07,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Amy Williams,,0.0
-Growing Dawn,Lifestyle,Rise,Mediavine Journey,2026-01-08,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Tiffany Brewer,,0.0
-The Carpenters Daughter,Home Decor and Design,Rise,Mediavine,2026-01-08,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Vikkie Lee,,0.0
-Thank You Berry Much,Food,Insider,Mediavine,2026-01-12,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Emily Wise,,0.0
+Aviation A2Z,Travel,Luminary,Freestar,2026-01-06,,,Assisted,3,False,False,False,False,Dropped,Antoinette Smith,Bhavya Velani,,0.0
+My Name Is Snickerdoodle,Food,Rise,Mediavine,2026-01-07,,,Not Assisted,3/7,False,False,False,False,Dropped,Michelle Stappert,Amy Williams,,0.0
+Growing Dawn,Lifestyle,Rise,Mediavine Journey,2026-01-08,,,Not Assisted,3,False,False,False,False,Dropped,Amy Burgess,Tiffany Brewer,,0.0
+The Carpenters Daughter,Home Decor and Design,Rise,Mediavine,2026-01-08,,,Not Assisted,3,False,False,False,False,Dropped,Amy Burgess,Vikkie Lee,,0.0
+Thank You Berry Much,Food,Insider,Mediavine,2026-01-12,,,Assisted,3,False,False,False,False,Dropped,Michelle Stappert,Emily Wise,,0.0
 Super Age,Health and Wellness,Insider,AdSense,2026-01-14,2026-02-24,41,Assisted,None,True,True,False,False,Returned,Antoinette Smith,Amr Saleh,manual_override,100
-Gretas Travels,Travel,Rise,Mediavine,2026-01-16,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Greta Omoboni,,0.0
+Gretas Travels,Travel,Rise,Mediavine,2026-01-16,,,Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Greta Omoboni,,0.0
 CelebrityCipher Answer,Gaming,Insider,Other,2026-01-19,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Michael Felch,,0.0
 Cryptoquip Answer,Gaming,Insider,Other,2026-01-19,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Michael Felch,,0.0
 Style Your Occasion,Womens Style,Insider,Mediavine,2026-01-22,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Christal Sczebel,,0.0
-XboxEra,Gaming,Insider,Other,2026-01-23,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Jon Clarke,,0.0
-Kelly Neil,Food,Insider,Mediavine,2026-01-26,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Kelly Neil,,0.0
-The Vivienne Files,Womens Style,Insider,Mediavine,2026-01-27,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Janice Riggs,,0.0
-PNW HOME,Home Decor and Design,Rise,No ads,2026-01-29,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Cody Smith,,0.0
-The Color Concierge,Home Decor and Design,Insider,Mediavine,2026-01-29,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Michelle Marceny,,0.0
-Somewhere In Arkansas,Travel,Rise,No ads,2026-01-30,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Karen Keathley,,0.0
-Dish by Rish,Food,Insider,Mediavine,2026-02-02,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Rishi Nanavati,,0.0
-Margaux Food,Food,Insider,Other,2026-02-04,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Margaux Verdier,,0.0
-Take Two Tapas,Food,,Mediavine,2026-02-05,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Jennifer Stewart,,0.0
-Beginners Guide to RVing,Travel,Platinum,No ads,2026-02-06,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Charles Woodbury,,0.0
-foodgawker,Food,Rise,Mediavine,2026-02-13,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Daniel Fell,,0.0
+XboxEra,Gaming,Insider,Other,2026-01-23,,,Not Assisted,7,False,False,False,False,Dropped,Whitney Harrist,Jon Clarke,,0.0
+Kelly Neil,Food,Insider,Mediavine,2026-01-26,,,Not Assisted,3/7,False,False,False,False,Dropped,Amy Burgess,Kelly Neil,,0.0
+The Vivienne Files,Womens Style,Insider,Mediavine,2026-01-27,,,Not Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Janice Riggs,,0.0
+PNW HOME,Home Decor and Design,Rise,No ads,2026-01-29,,,Not Assisted,7,False,False,False,False,Dropped,Whitney Harrist,Cody Smith,,0.0
+The Color Concierge,Home Decor and Design,Insider,Mediavine,2026-01-29,,,Not Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Michelle Marceny,,0.0
+Somewhere In Arkansas,Travel,Rise,No ads,2026-01-30,,,Not Assisted,7,False,False,False,False,Dropped,Whitney Harrist,Karen Keathley,,0.0
+Dish by Rish,Food,Insider,Mediavine,2026-02-02,,,Not Assisted,3,False,False,False,False,Dropped,Michelle Stappert,Rishi Nanavati,,0.0
+Margaux Food,Food,Insider,Other,2026-02-04,,,Not Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Margaux Verdier,,0.0
+Take Two Tapas,Food,,Mediavine,2026-02-05,,,Not Assisted,3/7,False,False,False,False,Dropped,Amy Burgess,Jennifer Stewart,,0.0
+Beginners Guide to RVing,Travel,Platinum,No ads,2026-02-06,,,Not Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Charles Woodbury,,0.0
+foodgawker,Food,Rise,Mediavine,2026-02-13,,,Not Assisted,3,False,False,False,False,Dropped,Michelle Stappert,Daniel Fell,,0.0
 Tecmint Linux Howtos Tutorials and Guides,Tech,Insider,Freestar,2026-02-17,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Ravi Kumar Saive,,0.0
-Pint Sized Baker,Food,Rise,Mediavine,2026-02-26,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Susanne Queck,,0.0
-On The Water,Hobbies & Interests,Rise,AdSense,2026-03-12,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Kevin Blinkoff,,0.0
-Southern Bytes,Food,Insider,Mediavine,2026-03-19,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Kari Anderson,,0.0
-Whats Good at Trader Joes,Food,Rise,AdSense,2026-03-19,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Nathan Rodgers,,0.0
+Pint Sized Baker,Food,Rise,Mediavine,2026-02-26,,,Not Assisted,3/7,False,False,False,False,Dropped,Michelle Stappert,Susanne Queck,,0.0
+On The Water,Hobbies & Interests,Rise,AdSense,2026-03-12,,,Not Assisted,3/7,False,False,False,False,Dropped,Michelle Stappert,Kevin Blinkoff,,0.0
+Southern Bytes,Food,Insider,Mediavine,2026-03-19,,,Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Kari Anderson,,0.0
+Whats Good at Trader Joes,Food,Rise,AdSense,2026-03-19,,,Not Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Nathan Rodgers,,0.0
 footyscores,Sports,Rise,No ads,2026-03-19,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Lachlan Hamilton,,0.0
-Novel Games,Gaming,Insider,AdSense,2026-03-20,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Peter Lee,,0.0
-Sydney Expert,Travel,Insider,Mediavine,2026-03-20,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Paula Morgan,,0.0
+Novel Games,Gaming,Insider,AdSense,2026-03-20,,,Assisted,7,False,False,False,False,Dropped,Michelle Stappert,Peter Lee,,0.0
+Sydney Expert,Travel,Insider,Mediavine,2026-03-20,,,Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Paula Morgan,,0.0
 Bored Button,Entertainment,Insider,AdSense,2026-03-23,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Tyler Cole,,0.0
 Fisheries,Hobbies & Interests,Rise,No ads,2026-03-24,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Steve Tipson,,0.0
 The Royal Court of Pasta,Food,Insider,No ads,2026-03-24,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Nadia Munno,,0.0
-PkmnCards,Gaming,Insider,AdSense,2026-03-25,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Adam Capriola,,0.0
-Kellys Clean Kitchen,Food,Insider,No ads,2026-03-27,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Kelly Scott,,0.0
+PkmnCards,Gaming,Insider,AdSense,2026-03-25,,,Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Adam Capriola,,0.0
+Kellys Clean Kitchen,Food,Insider,No ads,2026-03-27,,,Not Assisted,7,False,False,False,False,Dropped,Michelle Stappert,Kelly Scott,,0.0
 Zelda Central,Gaming,Insider,AdSense,2026-03-30,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Victor Williams,,0.0
 Xfire,Gaming,Platinum Elite,Mediavine,2026-04-02,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Matt Gibbs,,0.0
-Gabriela Eats,Food,Rise,No ads,2026-04-08,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Gabriela Campos Kelley,,0.0
-DeSoto County News,News,Insider,AdSense,2026-04-10,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Jon Myers,,0.0
-Batter Up,Sports,Insider,Other,2026-04-13,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Cristian Lopez,,0.0
+Gabriela Eats,Food,Rise,No ads,2026-04-08,,,Not Assisted,3/7,False,False,False,False,Dropped,Michelle Stappert,Gabriela Campos Kelley,,0.0
+DeSoto County News,News,Insider,AdSense,2026-04-10,,,Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Jon Myers,,0.0
+Batter Up,Sports,Insider,Other,2026-04-13,,,Not Assisted,3,False,False,False,False,Dropped,Antoinette Smith,Cristian Lopez,,0.0
 Random Pokemon Picker,Gaming,Insider,No ads,2026-04-13,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Devashish Sharma,,0.0
 Boggle Wizard,Gaming,Insider,AdSense,2026-04-16,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Corpuz Ferdinand,,0.0
-Rogueliker,Gaming,Insider,Other,2026-04-16,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Mike Holmes,,0.0
-Sally Sees,Travel,Rise,Mediavine,2026-04-20,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Sally Rodrick,,0.0
-My Goodness Kitchen,Food,Rise,Mediavine,2026-04-23,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Amanda Logan,,0.0
-Jonathan Zaragoza,Food,Rise,AdSense,2026-04-24,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Jonathan Zaragoza,,0.0
+Rogueliker,Gaming,Insider,Other,2026-04-16,,,Not Assisted,3/7,False,False,False,False,Dropped,Michelle Stappert,Mike Holmes,,0.0
+Sally Sees,Travel,Rise,Mediavine,2026-04-20,,,Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Sally Rodrick,,0.0
+My Goodness Kitchen,Food,Rise,Mediavine,2026-04-23,,,Assisted,3,False,False,False,False,Dropped,Whitney Harrist,Amanda Logan,,0.0
+Jonathan Zaragoza,Food,Rise,AdSense,2026-04-24,,,Assisted,3/7,False,False,False,False,Dropped,Antoinette Smith,Jonathan Zaragoza,,0.0
 Mobile Suit Arena,Gaming,Insider,AdSense,2026-04-24,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Douglas Godinho,,0.0
-Headfonia,Tech,Insider,Mediavine,2026-04-30,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Lieven Vranken,,0.0
+Headfonia,Tech,Insider,Mediavine,2026-04-30,,,Assisted,7,False,False,False,False,Dropped,Amy Burgess,Lieven Vranken,,0.0
 Scrabble Cheat,Entertainment,Insider,Ezoic,2026-04-30,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Steven Fuchs,,0.0
 Hawaii,Travel,Insider,In house,2026-05-01,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Corinne van den Heuvel,,0.0
-The Food in my Beard,Food,Rise,Mediavine,2026-05-01,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Dan Whalen,,0.0
-HealthyGreenSavvy,Other,Rise,Mediavine,2026-05-04,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Susannah Shmurak,,0.0
-Maple and Mango,Food,Rise,Mediavine,2026-05-04,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Vanessa Gilic,,0.0
-Posh in Progress,Lifestyle,Rise,Mediavine,2026-05-11,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Jade Freeman,,0.0
-The Art of Manliness,Lifestyle,Insider,AdSense; Other,2026-05-13,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Brett McKay,,0.0
+The Food in my Beard,Food,Rise,Mediavine,2026-05-01,,,Assisted,7,False,False,False,False,Dropped,Michelle Stappert,Dan Whalen,,0.0
+HealthyGreenSavvy,Other,Rise,Mediavine,2026-05-04,,,Assisted,3/7,False,False,False,False,Dropped,Michelle Stappert,Susannah Shmurak,,0.0
+Maple and Mango,Food,Rise,Mediavine,2026-05-04,,,Assisted,7,False,False,False,False,Dropped,Michelle Stappert,Vanessa Gilic,,0.0
+Posh in Progress,Lifestyle,Rise,Mediavine,2026-05-11,,,Assisted,3/7,False,False,False,False,Dropped,Michelle Stappert,Jade Freeman,,0.0
+The Art of Manliness,Lifestyle,Insider,AdSense; Other,2026-05-13,,,Assisted,5,False,False,False,False,Dropped,Whitney Harrist,Brett McKay,,0.0

@@ -8,7 +8,10 @@ import pandas as pd
 
 
 def read_csv(path: Path) -> pd.DataFrame:
-    return pd.read_csv(path, dtype=str, keep_default_na=False, na_filter=False)
+    df = pd.read_csv(path, dtype=str, keep_default_na=False, na_filter=False)
+    if len(df.columns) == 1 and ";" in str(df.columns[0]):
+        df = pd.read_csv(path, sep=";", dtype=str, keep_default_na=False, na_filter=False)
+    return df
 
 
 def read_csv_if_exists(path: Path) -> pd.DataFrame:
@@ -47,4 +50,3 @@ def coalesce(*values: Any) -> str:
 def parse_boolish(value: Any) -> bool:
     text = clean_blank(value).lower()
     return text in {"1", "true", "yes", "y", "installed", "converted", "booked"}
-
