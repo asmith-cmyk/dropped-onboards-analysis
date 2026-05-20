@@ -1,100 +1,50 @@
 cohort_type,cohort_value,total_dropped,reengaged_count,reengagement_rate,installed_count,install_rate,converted_count,conversion_rate,median_days_to_return
-Vertical,Arts & Creativity,20,1,0.05,1,0.05,1,0.05,103.0
-Vertical,Auto,31,0,0.0,0,0.0,0,0.0,
-Vertical,Baby,1,0,0.0,0,0.0,0,0.0,
-Vertical,Beauty,7,0,0.0,0,0.0,0,0.0,
-Vertical,Business,13,0,0.0,0,0.0,0,0.0,
-Vertical,Careers,2,0,0.0,0,0.0,0,0.0,
-Vertical,Clean Eating,1,0,0.0,0,0.0,0,0.0,
-Vertical,Crafts,30,0,0.0,0,0.0,0,0.0,
-Vertical,Deals,6,0,0.0,0,0.0,0,0.0,
-Vertical,Education,10,1,0.1,1,0.1,1,0.1,118.0
-Vertical,Entertainment,31,0,0.0,0,0.0,0,0.0,
-Vertical,Family and Parenting,29,3,0.1034,3,0.1034,3,0.1034,103.0
-Vertical,Fitness,7,0,0.0,0,0.0,0,0.0,
-Vertical,Food,215,22,0.1023,22,0.1023,22,0.1023,188.5
-Vertical,Gaming,54,0,0.0,0,0.0,0,0.0,
-Vertical,Gardening,15,0,0.0,0,0.0,0,0.0,
-Vertical,Green Living,3,0,0.0,0,0.0,0,0.0,
-Vertical,Health and Wellness,14,1,0.0714,0,0.0,0,0.0,41.0
-Vertical,History & Culture,7,0,0.0,0,0.0,0,0.0,
-Vertical,Hobbies & Interests,19,0,0.0,0,0.0,0,0.0,
-Vertical,Home Decor and Design,45,0,0.0,0,0.0,0,0.0,
-Vertical,"Law, Gov't & Politics",4,0,0.0,0,0.0,0,0.0,
-Vertical,Lifestyle,28,0,0.0,0,0.0,0,0.0,
-Vertical,Mens Style and Grooming,4,0,0.0,0,0.0,0,0.0,
-Vertical,News,18,0,0.0,0,0.0,0,0.0,
-Vertical,Other,19,0,0.0,0,0.0,0,0.0,
-Vertical,Personal Finance,7,0,0.0,0,0.0,0,0.0,
-Vertical,Pets,31,0,0.0,0,0.0,0,0.0,
-Vertical,Pregnancy,1,0,0.0,0,0.0,0,0.0,
-Vertical,Professional Finance,5,0,0.0,0,0.0,0,0.0,
-Vertical,Real Estate,1,0,0.0,0,0.0,0,0.0,
-Vertical,Religion & Spirituality,5,0,0.0,0,0.0,0,0.0,
-Vertical,Science,2,0,0.0,0,0.0,0,0.0,
-Vertical,Shopping,3,0,0.0,0,0.0,0,0.0,
-Vertical,Sports,49,1,0.0204,1,0.0204,1,0.0204,28.0
-Vertical,Tech,46,1,0.0217,1,0.0217,1,0.0217,81.0
-Vertical,Travel,66,1,0.0152,1,0.0152,1,0.0152,70.0
-Vertical,Unknown,34,0,0.0,0,0.0,0,0.0,
-Vertical,Wedding,5,0,0.0,0,0.0,0,0.0,
-Vertical,Womens Style,10,0,0.0,0,0.0,0,0.0,
-Service Level,AdThrive Edge,1,0,0.0,0,0.0,0,0.0,
-Service Level,Enterprise,59,0,0.0,0,0.0,0,0.0,
-Service Level,Insider,625,20,0.032,19,0.0304,19,0.0304,103.0
-Service Level,Luminary,21,0,0.0,0,0.0,0,0.0,
-Service Level,Platinum,63,3,0.0476,3,0.0476,3,0.0476,81.0
-Service Level,Platinum Elite,52,0,0.0,0,0.0,0,0.0,
-Service Level,Rise,76,8,0.1053,8,0.1053,8,0.1053,327.5
+Vertical,Arts & Creativity,1,0,0.0,0,0.0,0,0.0,
+Vertical,Auto,2,0,0.0,0,0.0,0,0.0,
+Vertical,Business,1,0,0.0,0,0.0,0,0.0,
+Vertical,Crafts,4,0,0.0,0,0.0,0,0.0,
+Vertical,Entertainment,4,0,0.0,0,0.0,0,0.0,
+Vertical,Family and Parenting,1,0,0.0,0,0.0,0,0.0,
+Vertical,Fitness,1,0,0.0,0,0.0,0,0.0,
+Vertical,Food,54,9,0.1667,9,0.1667,9,0.1667,336.0
+Vertical,Gaming,13,0,0.0,0,0.0,0,0.0,
+Vertical,Gardening,1,0,0.0,0,0.0,0,0.0,
+Vertical,Green Living,1,0,0.0,0,0.0,0,0.0,
+Vertical,Health and Wellness,2,1,0.5,0,0.0,0,0.0,41.0
+Vertical,Hobbies & Interests,3,0,0.0,0,0.0,0,0.0,
+Vertical,Home Decor and Design,7,0,0.0,0,0.0,0,0.0,
+Vertical,"Law, Gov't & Politics",1,0,0.0,0,0.0,0,0.0,
+Vertical,Lifestyle,7,0,0.0,0,0.0,0,0.0,
+Vertical,Mens Style and Grooming,1,0,0.0,0,0.0,0,0.0,
+Vertical,News,4,0,0.0,0,0.0,0,0.0,
+Vertical,Other,10,0,0.0,0,0.0,0,0.0,
+Vertical,Personal Finance,1,0,0.0,0,0.0,0,0.0,
+Vertical,Religion & Spirituality,1,0,0.0,0,0.0,0,0.0,
+Vertical,Shopping,1,0,0.0,0,0.0,0,0.0,
+Vertical,Sports,7,0,0.0,0,0.0,0,0.0,
+Vertical,Tech,4,1,0.25,1,0.25,1,0.25,81.0
+Vertical,Travel,22,0,0.0,0,0.0,0,0.0,
+Vertical,Womens Style,4,0,0.0,0,0.0,0,0.0,
+Service Level,Insider,123,10,0.0813,9,0.0732,9,0.0732,267.0
+Service Level,Luminary,2,0,0.0,0,0.0,0,0.0,
+Service Level,Platinum,5,1,0.2,1,0.2,1,0.2,81.0
+Service Level,Platinum Elite,5,0,0.0,0,0.0,0,0.0,
+Service Level,Rise,22,0,0.0,0,0.0,0,0.0,
 Service Level,Unknown,1,0,0.0,0,0.0,0,0.0,
-Previous Ad Network,AdSense,11,1,0.0909,0,0.0,0,0.0,41.0
+Previous Ad Network,AdSense,20,2,0.1,1,0.05,1,0.05,75.5
 Previous Ad Network,AdSense; Other,1,0,0.0,0,0.0,0,0.0,
-Previous Ad Network,AdX,1,0,0.0,0,0.0,0,0.0,
-Previous Ad Network,Adsense,45,1,0.0222,1,0.0222,1,0.0222,103.0
-Previous Ad Network,Ezoic,34,0,0.0,0,0.0,0,0.0,
-Previous Ad Network,Freestar,4,0,0.0,0,0.0,0,0.0,
-Previous Ad Network,I manage my own ad setup using one or more ad provider,10,0,0.0,0,0.0,0,0.0,
-Previous Ad Network,In house,1,0,0.0,0,0.0,0,0.0,
-Previous Ad Network,Mediavine,161,15,0.0932,15,0.0932,15,0.0932,261.0
-Previous Ad Network,Mediavine - Journey,8,0,0.0,0,0.0,0,0.0,
-Previous Ad Network,Mediavine Journey,1,0,0.0,0,0.0,0,0.0,
-Previous Ad Network,Monumetric,4,0,0.0,0,0.0,0,0.0,
-Previous Ad Network,No Ads Before,103,1,0.0097,1,0.0097,1,0.0097,28.0
-Previous Ad Network,No ads,9,0,0.0,0,0.0,0,0.0,
-Previous Ad Network,Other,6,0,0.0,0,0.0,0,0.0,
-Previous Ad Network,Other Ad Management Company,45,0,0.0,0,0.0,0,0.0,
-Previous Ad Network,SHE Media,3,1,0.3333,1,0.3333,1,0.3333,60.0
-Previous Ad Network,Self Managed Stack,11,0,0.0,0,0.0,0,0.0,
-Previous Ad Network,Unknown,439,12,0.0273,12,0.0273,12,0.0273,103.0
-Previous Ad Network,Venatus,1,0,0.0,0,0.0,0,0.0,
-Creator Growth,Assisted,27,1,0.037,0,0.0,0,0.0,41.0
-Creator Growth,Not Assisted,871,30,0.0344,30,0.0344,30,0.0344,129.5
-Macro Cadence,None,898,31,0.0345,30,0.0334,30,0.0334,118.0
-Onboarding Owner,52e41fac28963d1e058a0fa1,3,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Aditya Gorti,7,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Alisa Willis,7,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Allison Kerkhoff,9,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Amy Burgess,10,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Antoinette Smith,10,1,0.1,0,0.0,0,0.0,41.0
-Onboarding Owner,Caleb Francisco,12,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Daniel Tenney,8,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Emily Han,3,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Estefanie Duque,1,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Hope Kelly,9,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Jeff McLaughlin,8,1,0.125,1,0.125,1,0.125,81.0
-Onboarding Owner,Jeremy Krans,3,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Jessica Friol,15,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Jonah Fisher,7,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Jordan Moore,1,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Lara Clark,2,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Leanne Holley,6,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Maria Blanco,2,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Marianne Seel,2,1,0.5,1,0.5,1,0.5,28.0
-Onboarding Owner,Megan Fitzpatrick,1,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Michelle Stappert,16,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Pooja Iyer,3,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Theresa Marigny,8,1,0.125,1,0.125,1,0.125,444.0
-Onboarding Owner,Tyler Couch,17,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Unknown,704,27,0.0384,27,0.0384,27,0.0384,141.0
-Onboarding Owner,Whitney Harrist,18,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Zahrya McFarland,6,0,0.0,0,0.0,0,0.0,
+Previous Ad Network,Ezoic,3,0,0.0,0,0.0,0,0.0,
+Previous Ad Network,Freestar,2,0,0.0,0,0.0,0,0.0,
+Previous Ad Network,In house,3,0,0.0,0,0.0,0,0.0,
+Previous Ad Network,Mediavine,67,9,0.1343,9,0.1343,9,0.1343,336.0
+Previous Ad Network,Mediavine Journey,14,0,0.0,0,0.0,0,0.0,
+Previous Ad Network,No ads,30,0,0.0,0,0.0,0,0.0,
+Previous Ad Network,Other,18,0,0.0,0,0.0,0,0.0,
+Creator Growth,Assisted,87,8,0.092,7,0.0805,7,0.0805,341.5
+Creator Growth,Not Assisted,71,3,0.0423,3,0.0423,3,0.0423,110.0
+Macro Cadence,None,158,11,0.0696,10,0.0633,10,0.0633,198.0
+Onboarding Owner,Amy Burgess,25,0,0.0,0,0.0,0,0.0,
+Onboarding Owner,Antoinette Smith,32,1,0.0312,0,0.0,0,0.0,41.0
+Onboarding Owner,Jade Carpenter,17,2,0.1176,2,0.1176,2,0.1176,365.5
+Onboarding Owner,Michelle Stappert,38,5,0.1316,5,0.1316,5,0.1316,198.0
+Onboarding Owner,Whitney Harrist,46,3,0.0652,3,0.0652,3,0.0652,110.0

@@ -343,22 +343,22 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     install_completed = returning_status.str.lower().isin({"active", "checkup"})
 
     lifecycle = pd.DataFrame(index=d.index)
-    lifecycle["lifecycle_creator_id"] = d["site_id"].fillna("").astype(str)
+    lifecycle["lifecycle_creator_id"] = d.get("project_id", d["site_id"]).fillna("").astype(str)
     lifecycle["creator_project_name"] = d["creator_name"]
-    lifecycle["lead_contact"] = ""
+    lifecycle["lead_contact"] = d.get("lead_contact", "")
     lifecycle["company_name"] = d["company_name"]
-    lifecycle["domain"] = ""
+    lifecycle["domain"] = d.get("domain", "")
     lifecycle["site_id"] = d["site_id"]
-    lifecycle["salesforce_project_id"] = ""
-    lifecycle["salesforce_account_id"] = ""
-    lifecycle["salesforce_lead_id"] = ""
+    lifecycle["salesforce_project_id"] = d.get("project_id", "")
+    lifecycle["salesforce_account_id"] = d.get("salesforce_account_id", "")
+    lifecycle["salesforce_lead_id"] = d.get("salesforce_lead_id", "")
     lifecycle["creator_key"] = d["creator_name"].map(normalize_creator_name)
-    lifecycle["lead_key"] = ""
+    lifecycle["lead_key"] = d.get("lead_contact", "").map(normalize_creator_name) if "lead_contact" in d.columns else ""
     lifecycle["vertical"] = d.get("vertical", "")
     lifecycle["service_level"] = d.get("service_level", "")
     lifecycle["previous_ad_network"] = d.get("previous_ad_network", "")
     lifecycle["onboarding_owner"] = d.get("onboarding_owner", "")
-    lifecycle["monthly_pageviews"] = ""
+    lifecycle["monthly_pageviews"] = d.get("monthly_pageviews", "")
     lifecycle["dropped_status"] = d["status"]
     lifecycle["dropped_date"] = format_date_for_output(dropped_date)
     lifecycle["returned_date"] = format_date_for_output(expected_install)
@@ -366,15 +366,15 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     lifecycle["install_date"] = ""
     lifecycle["days_to_return"] = _format_days((expected_install - dropped_date).dt.days)
     lifecycle["cancellation_reason"] = d.get("dropped_reason", "")
-    lifecycle["raw_description"] = ""
+    lifecycle["raw_description"] = d.get("raw_description", "")
     lifecycle["normalized_reason"] = "Unknown"
     lifecycle["reason_confidence_score"] = ""
     lifecycle["reason_classification_method"] = ""
     lifecycle["macro_cadence"] = "None"
     lifecycle["zendesk_ticket_count"] = 0
     lifecycle["ticket_reopened"] = False
-    lifecycle["cg_involvement"] = "Not Assisted"
-    lifecycle["cg_effort"] = ""
+    lifecycle["cg_involvement"] = _cg_involvement_label(d.get("cg_involvement", pd.Series("", index=d.index)))
+    lifecycle["cg_effort"] = d.get("cg_effort", "")
     lifecycle["cg_escalation_status"] = False
     lifecycle["cg_escalation_timing"] = "No CG involvement"
     lifecycle["cg_first_touch_at"] = ""
@@ -396,7 +396,7 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     lifecycle["returning_status"] = returning_status.where(reengaged, "")
     lifecycle["match_method"] = "snowflake_site_id"
     lifecycle["match_score"] = 100
-    lifecycle["source_salesforce_dropped"] = False
+    lifecycle["source_salesforce_dropped"] = True
     lifecycle["source_salesforce_returning"] = False
     lifecycle["source_snowflake"] = True
 

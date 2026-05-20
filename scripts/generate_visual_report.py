@@ -142,7 +142,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
     .controls {{
       display: grid;
-      grid-template-columns: minmax(240px, 2fr) repeat(4, minmax(140px, 1fr));
+      grid-template-columns: minmax(220px, 2fr) repeat(5, minmax(130px, 1fr));
       gap: 10px;
       align-items: end;
       margin-bottom: 16px;
@@ -375,6 +375,9 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       <label>Search
         <input id="search" type="search" placeholder="Creator, lead, owner, reason">
       </label>
+      <label>Year
+        <select id="year"></select>
+      </label>
       <label>Service Level
         <select id="service"></select>
       </label>
@@ -448,6 +451,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 
     const fields = {{
       search: document.getElementById('search'),
+      year: document.getElementById('year'),
       service: document.getElementById('service'),
       vertical: document.getElementById('vertical'),
       owner: document.getElementById('owner'),
@@ -479,6 +483,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function cadenceValue(value) {{
       const clean = text(value).trim();
       return clean && clean !== 'Unknown' ? clean : 'None';
+    }}
+
+    function yearValue(value) {{
+      const clean = text(value).trim();
+      return clean ? clean.slice(0, 4) : 'Unknown';
     }}
 
     function reasonValue(row) {{
@@ -565,6 +574,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function filtered() {{
       const query = fields.search.value.trim().toLowerCase();
       return RECORDS.filter(row => {{
+        if (fields.year.value && yearValue(row.dropped_date) !== fields.year.value) return false;
         if (fields.service.value && optionValue(row.service_level) !== fields.service.value) return false;
         if (fields.vertical.value && optionValue(row.vertical) !== fields.vertical.value) return false;
         if (fields.owner.value && optionValue(row.onboarding_owner) !== fields.owner.value) return false;
@@ -578,6 +588,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           row.onboarding_owner,
           row.cancellation_reason,
           row.dropped_status,
+          row.dropped_date,
           row.previous_ad_network,
           row.vertical,
           row.service_level
@@ -696,10 +707,14 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       updateSortIndicators();
     }}
 
+    populateSelect('year', 'dropped_date', yearValue);
     populateSelect('service', 'service_level');
     populateSelect('vertical', 'vertical');
     populateSelect('owner', 'onboarding_owner');
     populateSelect('cadence', 'macro_cadence', cadenceValue);
+    if ([...fields.year.options].some(option => option.value === '2025')) {{
+      fields.year.value = '2025';
+    }}
     Object.values(fields).forEach(control => control.addEventListener('input', render));
     Object.values(fields).forEach(control => control.addEventListener('change', render));
     document.querySelectorAll('.sort-button').forEach(button => {{

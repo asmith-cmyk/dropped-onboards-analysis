@@ -371,7 +371,7 @@ def write_executive_summary(
             "## Data Notes",
             "",
             "- `master_creator_lifecycle.csv` is the single source of truth for downstream lifecycle analysis.",
-            "- Salesforce dropped records and Snowflake 2025 dropped site-history records define the table grain: one row per dropped onboarding creator/site.",
+            "- Salesforce dropped records and Snowflake Salesforce Onboarding project records define the table grain: one row per dropped onboarding creator/site.",
             "- Returning Salesforce, Snowflake returned-site cohorts, Zendesk, Slack, Creator Growth, and Salesloft signals enrich that lifecycle row.",
             "- Cancellation reason categories use OpenAI when `OPENAI_API_KEY` is present, with a deterministic rules fallback.",
             "- Conversion is treated as install completion unless a dedicated conversion date/status is supplied.",

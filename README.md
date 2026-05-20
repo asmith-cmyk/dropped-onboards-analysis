@@ -1,6 +1,6 @@
 # Onboarding Lifecycle Re-engagement Analysis
 
-Python analytics pipeline for Raptive/CafeMedia dropped onboarding creators. It pulls dropped and returning Salesforce reports, Snowflake site-history cohorts, normalizes creator identity, enriches each creator with Zendesk and Slack signals, classifies cancellation reasons, and builds one master lifecycle dataset that serves as the source of truth for downstream views and summaries.
+Python analytics pipeline for Raptive/CafeMedia dropped onboarding creators. It pulls dropped and returning Salesforce reports, Snowflake Salesforce Onboarding project cohorts, normalizes creator identity, enriches each creator with Zendesk and Slack signals, classifies cancellation reasons, and builds one master lifecycle dataset that serves as the source of truth for downstream views and summaries.
 
 The central output is:
 
@@ -40,12 +40,16 @@ Confirmed returning report fields:
 
 Snowflake:
 
+- `ANALYTICS.SALESFORCE.MPM4_BASE__MILESTONE1_PROJECT__C`
+- `ANALYTICS.SALESFORCE.LEAD`
+- `ANALYTICS.SALESFORCE.ACCOUNT`
+- `ANALYTICS.SALESFORCE.USER`
 - `ANALYTICS.ADTHRIVE.SITE_HISTORY`
 - `ANALYTICS.ADTHRIVE.SITE_EXTENDED`
-- `ANALYTICS.ADTHRIVE.DROPPED_REASON`
-- `snowflake_dropped_2025.csv` captures all sites with `Dropped`, `Canceled`, or `Cancelled` history in 2025.
-- `snowflake_returned_2026.csv` captures those 2025 dropped/canceled sites that later appear in `Install`, `Checkup`, or `Active` with a 2026 expected install date.
-- Snowflake enrichment supplies service level, vertical, previous ad network, onboarding owner, and dropped/canceled reason where available.
+- `snowflake_dropped_2025.csv` captures cancelled Salesforce Onboarding projects in 2025 for `Rise`, `Insider`, `Platinum`, `Platinum Elite`, `Luminary`, and `Mid Market Enterprise`.
+- The Snowflake dropped cohort excludes pre-onboarding/non-engagement and non-onboarding lifecycle reasons such as duplicate, merged, new-owner churn, retiring site, left-Raptive, and offboarding records.
+- `snowflake_returned_2026.csv` captures that 2025 onboarding cohort when it later appears in `Install`, `Checkup`, or `Active` with a 2026 install date.
+- Snowflake enrichment supplies service level, vertical, previous ad network, onboarding owner, monthly pageviews, CG involvement, and dropped/canceled reason where available.
 
 Zendesk:
 
@@ -133,7 +137,7 @@ python scripts/generate_outputs.py --run-pulls --force-salesforce-api --force-sn
 ## Pipeline Stages
 
 1. `pull_salesforce_reports.py` fetches the dropped and returning Salesforce reports.
-2. `pull_snowflake_data.py` fetches 2025 dropped/canceled site history and 2026 returned-site cohorts.
+2. `pull_snowflake_data.py` fetches 2025 cancelled Salesforce Onboarding projects and 2026 returned-site cohorts.
 3. `pull_zendesk_data.py` pulls Zendesk onboarding ticket/tag data or normalizes an exported CSV.
 4. `pull_slack_data.py` pulls intervention messages from Slack.
 5. `normalize_creators.py` canonicalizes creator, lead, network, owner, vertical, service level, and date fields.
@@ -172,7 +176,7 @@ Generated files:
 
 ## Master Lifecycle Schema
 
-`master_creator_lifecycle.csv` is the canonical analytical model. Salesforce dropped records and Snowflake dropped site-history records define the table grain: one row per dropped onboarding creator/site. Returning Salesforce, Snowflake returned-site cohorts, Zendesk, Slack, Creator Growth, and Salesloft signals enrich that row.
+`master_creator_lifecycle.csv` is the canonical analytical model. Salesforce dropped records and Snowflake Salesforce Onboarding project records define the table grain: one row per dropped onboarding creator/site. Returning Salesforce, Snowflake returned-site cohorts, Zendesk, Slack, Creator Growth, and Salesloft signals enrich that row.
 
 Core field groups:
 
