@@ -19,9 +19,6 @@ from utils.io import read_csv
 
 BOOL_COLUMNS = {
     "cg_escalation_status",
-    "onboarding_call_offered",
-    "salesloft_meeting_detected",
-    "slack_intervention_detected",
     "rescue_intervention_detected",
     "install_completed",
     "converted",
@@ -49,9 +46,6 @@ REPORT_FIELDS = [
     "macro_cadence",
     "cg_involvement",
     "cg_escalation_status",
-    "onboarding_call_offered",
-    "salesloft_meeting_detected",
-    "slack_intervention_detected",
     "install_completed",
     "converted",
     "reengaged",
@@ -432,9 +426,6 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
               <th><button class="sort-button" type="button" data-sort="reason">Reason <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="macro_cadence">Cadence <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="cg_involvement">CG Involvement <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="onboarding_call_offered">Call <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="salesloft_meeting_detected">Salesloft <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="slack_intervention_detected">Slack <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="returned_date">Returned <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="outcome">Outcome <span class="sort-indicator"></span></button></th>
             </tr>
@@ -500,9 +491,6 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       if (key === 'reason') return reasonValue(row);
       if (key === 'macro_cadence') return cadenceValue(row.macro_cadence);
       if (key === 'cg_involvement') return text(row.cg_involvement || 'Not Assisted');
-      if (['onboarding_call_offered', 'salesloft_meeting_detected', 'slack_intervention_detected'].includes(key)) {{
-        return truthy(row[key]) ? 'Yes' : 'No';
-      }}
       return text(row[key]);
     }}
 
@@ -515,9 +503,6 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 
     function sortValue(row, key) {{
       if (['dropped_date', 'returned_date'].includes(key)) return dateSortValue(row[key]);
-      if (['onboarding_call_offered', 'salesloft_meeting_detected', 'slack_intervention_detected'].includes(key)) {{
-        return truthy(row[key]) ? 1 : 0;
-      }}
       const value = displayValue(row, key).trim().toLowerCase();
       return value || 'zzzzzz';
     }}
@@ -683,9 +668,6 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <td>${{escapeHtml(reasonValue(row))}}</td>
           <td>${{escapeHtml(cadenceValue(row.macro_cadence))}}</td>
           <td>${{escapeHtml(row.cg_involvement || 'Not Assisted')}}</td>
-          <td>${{statusPill(row.onboarding_call_offered)}}</td>
-          <td>${{statusPill(row.salesloft_meeting_detected)}}</td>
-          <td>${{statusPill(row.slack_intervention_detected)}}</td>
           <td>${{escapeHtml(row.returned_date)}}</td>
           <td>${{outcome(row)}}</td>
         </tr>
