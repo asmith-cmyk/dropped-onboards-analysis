@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -27,6 +28,11 @@ def bool_series(series: pd.Series | bool | object, index=None) -> pd.Series:
         return series.fillna(False)
     normalized = series.fillna("").astype(str).str.strip().str.lower()
     return normalized.isin({"1", "true", "yes", "y", "booked", "installed", "converted"})
+
+
+def cadence_has_days(value: object, required_days: set[str]) -> bool:
+    days = set(re.findall(r"\b(?:3|5|7|10)\b", clean_blank(value)))
+    return required_days.issubset(days)
 
 
 def derive_cg_timing(row: pd.Series) -> str:
@@ -313,9 +319,12 @@ def write_executive_summary(
     total = len(reengaged_output)
     reengaged = int(bool_series(reengaged_output["reengaged"]).sum()) if total else 0
     installed = int(bool_series(reengaged_output["install_completed"]).sum()) if total else 0
+    cadence = reengaged_output.get("macro_cadence", pd.Series("", index=reengaged_output.index))
     installed_after_357 = int(
-        (bool_series(reengaged_output.get("install_completed", False), index=reengaged_output.index)
-        & (reengaged_output.get("macro_cadence", "").fillna("").astype(str).str.strip() == "3/5/7")).sum()
+        (
+            bool_series(reengaged_output.get("install_completed", False), index=reengaged_output.index)
+            & cadence.map(lambda value: cadence_has_days(value, {"3", "5", "7"}))
+        ).sum()
     ) if total else 0
     rate = reengaged / total if total else 0
     install_rate = installed / total if total else 0
@@ -338,7 +347,7 @@ def write_executive_summary(
         f"- Re-engagement rate: {rate:.1%}",
         f"- Install/conversion rate among dropped creators: {install_rate:.1%}",
         f"- Median days to return: {median_days:.1f}" if pd.notna(median_days) else "- Median days to return: unavailable",
-        f"- Re-engaged & Installed after 3/5/7 follow-up: {installed_after_357}/{total}",
+        f"- Re-engaged & Installed after 3, 5 and 7 day follow up: {installed_after_357}/{total}",
         "",
         "## Strongest Cohorts",
         "",

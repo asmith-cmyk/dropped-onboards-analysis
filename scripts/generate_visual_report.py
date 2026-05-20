@@ -484,6 +484,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return clean && clean !== 'Unknown' ? clean : 'None';
     }}
 
+    function cadenceHasDays(value, requiredDays) {{
+      const days = new Set((text(value).match(/\\b(?:3|5|7|10)\\b/g) || []));
+      return requiredDays.every(day => days.has(day));
+    }}
+
     function yearValue(value) {{
       const clean = text(value).trim();
       if (!clean) return '';
@@ -614,7 +619,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function summarize(rows) {{
       const total = rows.length;
       const reengaged = rows.filter(row => truthy(row.reengaged)).length;
-      const installedAfter357 = rows.filter(row => truthy(row.install_completed) && cadenceValue(row.macro_cadence) === '3/5/7').length;
+      const installedAfter357 = rows.filter(row => truthy(row.install_completed) && cadenceHasDays(row.macro_cadence, ['3', '5', '7'])).length;
       const rise = rows.filter(row => text(row.service_level).toLowerCase() === 'rise').length;
       return {{ total, reengaged, installedAfter357, rise }};
     }}
@@ -675,7 +680,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 
     function outcome(row) {{
       if (text(row.outcome).trim()) return `<span class="${{row.outcome === 'Dropped' ? 'status no' : row.outcome === 'Returned' ? 'status warn' : 'status'}}">${{escapeHtml(row.outcome)}}</span>`;
-      if (truthy(row.install_completed) && cadenceValue(row.macro_cadence) === '3/5/7') {{
+      if (truthy(row.install_completed) && cadenceHasDays(row.macro_cadence, ['3', '5', '7'])) {{
         return '<span class="status">Re-engaged &amp; Installed</span>';
       }}
       if (truthy(row.reengaged) || text(row.returned_date).trim()) return '<span class="status warn">Returned</span>';

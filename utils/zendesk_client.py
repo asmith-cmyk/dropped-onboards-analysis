@@ -66,12 +66,22 @@ def infer_macro_flags(tags: str) -> dict[str, bool]:
     }
 
 
+def format_macro_cadence(days: list[str]) -> str:
+    if not days:
+        return "None"
+    if len(days) == 1:
+        return f"{days[0]} day follow up"
+    if len(days) == 2:
+        return f"{days[0]} and {days[1]} day follow up"
+    return f"{', '.join(days[:-1])} and {days[-1]} day follow up"
+
+
 def infer_macro_cadence(row: pd.Series) -> str:
     days = []
     for day, column in (("3", "macro_day_3"), ("5", "macro_day_5"), ("7", "macro_day_7"), ("10", "macro_day_10")):
         if bool(row.get(column)):
             days.append(day)
-    return "/".join(days) if days else "None"
+    return format_macro_cadence(days)
 
 
 def normalize_zendesk_dataframe(df: pd.DataFrame) -> pd.DataFrame:

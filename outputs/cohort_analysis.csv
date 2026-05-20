@@ -51,9 +51,12 @@ Previous Ad Network,Other,80,18,0.225,18,0.225,18,0.225,266.5
 Previous Ad Network,SHE Media,7,2,0.2857,2,0.2857,2,0.2857,466.0
 Creator Growth,Assisted,187,48,0.2567,47,0.2513,47,0.2513,268.0
 Creator Growth,Not Assisted,387,98,0.2532,98,0.2532,98,0.2532,209.0
-Macro Cadence,3,2,0,0.0,0,0.0,0,0.0,
-Macro Cadence,3/7,2,0,0.0,0,0.0,0,0.0,
-Macro Cadence,None,570,146,0.2561,145,0.2544,145,0.2544,233.0
+Macro Cadence,3 and 7 day follow up,41,3,0.0732,3,0.0732,3,0.0732,73.0
+Macro Cadence,3 day follow up,32,9,0.2812,9,0.2812,9,0.2812,391.0
+Macro Cadence,"3, 5 and 7 day follow up",1,0,0.0,0,0.0,0,0.0,
+Macro Cadence,5 day follow up,1,0,0.0,0,0.0,0,0.0,
+Macro Cadence,7 day follow up,16,2,0.125,2,0.125,2,0.125,244.5
+Macro Cadence,None,483,132,0.2733,131,0.2712,131,0.2712,233.0
 Onboarding Owner,Adam Giacopuzzi,1,0,0.0,0,0.0,0,0.0,
 Onboarding Owner,Amy Burgess,100,24,0.24,24,0.24,24,0.24,145.5
 Onboarding Owner,Angelina Ryan,1,0,0.0,0,0.0,0,0.0,

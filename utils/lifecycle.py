@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import pandas as pd
 
 from utils.analysis import bool_series, derive_cg_timing, link_slack, link_zendesk
@@ -129,13 +131,20 @@ def _cg_involvement_label(series: pd.Series) -> pd.Series:
     return pd.Series("Not Assisted", index=series.index).where(~assisted, "Assisted")
 
 
+def _cadence_has_days(value: object, required_days: set[str]) -> bool:
+    days = set(re.findall(r"\b(?:3|5|7|10)\b", clean_blank(value)))
+    return required_days.issubset(days)
+
+
 def _outcome_series(df: pd.DataFrame) -> pd.Series:
     installed = bool_series(_series_or_default(df, "install_completed", False), index=df.index)
     reengaged = bool_series(_series_or_default(df, "reengaged", False), index=df.index)
     cadence = _series_or_default(df, "macro_cadence", "None").fillna("").astype(str).str.strip()
     outcome = pd.Series("Dropped", index=df.index)
     outcome.loc[reengaged] = "Returned"
-    outcome.loc[installed & (cadence == "3/5/7")] = "Re-engaged & Installed"
+    outcome.loc[installed & cadence.map(lambda value: _cadence_has_days(value, {"3", "5", "7"}))] = (
+        "Re-engaged & Installed"
+    )
     return outcome
 
 
@@ -310,7 +319,7 @@ def _dedupe_snowflake_returned(returned: pd.DataFrame) -> pd.DataFrame:
         + out["creator_name"].map(normalize_creator_name)
     )
     out.loc[out["_return_key"].eq(""), "_return_key"] = fallback_key
-    status_priority = {"active": 0, "checkup": 1, "install": 2}
+    status_priority = {"active": 0, "checkup": 1, "install": 2, "setup": 3}
     out["_status_priority"] = out["current_status"].fillna("").astype(str).str.lower().map(status_priority).fillna(99)
     out["_expected_install_at"] = pd.to_datetime(
         _format_date_like(out["expected_install_date"], numeric_unit="D"), errors="coerce"
@@ -592,6 +601,7 @@ def build_master_creator_lifecycle(
     if not snowflake_lifecycle.empty:
         lifecycle = pd.concat([lifecycle, snowflake_lifecycle], ignore_index=True)
         lifecycle = _dedupe_lifecycle_rows(lifecycle)
+    lifecycle = link_zendesk(lifecycle, zendesk)
     if manual_overrides is not None and not manual_overrides.empty:
         lifecycle = apply_manual_overrides(lifecycle, manual_overrides)
     lifecycle = _recalculate_lifecycle_flags(lifecycle)

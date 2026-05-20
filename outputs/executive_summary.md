@@ -7,7 +7,7 @@ Generated from the master lifecycle dataset with 574 dropped onboarding creators
 - Re-engagement rate: 25.4%
 - Install/conversion rate among dropped creators: 25.3%
 - Median days to return: 233.0
-- Re-engaged & Installed after 3/5/7 follow-up: 0/574
+- Re-engaged & Installed after 3, 5 and 7 day follow up: 0/574
 
 ## Strongest Cohorts
 

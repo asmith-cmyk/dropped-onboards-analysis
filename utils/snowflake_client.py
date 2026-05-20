@@ -129,7 +129,7 @@ WITH dropped_onboards AS (
       )
 ),
 
-returned_onboards AS (
+returned_candidates AS (
     SELECT
         d.project_id,
         d.site_id,
@@ -138,25 +138,65 @@ returned_onboards AS (
         h1.status AS current_status,
         TO_VARCHAR(h1.install_date, 'YYYY-MM-DD') AS expected_install_date,
         d.actual_close_date,
-        ROW_NUMBER() OVER (
-            PARTITION BY d.project_id
-            ORDER BY
-                h1.install_date,
-                CASE h1.status
-                    WHEN 'Active' THEN 1
-                    WHEN 'Checkup' THEN 2
-                    WHEN 'Install' THEN 3
-                    ELSE 9
-                END,
-                TO_TIMESTAMP_NTZ(h1.updated_at)
-        ) AS row_num
+        TO_TIMESTAMP_NTZ(h1.updated_at) AS status_updated_at
     FROM dropped_onboards d
     INNER JOIN ANALYTICS.ADTHRIVE.SITE_HISTORY h1
         ON d.site_id = h1.id
-    WHERE h1.status IN ('Install', 'Checkup', 'Active')
+    WHERE (
+          h1.status IN ('Install', 'Checkup', 'Active')
+          OR (
+              h1.status = 'Setup'
+              AND YEAR(h1.install_date) = YEAR(CURRENT_DATE())
+          )
+      )
       AND h1.install_date IS NOT NULL
       AND TO_DATE(h1.install_date) >= TO_DATE(d.actual_close_ts)
       AND TO_TIMESTAMP_NTZ(h1.updated_at) > TO_TIMESTAMP_NTZ(d.actual_close_ts)
+
+    UNION ALL
+
+    SELECT
+        d.project_id,
+        d.site_id,
+        d.creator_name,
+        d.company_name,
+        s.status AS current_status,
+        TO_VARCHAR(s.install_date, 'YYYY-MM-DD') AS expected_install_date,
+        d.actual_close_date,
+        TO_TIMESTAMP_NTZ(s.updated_at) AS status_updated_at
+    FROM dropped_onboards d
+    INNER JOIN ANALYTICS.ADTHRIVE.SITE s
+        ON d.site_id = s.id
+    WHERE s.status = 'Setup'
+      AND s.install_date IS NOT NULL
+      AND YEAR(s.install_date) = YEAR(CURRENT_DATE())
+      AND TO_DATE(s.install_date) >= TO_DATE(d.actual_close_ts)
+      AND TO_TIMESTAMP_NTZ(s.updated_at) > TO_TIMESTAMP_NTZ(d.actual_close_ts)
+),
+
+returned_onboards AS (
+    SELECT
+        project_id,
+        site_id,
+        creator_name,
+        company_name,
+        current_status,
+        expected_install_date,
+        actual_close_date,
+        ROW_NUMBER() OVER (
+            PARTITION BY project_id
+            ORDER BY
+                TO_DATE(expected_install_date),
+                CASE current_status
+                    WHEN 'Active' THEN 1
+                    WHEN 'Checkup' THEN 2
+                    WHEN 'Install' THEN 3
+                    WHEN 'Setup' THEN 4
+                    ELSE 9
+                END,
+                status_updated_at
+        ) AS row_num
+    FROM returned_candidates
 )
 
 SELECT
