@@ -365,7 +365,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     <div class="title-row">
       <div>
         <h1>Onboarding Lifecycle Dashboard</h1>
-        <div class="subtitle">Master lifecycle model · {total} dropped onboarding creators · Generated {generated}</div>
+        <div class="subtitle">{total} dropped onboarding creators · Generated {generated}</div>
       </div>
       <div class="subtitle">Source: outputs/master_creator_lifecycle.csv</div>
     </div>
@@ -416,7 +416,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 
     <section class="panel table-panel">
       <div class="table-header">
-        <h2>Master Lifecycle Rows</h2>
+        <h2>Dropped Onboard Sites</h2>
         <span class="subtitle" id="row-count"></span>
       </div>
       <div class="table-wrap">
@@ -627,7 +627,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function renderKpis(rows) {{
       const s = summarize(rows);
       const tiles = [
-        ['Dropped onboards', s.total, 'Filtered lifecycle rows'],
+        ['Dropped onboards', s.total, 'Filtered rows'],
         ['Returned', s.reengaged, pct(s.reengaged, s.total)],
         ['Re-engaged & Installed', s.installedAfter357, pct(s.installedAfter357, s.total)],
         ['Rise creators', s.rise, pct(s.rise, s.total)]
