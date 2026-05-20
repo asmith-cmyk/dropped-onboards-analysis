@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -15,6 +16,7 @@ if str(ROOT) not in sys.path:
 
 from utils.config import ensure_project_dirs, load_settings
 from utils.io import read_csv
+from utils.zendesk_client import format_macro_cadence
 
 
 BOOL_COLUMNS = {
@@ -29,10 +31,15 @@ BOOL_COLUMNS = {
 
 
 REPORT_FIELDS = [
+    "creator_key",
+    "lead_key",
     "creator_project_name",
     "lead_contact",
     "company_name",
+    "domain",
     "site_id",
+    "salesforce_project_id",
+    "salesforce_account_id",
     "vertical",
     "service_level",
     "previous_ad_network",
@@ -59,6 +66,153 @@ def to_bool(value: object) -> bool:
     return str(value).strip().lower() in {"1", "true", "yes", "y"}
 
 
+def clean_text(value: object) -> str:
+    if value is None or pd.isna(value):
+        return ""
+    return str(value).strip()
+
+
+def parsed_date(value: object) -> pd.Timestamp:
+    return pd.to_datetime(clean_text(value), errors="coerce")
+
+
+def display_date_list(values: list[object]) -> str:
+    dates = sorted(
+        {
+            parsed.strftime("%Y-%m-%d")
+            for parsed in (parsed_date(value) for value in values)
+            if not pd.isna(parsed)
+        }
+    )
+    return "; ".join(dates)
+
+
+def first_present(rows: list[dict[str, object]], column: str) -> str:
+    for row in rows:
+        value = clean_text(row.get(column, ""))
+        if value:
+            return value
+    return ""
+
+
+def bool_any(rows: list[dict[str, object]], column: str) -> bool:
+    return any(to_bool(row.get(column, False)) for row in rows)
+
+
+def outcome_priority(value: object) -> int:
+    normalized = clean_text(value).lower()
+    if normalized == "re-engaged & installed":
+        return 3
+    if normalized == "returned":
+        return 2
+    if normalized == "dropped":
+        return 1
+    return 0
+
+
+def combined_cadence(rows: list[dict[str, object]]) -> str:
+    days = set()
+    for row in rows:
+        days.update(re.findall(r"\b(?:3|5|7|10)\b", clean_text(row.get("macro_cadence", ""))))
+    return format_macro_cadence([day for day in ("3", "5", "7", "10") if day in days])
+
+
+def display_days_to_return(dropped_date: str, returned_date: str, fallback: object) -> str:
+    dropped = parsed_date(dropped_date)
+    returned = parsed_date(returned_date)
+    if pd.isna(dropped) or pd.isna(returned):
+        return clean_text(fallback)
+    return str(int((returned - dropped).days))
+
+
+def collapse_returned_attempts(records: list[dict[str, object]]) -> list[dict[str, object]]:
+    """Show one dashboard row when repeat drops share one official return date.
+
+    The master lifecycle CSV stays event-level. The dashboard is creator-level for
+    returned sites, so multiple dropped attempts with the same return date are
+    represented as one row with visible drop history.
+    """
+    groups: dict[tuple[str, str], list[dict[str, object]]] = {}
+    passthrough: list[dict[str, object]] = []
+
+    for record in records:
+        returned_date = clean_text(record.get("returned_date", ""))
+        site_key = clean_text(record.get("site_id", ""))
+        if not site_key:
+            site_key = clean_text(record.get("salesforce_account_id", ""))
+        if not site_key:
+            site_key = clean_text(record.get("creator_key", "")) or clean_text(record.get("creator_project_name", "")).lower()
+
+        if returned_date and site_key:
+            groups.setdefault((site_key, returned_date), []).append(record)
+        else:
+            passthrough.append(record)
+
+    collapsed: list[dict[str, object]] = []
+    for (_, returned_date), rows in groups.items():
+        if len(rows) == 1:
+            row = rows[0].copy()
+            row["drop_count"] = 1
+            row["dropped_dates"] = clean_text(row.get("dropped_date", ""))
+            row["dropped_sort_date"] = clean_text(row.get("dropped_date", ""))
+            row["first_dropped_date"] = clean_text(row.get("dropped_date", ""))
+            row["latest_dropped_date"] = clean_text(row.get("dropped_date", ""))
+            row["drop_history"] = clean_text(row.get("dropped_date", ""))
+            collapsed.append(row)
+            continue
+
+        ordered = sorted(
+            rows,
+            key=lambda row: (
+                pd.Timestamp.min if pd.isna(parsed_date(row.get("dropped_date", ""))) else parsed_date(row.get("dropped_date", "")),
+                clean_text(row.get("salesforce_project_id", "")),
+            ),
+        )
+        latest = ordered[-1].copy()
+        date_list = display_date_list([row.get("dropped_date", "") for row in ordered])
+        latest_drop = clean_text(ordered[-1].get("dropped_date", ""))
+        first_drop = clean_text(ordered[0].get("dropped_date", ""))
+
+        latest["drop_count"] = len({clean_text(row.get("dropped_date", "")) for row in ordered if clean_text(row.get("dropped_date", ""))})
+        latest["dropped_dates"] = date_list
+        latest["dropped_date"] = date_list or latest_drop
+        latest["dropped_sort_date"] = latest_drop
+        latest["first_dropped_date"] = first_drop
+        latest["latest_dropped_date"] = latest_drop
+        latest["days_to_return"] = display_days_to_return(latest_drop, returned_date, latest.get("days_to_return", ""))
+        latest["macro_cadence"] = combined_cadence(ordered)
+        latest["cg_involvement"] = "Assisted" if any(clean_text(row.get("cg_involvement", "")).lower() == "assisted" for row in ordered) else "Not Assisted"
+        latest["install_completed"] = bool_any(ordered, "install_completed")
+        latest["converted"] = bool_any(ordered, "converted")
+        latest["reengaged"] = bool_any(ordered, "reengaged") or bool(returned_date)
+        latest["outcome"] = max((clean_text(row.get("outcome", "")) for row in ordered), key=outcome_priority, default=clean_text(latest.get("outcome", "")))
+        latest["lead_contact"] = first_present(list(reversed(ordered)), "lead_contact")
+        latest["creator_project_name"] = first_present(list(reversed(ordered)), "creator_project_name")
+
+        history_parts = []
+        for row in ordered:
+            date = clean_text(row.get("dropped_date", ""))
+            owner = clean_text(row.get("onboarding_owner", ""))
+            reason = clean_text(row.get("cancellation_reason", ""))
+            cg = clean_text(row.get("cg_involvement", ""))
+            details = " | ".join(part for part in (owner, reason, cg) if part)
+            history_parts.append(f"{date}: {details}" if details else date)
+        latest["drop_history"] = "\n".join(history_parts)
+        collapsed.append(latest)
+
+    for row in passthrough:
+        row = row.copy()
+        row["drop_count"] = 1
+        row["dropped_dates"] = clean_text(row.get("dropped_date", ""))
+        row["dropped_sort_date"] = clean_text(row.get("dropped_date", ""))
+        row["first_dropped_date"] = clean_text(row.get("dropped_date", ""))
+        row["latest_dropped_date"] = clean_text(row.get("dropped_date", ""))
+        row["drop_history"] = clean_text(row.get("dropped_date", ""))
+        collapsed.append(row)
+
+    return collapsed
+
+
 def prepare_records(master: pd.DataFrame) -> list[dict[str, object]]:
     available_fields = [field for field in REPORT_FIELDS if field in master.columns]
     records = master[available_fields].fillna("").to_dict(orient="records")
@@ -69,7 +223,7 @@ def prepare_records(master: pd.DataFrame) -> list[dict[str, object]]:
         for key, value in list(record.items()):
             if not isinstance(value, bool):
                 record[key] = "" if value is None else str(value)
-    return records
+    return collapse_returned_attempts(records)
 
 
 def render_html(records: list[dict[str, object]], generated_at: str) -> str:
@@ -343,6 +497,12 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       background: #fff4df;
       color: #8a4b08;
     }}
+    .cell-note {{
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }}
     .empty {{
       color: var(--muted);
       padding: 18px 0;
@@ -527,13 +687,15 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function sortValue(row, key) {{
-      if (['dropped_date', 'returned_date'].includes(key)) return dateSortValue(row[key]);
+      if (key === 'dropped_date') return dateSortValue(row.dropped_sort_date || row.latest_dropped_date || row.dropped_date);
+      if (key === 'returned_date') return dateSortValue(row[key]);
       const value = displayValue(row, key).trim().toLowerCase();
       return value || 'zzzzzz';
     }}
 
     function sortMissing(row, key) {{
-      if (['dropped_date', 'returned_date'].includes(key)) return !text(row[key]).trim();
+      if (key === 'dropped_date') return !text(row.dropped_sort_date || row.latest_dropped_date || row.dropped_date).trim();
+      if (key === 'returned_date') return !text(row[key]).trim();
       const value = displayValue(row, key).trim();
       return !value || value === 'Unknown' || value === 'No reason captured';
     }}
@@ -604,6 +766,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           row.site_id,
           row.onboarding_owner,
           row.cancellation_reason,
+          row.drop_history,
           row.dropped_status,
           row.dropped_date,
           row.returned_date,
@@ -693,13 +856,16 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       tbody.innerHTML = rows.map((row, index) => `
         <tr>
           <td class="number-col">${{index + 1}}</td>
-          <td><strong>${{escapeHtml(row.creator_project_name)}}</strong></td>
+          <td>
+            <strong>${{escapeHtml(row.creator_project_name)}}</strong>
+            ${{number(row.drop_count) > 1 ? `<div class="cell-note">${{number(row.drop_count)}} dropped attempts</div>` : ''}}
+          </td>
           <td>${{escapeHtml(row.lead_contact || row.company_name)}}</td>
           <td>${{escapeHtml(row.service_level || 'Unknown')}}</td>
           <td>${{escapeHtml(row.vertical || 'Unknown')}}</td>
           <td>${{escapeHtml(row.previous_ad_network || 'Unknown')}}</td>
           <td>${{escapeHtml(row.onboarding_owner || 'Unknown')}}</td>
-          <td>${{escapeHtml(row.dropped_date)}}</td>
+          <td title="${{escapeAttr(row.drop_history || row.dropped_date)}}">${{escapeHtml(row.dropped_date)}}</td>
           <td>${{escapeHtml(reasonValue(row))}}</td>
           <td>${{escapeHtml(cadenceValue(row.macro_cadence))}}</td>
           <td>${{escapeHtml(row.cg_involvement || 'Not Assisted')}}</td>
