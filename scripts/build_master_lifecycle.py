@@ -21,8 +21,18 @@ def run() -> Path:
     zendesk = read_csv_if_exists(settings.raw_data_dir / "zendesk_onboarding_followups.csv")
     slack = read_csv_if_exists(settings.raw_data_dir / "slack_interventions.csv")
     manual_overrides = read_csv_if_exists(settings.data_dir / "manual_lifecycle_overrides.csv")
+    snowflake_dropped = read_csv_if_exists(settings.raw_data_dir / "snowflake_dropped_2025.csv")
+    snowflake_returned = read_csv_if_exists(settings.raw_data_dir / "snowflake_returned_2026.csv")
 
-    master = build_master_creator_lifecycle(matches, classifications, zendesk, slack, manual_overrides)
+    master = build_master_creator_lifecycle(
+        matches,
+        classifications,
+        zendesk,
+        slack,
+        manual_overrides,
+        snowflake_dropped,
+        snowflake_returned,
+    )
     processed_path = settings.processed_data_dir / "master_creator_lifecycle.csv"
     output_path = settings.output_dir / "master_creator_lifecycle.csv"
     write_csv(master, processed_path)

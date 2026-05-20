@@ -14,6 +14,7 @@ from scripts.match_reengagements import run as match_reengagements
 from scripts.normalize_creators import run as normalize_creators
 from scripts.pull_salesforce_reports import run as pull_salesforce
 from scripts.pull_slack_data import run as pull_slack
+from scripts.pull_snowflake_data import run as pull_snowflake
 from scripts.pull_zendesk_data import run as pull_zendesk
 from scripts.generate_visual_report import run as generate_visual_report
 from utils.analysis import (
@@ -29,12 +30,13 @@ from utils.config import ensure_project_dirs, load_settings
 from utils.io import read_csv, write_csv
 
 
-def run(run_pulls: bool = False, force_salesforce_api: bool = False) -> None:
+def run(run_pulls: bool = False, force_salesforce_api: bool = False, force_snowflake_api: bool = False) -> None:
     settings = load_settings(ROOT)
     ensure_project_dirs(settings)
 
     if run_pulls:
         pull_salesforce(force_api=force_salesforce_api)
+        pull_snowflake(force_api=force_snowflake_api)
         pull_zendesk()
         pull_slack()
 
@@ -75,8 +77,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Generate all business-readable outputs.")
     parser.add_argument("--run-pulls", action="store_true", help="Pull source data before analysis.")
     parser.add_argument("--force-salesforce-api", action="store_true", help="Refresh Salesforce even if raw CSVs exist.")
+    parser.add_argument("--force-snowflake-api", action="store_true", help="Refresh Snowflake even if raw CSVs exist.")
     args = parser.parse_args()
-    run(run_pulls=args.run_pulls, force_salesforce_api=args.force_salesforce_api)
+    run(
+        run_pulls=args.run_pulls,
+        force_salesforce_api=args.force_salesforce_api,
+        force_snowflake_api=args.force_snowflake_api,
+    )
 
 
 if __name__ == "__main__":

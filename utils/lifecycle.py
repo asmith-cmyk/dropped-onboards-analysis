@@ -12,7 +12,9 @@ MASTER_COLUMNS = [
     "lifecycle_creator_id",
     "creator_project_name",
     "lead_contact",
+    "company_name",
     "domain",
+    "site_id",
     "salesforce_project_id",
     "salesforce_account_id",
     "salesforce_lead_id",
@@ -23,6 +25,7 @@ MASTER_COLUMNS = [
     "previous_ad_network",
     "onboarding_owner",
     "monthly_pageviews",
+    "dropped_status",
     "dropped_date",
     "returned_date",
     "scheduled_install_date",
@@ -56,10 +59,12 @@ MASTER_COLUMNS = [
     "returning_lead_contact",
     "returning_previous_ad_network",
     "returning_owner",
+    "returning_status",
     "match_method",
     "match_score",
     "source_salesforce_dropped",
     "source_salesforce_returning",
+    "source_snowflake",
 ]
 
 
@@ -89,6 +94,15 @@ def _format_datetime(series: pd.Series) -> pd.Series:
 def _format_days(series: pd.Series) -> pd.Series:
     numeric = pd.to_numeric(series, errors="coerce")
     return numeric.astype("Int64").astype(str).replace("<NA>", "")
+
+
+def _format_date_like(series: pd.Series, numeric_unit: str = "s") -> pd.Series:
+    text = series.fillna("").astype(str).str.strip()
+    numeric = pd.to_numeric(text, errors="coerce")
+    parsed = pd.to_datetime(text.where(numeric.isna(), ""), errors="coerce")
+    numeric_dates = pd.to_datetime(numeric, errors="coerce", unit=numeric_unit, origin="unix")
+    parsed = parsed.fillna(numeric_dates)
+    return format_date_for_output(parsed)
 
 
 def _is_present(value: object) -> bool:
@@ -131,7 +145,7 @@ def _recalculate_lifecycle_flags(lifecycle: pd.DataFrame) -> pd.DataFrame:
     out["reengaged"] = reengaged
     out["source_salesforce_returning"] = bool_series(
         _series_or_default(out, "source_salesforce_returning", False), index=out.index
-    ) | reengaged
+    )
     out["outcome"] = _outcome_series(out)
     return out
 
@@ -168,6 +182,7 @@ def apply_manual_overrides(lifecycle: pd.DataFrame, overrides: pd.DataFrame) -> 
         "reengaged",
         "source_salesforce_dropped",
         "source_salesforce_returning",
+        "source_snowflake",
     }
     numeric_columns = {
         "zendesk_ticket_count",
@@ -250,21 +265,146 @@ def _attach_classifications(matches: pd.DataFrame, classifications: pd.DataFrame
     return enriched
 
 
+def _normalize_snowflake_columns(df: pd.DataFrame) -> pd.DataFrame:
+    out = df.copy()
+    out.columns = [str(column).strip().lower() for column in out.columns]
+    return out
+
+
+def _dedupe_snowflake_returned(returned: pd.DataFrame) -> pd.DataFrame:
+    if returned.empty:
+        return returned
+
+    out = _normalize_snowflake_columns(returned)
+    for column in ("site_id", "creator_name", "company_name", "current_status", "actual_close_date", "expected_install_date"):
+        if column not in out.columns:
+            out[column] = ""
+    status_priority = {"active": 0, "checkup": 1, "install": 2}
+    out["_status_priority"] = out["current_status"].fillna("").astype(str).str.lower().map(status_priority).fillna(99)
+    out["_expected_install_at"] = pd.to_datetime(
+        _format_date_like(out["expected_install_date"], numeric_unit="D"), errors="coerce"
+    )
+    out["_actual_close_at"] = pd.to_datetime(_format_date_like(out["actual_close_date"], numeric_unit="s"), errors="coerce")
+    out = out.sort_values(["site_id", "_status_priority", "_expected_install_at", "_actual_close_at"])
+    return out.drop_duplicates(subset=["site_id"], keep="first").drop(columns=["_status_priority"])
+
+
+def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) -> pd.DataFrame:
+    if dropped.empty:
+        return pd.DataFrame(columns=MASTER_COLUMNS)
+
+    d = _normalize_snowflake_columns(dropped)
+    for column in ("site_id", "creator_name", "company_name", "status", "actual_close_date"):
+        if column not in d.columns:
+            d[column] = ""
+    d["_actual_close_at"] = pd.to_datetime(_format_date_like(d["actual_close_date"], numeric_unit="s"), errors="coerce")
+    d = d.sort_values(["site_id", "_actual_close_at"]).drop_duplicates(subset=["site_id"], keep="last")
+
+    r = _dedupe_snowflake_returned(returned)
+    if not r.empty:
+        r = r[
+            [
+                "site_id",
+                "current_status",
+                "expected_install_date",
+                "actual_close_date",
+            ]
+        ].rename(
+            columns={
+                "current_status": "returning_status",
+                "expected_install_date": "returned_expected_install_date",
+                "actual_close_date": "returned_actual_close_date",
+            }
+        )
+        d = d.merge(r, on="site_id", how="left")
+    else:
+        d["returning_status"] = ""
+        d["returned_expected_install_date"] = ""
+        d["returned_actual_close_date"] = ""
+
+    dropped_date = d["_actual_close_at"]
+    expected_install = pd.to_datetime(_format_date_like(d["returned_expected_install_date"], numeric_unit="D"), errors="coerce")
+    reengaged = expected_install.notna()
+    returning_status = d["returning_status"].fillna("").astype(str)
+    install_completed = returning_status.str.lower().isin({"active", "checkup"})
+
+    lifecycle = pd.DataFrame(index=d.index)
+    lifecycle["lifecycle_creator_id"] = d["site_id"].fillna("").astype(str)
+    lifecycle["creator_project_name"] = d["creator_name"]
+    lifecycle["lead_contact"] = ""
+    lifecycle["company_name"] = d["company_name"]
+    lifecycle["domain"] = ""
+    lifecycle["site_id"] = d["site_id"]
+    lifecycle["salesforce_project_id"] = ""
+    lifecycle["salesforce_account_id"] = ""
+    lifecycle["salesforce_lead_id"] = ""
+    lifecycle["creator_key"] = d["creator_name"].map(normalize_creator_name)
+    lifecycle["lead_key"] = ""
+    lifecycle["vertical"] = ""
+    lifecycle["service_level"] = ""
+    lifecycle["previous_ad_network"] = ""
+    lifecycle["onboarding_owner"] = ""
+    lifecycle["monthly_pageviews"] = ""
+    lifecycle["dropped_status"] = d["status"]
+    lifecycle["dropped_date"] = format_date_for_output(dropped_date)
+    lifecycle["returned_date"] = format_date_for_output(expected_install)
+    lifecycle["scheduled_install_date"] = format_date_for_output(expected_install)
+    lifecycle["install_date"] = ""
+    lifecycle["days_to_return"] = _format_days((expected_install - dropped_date).dt.days)
+    lifecycle["cancellation_reason"] = ""
+    lifecycle["raw_description"] = ""
+    lifecycle["normalized_reason"] = "Unknown"
+    lifecycle["reason_confidence_score"] = ""
+    lifecycle["reason_classification_method"] = ""
+    lifecycle["macro_cadence"] = "None"
+    lifecycle["zendesk_ticket_count"] = 0
+    lifecycle["ticket_reopened"] = False
+    lifecycle["cg_involvement"] = "None"
+    lifecycle["cg_effort"] = ""
+    lifecycle["cg_escalation_status"] = False
+    lifecycle["cg_escalation_timing"] = "No CG involvement"
+    lifecycle["cg_first_touch_at"] = ""
+    lifecycle["cg_days_from_drop"] = ""
+    lifecycle["onboarding_call_offered"] = False
+    lifecycle["salesloft_meeting_detected"] = False
+    lifecycle["first_salesloft_meeting_at"] = ""
+    lifecycle["slack_intervention_detected"] = False
+    lifecycle["slack_intervention_count"] = 0
+    lifecycle["rescue_intervention_detected"] = False
+    lifecycle["install_completed"] = install_completed
+    lifecycle["converted"] = install_completed
+    lifecycle["reengaged"] = reengaged
+    lifecycle["outcome"] = _outcome_series(lifecycle)
+    lifecycle["returning_project_name"] = d["creator_name"].where(reengaged, "")
+    lifecycle["returning_lead_contact"] = ""
+    lifecycle["returning_previous_ad_network"] = ""
+    lifecycle["returning_owner"] = ""
+    lifecycle["returning_status"] = returning_status.where(reengaged, "")
+    lifecycle["match_method"] = "snowflake_site_id"
+    lifecycle["match_score"] = 100
+    lifecycle["source_salesforce_dropped"] = False
+    lifecycle["source_salesforce_returning"] = False
+    lifecycle["source_snowflake"] = True
+
+    return lifecycle[MASTER_COLUMNS]
+
+
 def build_master_creator_lifecycle(
     matches: pd.DataFrame,
     classifications: pd.DataFrame,
     zendesk: pd.DataFrame,
     slack: pd.DataFrame,
     manual_overrides: pd.DataFrame | None = None,
+    snowflake_dropped: pd.DataFrame | None = None,
+    snowflake_returned: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Build the canonical creator lifecycle fact table.
 
-    Salesforce dropped records are the grain: one row per dropped onboarding creator.
-    Returning Salesforce, Zendesk, and Slack data are enrichments on that lifecycle row.
+    Dropped onboarding records are the grain: one row per dropped creator/site.
+    Salesforce and Snowflake dropped rows define the lifecycle population; returning
+    Salesforce, Snowflake, Zendesk, Slack, Creator Growth, and Salesloft signals
+    enrich those lifecycle rows.
     """
-    if matches.empty:
-        return pd.DataFrame(columns=MASTER_COLUMNS)
-
     enriched = _attach_classifications(matches, classifications)
     enriched = link_zendesk(enriched, zendesk)
     enriched = link_slack(enriched, slack)
@@ -302,7 +442,9 @@ def build_master_creator_lifecycle(
     )
     lifecycle["creator_project_name"] = _series_or_default(enriched, "creator")
     lifecycle["lead_contact"] = _series_or_default(enriched, "lead_contact")
+    lifecycle["company_name"] = _series_or_default(enriched, "company_name")
     lifecycle["domain"] = _series_or_default(enriched, "domain")
+    lifecycle["site_id"] = _series_or_default(enriched, "site_id")
     lifecycle["salesforce_project_id"] = _series_or_default(enriched, "salesforce_project_id")
     lifecycle["salesforce_account_id"] = _series_or_default(enriched, "salesforce_account_id")
     lifecycle["salesforce_lead_id"] = _series_or_default(enriched, "salesforce_lead_id")
@@ -313,6 +455,7 @@ def build_master_creator_lifecycle(
     lifecycle["previous_ad_network"] = _series_or_default(enriched, "previous_ad_network")
     lifecycle["onboarding_owner"] = _series_or_default(enriched, "owner")
     lifecycle["monthly_pageviews"] = _series_or_default(enriched, "monthly_pageview_estimate")
+    lifecycle["dropped_status"] = _series_or_default(enriched, "status")
     lifecycle["dropped_date"] = format_date_for_output(dropped_date)
     lifecycle["returned_date"] = format_date_for_output(returned_date)
     lifecycle["scheduled_install_date"] = format_date_for_output(scheduled_install_date)
@@ -347,10 +490,12 @@ def build_master_creator_lifecycle(
     lifecycle["returning_lead_contact"] = _series_or_default(enriched, "returning_lead_contact")
     lifecycle["returning_previous_ad_network"] = _series_or_default(enriched, "returning_previous_ad_network")
     lifecycle["returning_owner"] = _series_or_default(enriched, "returning_owner")
+    lifecycle["returning_status"] = _series_or_default(enriched, "returning_status")
     lifecycle["match_method"] = _series_or_default(enriched, "match_method")
     lifecycle["match_score"] = _series_or_default(enriched, "match_score")
     lifecycle["source_salesforce_dropped"] = True
     lifecycle["source_salesforce_returning"] = reengaged
+    lifecycle["source_snowflake"] = False
 
     lifecycle["cg_escalation_timing"] = lifecycle.apply(
         lambda row: derive_cg_timing(
@@ -371,6 +516,12 @@ def build_master_creator_lifecycle(
             lifecycle[column] = ""
 
     lifecycle = lifecycle[MASTER_COLUMNS]
+    snowflake_lifecycle = _build_snowflake_lifecycle(
+        snowflake_dropped if snowflake_dropped is not None else pd.DataFrame(),
+        snowflake_returned if snowflake_returned is not None else pd.DataFrame(),
+    )
+    if not snowflake_lifecycle.empty:
+        lifecycle = pd.concat([lifecycle, snowflake_lifecycle], ignore_index=True)
     if manual_overrides is not None and not manual_overrides.empty:
         lifecycle = apply_manual_overrides(lifecycle, manual_overrides)
     lifecycle = _recalculate_lifecycle_flags(lifecycle)

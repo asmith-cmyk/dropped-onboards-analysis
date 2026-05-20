@@ -34,11 +34,14 @@ BOOL_COLUMNS = {
 REPORT_FIELDS = [
     "creator_project_name",
     "lead_contact",
+    "company_name",
+    "site_id",
     "vertical",
     "service_level",
     "previous_ad_network",
     "onboarding_owner",
     "monthly_pageviews",
+    "dropped_status",
     "dropped_date",
     "returned_date",
     "days_to_return",
@@ -483,8 +486,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         const haystack = [
           row.creator_project_name,
           row.lead_contact,
+          row.company_name,
+          row.site_id,
           row.onboarding_owner,
           row.cancellation_reason,
+          row.dropped_status,
           row.previous_ad_network,
           row.vertical,
           row.service_level
@@ -570,13 +576,13 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       tbody.innerHTML = rows.map(row => `
         <tr>
           <td><strong>${{escapeHtml(row.creator_project_name)}}</strong></td>
-          <td>${{escapeHtml(row.lead_contact)}}</td>
+          <td>${{escapeHtml(row.lead_contact || row.company_name)}}</td>
           <td>${{escapeHtml(row.service_level || 'Unknown')}}</td>
           <td>${{escapeHtml(row.vertical || 'Unknown')}}</td>
           <td>${{escapeHtml(row.previous_ad_network || 'Unknown')}}</td>
           <td>${{escapeHtml(row.onboarding_owner || 'Unknown')}}</td>
           <td>${{escapeHtml(row.dropped_date)}}</td>
-          <td>${{escapeHtml(row.cancellation_reason || 'Unknown')}}</td>
+          <td>${{escapeHtml(row.cancellation_reason || row.dropped_status || 'Unknown')}}</td>
           <td>${{escapeHtml(cadenceValue(row.macro_cadence))}}</td>
           <td>${{escapeHtml(row.cg_involvement || 'None')}}</td>
           <td>${{statusPill(row.onboarding_call_offered)}}</td>

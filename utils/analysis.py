@@ -323,7 +323,7 @@ def write_executive_summary(
     lines = [
         "# Onboarding Lifecycle Executive Summary",
         "",
-        f"Generated from the master lifecycle dataset with {total} dropped onboarding creators and {reengaged} matched returning creators.",
+        f"Generated from the master lifecycle dataset with {total} dropped onboarding creators/sites and {reengaged} returned creators/sites.",
         "",
         "## Headline Metrics",
         "",
@@ -371,8 +371,8 @@ def write_executive_summary(
             "## Data Notes",
             "",
             "- `master_creator_lifecycle.csv` is the single source of truth for downstream lifecycle analysis.",
-            "- Salesforce dropped records define the table grain: one row per dropped onboarding creator.",
-            "- Returning Salesforce, Zendesk, Slack, Creator Growth, and Salesloft signals are enrichments on that lifecycle row.",
+            "- Salesforce dropped records and Snowflake 2025 dropped site-history records define the table grain: one row per dropped onboarding creator/site.",
+            "- Returning Salesforce, Snowflake returned-site cohorts, Zendesk, Slack, Creator Growth, and Salesloft signals enrich that lifecycle row.",
             "- Cancellation reason categories use OpenAI when `OPENAI_API_KEY` is present, with a deterministic rules fallback.",
             "- Conversion is treated as install completion unless a dedicated conversion date/status is supplied.",
         ]

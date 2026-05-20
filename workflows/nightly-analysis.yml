@@ -35,6 +35,18 @@ jobs:
           SALESFORCE_RETURNING_REPORT_ID: ${{ vars.SALESFORCE_RETURNING_REPORT_ID }}
         run: python scripts/pull_salesforce_reports.py --force-api
 
+      - name: Pull Snowflake cohorts
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          SNOWFLAKE_AUTHENTICATOR: ${{ vars.SNOWFLAKE_AUTHENTICATOR }}
+          SNOWFLAKE_WAREHOUSE: ${{ vars.SNOWFLAKE_WAREHOUSE }}
+          SNOWFLAKE_DATABASE: ${{ vars.SNOWFLAKE_DATABASE }}
+          SNOWFLAKE_SCHEMA: ${{ vars.SNOWFLAKE_SCHEMA }}
+          SNOWFLAKE_ROLE: ${{ vars.SNOWFLAKE_ROLE }}
+        run: python scripts/pull_snowflake_data.py --force-api
+
       - name: Pull Zendesk data
         env:
           ZENDESK_SUBDOMAIN: ${{ secrets.ZENDESK_SUBDOMAIN }}

@@ -1,6 +1,6 @@
 # Onboarding Lifecycle Re-engagement Analysis
 
-Python analytics pipeline for Raptive/CafeMedia dropped onboarding creators. It pulls dropped and returning Salesforce reports, normalizes creator identity, enriches each creator with Zendesk and Slack signals, classifies cancellation reasons, and builds one master lifecycle dataset that serves as the source of truth for downstream views and summaries.
+Python analytics pipeline for Raptive/CafeMedia dropped onboarding creators. It pulls dropped and returning Salesforce reports, Snowflake site-history cohorts, normalizes creator identity, enriches each creator with Zendesk and Slack signals, classifies cancellation reasons, and builds one master lifecycle dataset that serves as the source of truth for downstream views and summaries.
 
 The central output is:
 
@@ -37,6 +37,12 @@ Confirmed returning report fields:
 - `Onboarding Project Link: Owner Name`
 - `Onboarding Project Link: Scheduled Install Date`
 - `Install Date`
+
+Snowflake:
+
+- `ANALYTICS.ADTHRIVE.SITE_HISTORY`
+- `snowflake_dropped_2025.csv` captures all sites with `Dropped`, `Canceled`, or `Cancelled` history in 2025.
+- `snowflake_returned_2026.csv` captures those 2025 dropped/canceled sites that later appear in `Install`, `Checkup`, or `Active` with a 2026 expected install date.
 
 Zendesk:
 
@@ -80,6 +86,13 @@ Slack requires:
 - `SLACK_BOT_TOKEN`
 - bot access to `#onboarding-creatorgrowth` and `#salesloft-meetings`
 
+Snowflake requires:
+
+- `SNOWFLAKE_ACCOUNT`
+- `SNOWFLAKE_USER`
+- `SNOWFLAKE_PASSWORD` for password auth, or `SNOWFLAKE_AUTHENTICATOR` for SSO/external auth
+- optional `SNOWFLAKE_WAREHOUSE`, `SNOWFLAKE_DATABASE`, `SNOWFLAKE_SCHEMA`, `SNOWFLAKE_ROLE`
+
 OpenAI is optional:
 
 - `OPENAI_API_KEY`
@@ -102,6 +115,7 @@ To refresh from APIs:
 
 ```bash
 python scripts/pull_salesforce_reports.py --force-api
+python scripts/pull_snowflake_data.py --force-api
 python scripts/pull_zendesk_data.py
 python scripts/pull_slack_data.py
 python scripts/generate_outputs.py
@@ -110,19 +124,20 @@ python scripts/generate_outputs.py
 Or run the full source pull and analysis:
 
 ```bash
-python scripts/generate_outputs.py --run-pulls --force-salesforce-api
+python scripts/generate_outputs.py --run-pulls --force-salesforce-api --force-snowflake-api
 ```
 
 ## Pipeline Stages
 
 1. `pull_salesforce_reports.py` fetches the dropped and returning Salesforce reports.
-2. `pull_zendesk_data.py` pulls Zendesk onboarding ticket/tag data or normalizes an exported CSV.
-3. `pull_slack_data.py` pulls intervention messages from Slack.
-4. `normalize_creators.py` canonicalizes creator, lead, network, owner, vertical, service level, and date fields.
-5. `match_reengagements.py` matches dropped creators to returning creators.
-6. `classify_cancellation_reasons.py` normalizes cancellation descriptions into business categories.
-7. `build_master_lifecycle.py` creates `master_creator_lifecycle.csv`, the consolidated creator lifecycle table.
-8. `generate_outputs.py` derives all CSV and markdown outputs from the master lifecycle table.
+2. `pull_snowflake_data.py` fetches 2025 dropped/canceled site history and 2026 returned-site cohorts.
+3. `pull_zendesk_data.py` pulls Zendesk onboarding ticket/tag data or normalizes an exported CSV.
+4. `pull_slack_data.py` pulls intervention messages from Slack.
+5. `normalize_creators.py` canonicalizes creator, lead, network, owner, vertical, service level, and date fields.
+6. `match_reengagements.py` matches dropped creators to returning creators.
+7. `classify_cancellation_reasons.py` normalizes cancellation descriptions into business categories.
+8. `build_master_lifecycle.py` creates `master_creator_lifecycle.csv`, the consolidated creator lifecycle table.
+9. `generate_outputs.py` derives all CSV and markdown outputs from the master lifecycle table.
 
 `build_creator_timelines.py` is retained as a compatibility alias and now delegates to `build_master_lifecycle.py`.
 
@@ -154,20 +169,20 @@ Generated files:
 
 ## Master Lifecycle Schema
 
-`master_creator_lifecycle.csv` is the canonical analytical model. Salesforce dropped records define the table grain: one row per dropped onboarding creator. Returning Salesforce, Zendesk, Slack, Creator Growth, and Salesloft signals enrich that row.
+`master_creator_lifecycle.csv` is the canonical analytical model. Salesforce dropped records and Snowflake dropped site-history records define the table grain: one row per dropped onboarding creator/site. Returning Salesforce, Snowflake returned-site cohorts, Zendesk, Slack, Creator Growth, and Salesloft signals enrich that row.
 
 Core field groups:
 
-- Identity: `lifecycle_creator_id`, `creator_project_name`, `lead_contact`, `domain`, `salesforce_project_id`, `salesforce_account_id`, `salesforce_lead_id`, `creator_key`, `lead_key`
-- Creator attributes: `vertical`, `service_level`, `previous_ad_network`, `onboarding_owner`, `monthly_pageviews`
+- Identity: `lifecycle_creator_id`, `creator_project_name`, `lead_contact`, `company_name`, `domain`, `site_id`, `salesforce_project_id`, `salesforce_account_id`, `salesforce_lead_id`, `creator_key`, `lead_key`
+- Creator attributes: `vertical`, `service_level`, `previous_ad_network`, `onboarding_owner`, `monthly_pageviews`, `dropped_status`
 - Lifecycle dates: `dropped_date`, `returned_date`, `scheduled_install_date`, `install_date`, `days_to_return`
 - Cancellation intelligence: `cancellation_reason`, `raw_description`, `normalized_reason`, `reason_confidence_score`, `reason_classification_method`
 - Zendesk cadence: `macro_cadence`, `zendesk_ticket_count`, `ticket_reopened`
 - Creator Growth: `cg_involvement`, `cg_effort`, `cg_escalation_status`, `cg_escalation_timing`, `cg_first_touch_at`, `cg_days_from_drop`
 - Human-touch indicators: `onboarding_call_offered`, `salesloft_meeting_detected`, `first_salesloft_meeting_at`, `slack_intervention_detected`, `slack_intervention_count`, `rescue_intervention_detected`
 - Outcomes: `install_completed`, `converted`, `reengaged`, `outcome`
-- Match diagnostics: `returning_project_name`, `returning_lead_contact`, `returning_previous_ad_network`, `returning_owner`, `match_method`, `match_score`
-- Source coverage: `source_salesforce_dropped`, `source_salesforce_returning`
+- Match diagnostics: `returning_project_name`, `returning_lead_contact`, `returning_previous_ad_network`, `returning_owner`, `returning_status`, `match_method`, `match_score`
+- Source coverage: `source_salesforce_dropped`, `source_salesforce_returning`, `source_snowflake`
 
 `reengaged_creators.csv` is now a leadership-friendly view derived from the master table. It includes:
 
@@ -226,6 +241,9 @@ Required GitHub secrets:
 - `SALESFORCE_USERNAME`
 - `SALESFORCE_PASSWORD`
 - `SALESFORCE_SECURITY_TOKEN`
+- `SNOWFLAKE_ACCOUNT`
+- `SNOWFLAKE_USER`
+- `SNOWFLAKE_PASSWORD`
 - `ZENDESK_SUBDOMAIN`
 - `ZENDESK_EMAIL`
 - `ZENDESK_API_TOKEN`
@@ -237,6 +255,11 @@ Recommended GitHub variables:
 - `SALESFORCE_API_VERSION`
 - `SALESFORCE_DROPPED_REPORT_ID`
 - `SALESFORCE_RETURNING_REPORT_ID`
+- `SNOWFLAKE_AUTHENTICATOR`
+- `SNOWFLAKE_WAREHOUSE`
+- `SNOWFLAKE_DATABASE`
+- `SNOWFLAKE_SCHEMA`
+- `SNOWFLAKE_ROLE`
 - `ZENDESK_SEARCH_QUERY`
 - `SLACK_CHANNEL_NAMES`
 - `SLACK_START_DATE`
@@ -246,7 +269,7 @@ Recommended GitHub variables:
 ## Notes And Assumptions
 
 - `master_creator_lifecycle.csv` is the source of truth for lifecycle analysis and downstream reporting.
-- Salesforce is the source of truth for dropped and returning creator records.
+- Salesforce and Snowflake are the source of truth for dropped and returning creator/site records.
 - Dropped date is read from a date column when present. If the report has no dropped-date column, the pipeline infers a date from cancellation/drop language in the description as a fallback.
 - Returned date is install date when present, otherwise scheduled install date.
 - Converted currently means install completed unless a dedicated conversion status/date is added later.

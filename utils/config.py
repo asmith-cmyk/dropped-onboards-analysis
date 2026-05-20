@@ -45,6 +45,15 @@ class Settings:
     slack_channel_names: list[str]
     slack_start_date: str
 
+    snowflake_account: str
+    snowflake_user: str
+    snowflake_password: str
+    snowflake_authenticator: str
+    snowflake_warehouse: str
+    snowflake_database: str
+    snowflake_schema: str
+    snowflake_role: str
+
     openai_model: str
     use_openai_classification: bool
 
@@ -75,6 +84,12 @@ class Settings:
     def has_slack_credentials(self) -> bool:
         return bool(os.getenv("SLACK_BOT_TOKEN"))
 
+    @property
+    def has_snowflake_credentials(self) -> bool:
+        has_base = bool(self.snowflake_account and self.snowflake_user)
+        password_auth = self.snowflake_authenticator.lower() in {"", "snowflake"}
+        return has_base and (bool(self.snowflake_password) or not password_auth)
+
 
 def load_settings(base_dir: Path | None = None) -> Settings:
     root = base_dir or Path(__file__).resolve().parents[1]
@@ -103,6 +118,14 @@ def load_settings(base_dir: Path | None = None) -> Settings:
             ["onboarding-creatorgrowth", "salesloft-meetings"],
         ),
         slack_start_date=env_value("SLACK_START_DATE", "2025-01-01"),
+        snowflake_account=env_value("SNOWFLAKE_ACCOUNT", ""),
+        snowflake_user=env_value("SNOWFLAKE_USER", ""),
+        snowflake_password=env_value("SNOWFLAKE_PASSWORD", ""),
+        snowflake_authenticator=env_value("SNOWFLAKE_AUTHENTICATOR", "snowflake"),
+        snowflake_warehouse=env_value("SNOWFLAKE_WAREHOUSE", ""),
+        snowflake_database=env_value("SNOWFLAKE_DATABASE", "ANALYTICS"),
+        snowflake_schema=env_value("SNOWFLAKE_SCHEMA", "ADTHRIVE"),
+        snowflake_role=env_value("SNOWFLAKE_ROLE", ""),
         openai_model=env_value("OPENAI_MODEL", "gpt-4.1-mini"),
         use_openai_classification=env_bool("USE_OPENAI_CLASSIFICATION", True),
     )
