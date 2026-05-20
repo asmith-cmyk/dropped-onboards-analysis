@@ -13,6 +13,13 @@ from utils.io import read_csv, read_csv_if_exists, write_csv
 from utils.lifecycle import build_master_creator_lifecycle
 
 
+def read_first_existing(paths: list[Path]):
+    for path in paths:
+        if path.exists():
+            return read_csv(path)
+    return read_csv_if_exists(paths[0])
+
+
 def run() -> Path:
     settings = load_settings(ROOT)
     ensure_project_dirs(settings)
@@ -21,8 +28,18 @@ def run() -> Path:
     zendesk = read_csv_if_exists(settings.raw_data_dir / "zendesk_onboarding_followups.csv")
     slack = read_csv_if_exists(settings.raw_data_dir / "slack_interventions.csv")
     manual_overrides = read_csv_if_exists(settings.data_dir / "manual_lifecycle_overrides.csv")
-    snowflake_dropped = read_csv_if_exists(settings.raw_data_dir / "snowflake_dropped_2025.csv")
-    snowflake_returned = read_csv_if_exists(settings.raw_data_dir / "snowflake_returned_2026.csv")
+    snowflake_dropped = read_first_existing(
+        [
+            settings.raw_data_dir / "snowflake_dropped_onboards.csv",
+            settings.raw_data_dir / "snowflake_dropped_2025.csv",
+        ]
+    )
+    snowflake_returned = read_first_existing(
+        [
+            settings.raw_data_dir / "snowflake_returned_onboards.csv",
+            settings.raw_data_dir / "snowflake_returned_2026.csv",
+        ]
+    )
 
     master = build_master_creator_lifecycle(
         matches,

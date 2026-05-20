@@ -1,27 +1,433 @@
 Creator,Vertical,Service Level,Previous Ad Network,Dropped Date,Returned Date,Days_to_Return,CG Involvement,Macro Cadence,Meeting Offered,Re-engaged,Installed,Converted,Outcome,Onboarding Owner,Lead Contact,Match Method,Match Score
+Fayetteville Flyer,News,Insider,Other,2022-07-08,,,Not Assisted,None,False,False,False,False,Dropped,Salesforce Bot,Dustin Bartholomew,snowflake_site_id,100
+The Stripe,Lifestyle,Insider,SHE Media,2022-07-15,,,Not Assisted,None,False,False,False,False,Dropped,Kate Fitzpatrick,Grace Atwood,snowflake_site_id,100
+Visa Traveler,Travel,Insider,Ezoic,2022-07-15,2024-02-01,566,Not Assisted,None,False,True,True,True,Returned,Kate Fitzpatrick,Thirumal Motati,snowflake_site_id,100
+Fun Channel Palmistry,Other,Insider,Ezoic,2022-07-28,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Sagar Mantri,snowflake_site_id,100
+Color Me Crafty,Crafts,Insider,Mediavine,2022-08-08,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Jamela Payne,snowflake_site_id,100
+Motor Verso,Auto,Insider,Ezoic,2022-08-08,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Paul Hadley,snowflake_site_id,100
+Polish Foodies,Food,Insider,Mediavine,2022-08-11,,,Not Assisted,None,False,False,False,False,Dropped,Rina Gray,Pat Klesta,snowflake_site_id,100
+Theology of Work Project,Other,Insider,No ads,2022-08-15,,,Not Assisted,None,False,False,False,False,Dropped,Salesforce Bot,Christine Tan,snowflake_site_id,100
+Prince of Travel,Travel,Insider,Mediavine,2022-08-16,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Ricky Zhang,snowflake_site_id,100
+TeacherLists,Other,Insider,No ads,2022-08-16,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Charles Field,snowflake_site_id,100
+Cruiseline,Travel,Platinum,AdSense,2022-08-17,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Kimberly Coyne,snowflake_site_id,100
+Millo,Other,Insider,Ezoic,2022-08-22,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Bilal Ibrar,snowflake_site_id,100
+Baltimore Baseball,Sports,Insider,Other,2022-08-30,,,Not Assisted,None,False,False,False,False,Dropped,Rina Gray,Rich Dubroff,snowflake_site_id,100
+Pickler,Sports,Insider,No ads,2022-08-30,,,Assisted,None,False,False,False,False,Dropped,Salesforce Bot,Stacie Townsend,snowflake_site_id,100
+From Scratch Fast,Food,Insider,Mediavine,2022-09-08,,,Not Assisted,None,False,False,False,False,Dropped,Rina Gray,Nicki Sizemore,snowflake_site_id,100
+Mad Backyard,Other,Insider,Ezoic,2022-09-12,,,Not Assisted,None,False,False,False,False,Dropped,Rina Gray,Robert Martigan,snowflake_site_id,100
+Charbel Nemnom,Tech,Insider,Ezoic,2022-09-13,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Charbel Nemnom,snowflake_site_id,100
+Wax Pack Gods,Sports,Insider,Mediavine,2022-09-14,,,Not Assisted,None,False,False,False,False,Dropped,Rina Gray,Adam Hughes,snowflake_site_id,100
+Wordshake,Entertainment,Insider,Monumetric,2022-09-15,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Matt Curney,snowflake_site_id,100
+Boxing News 247,Sports,Platinum,Other,2022-09-16,2023-03-02,167,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Eddy Pronishev,snowflake_site_id,100
+My Positive Outlooks,Other,Insider,Mediavine,2022-09-19,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Dindo Navarro,snowflake_site_id,100
+Petpress,Pets,Insider,Other,2022-09-19,2022-10-27,38,Not Assisted,None,False,True,True,True,Returned,Amy Burgess,Fraser Paterson,snowflake_site_id,100
+Social Moms,Other,Insider,No ads,2022-09-19,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Chris Young,snowflake_site_id,100
+Net Influencer,Tech,Insider,AdSense,2022-09-21,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Nii Ahene,snowflake_site_id,100
+Food Faith Fitness,Food,Platinum,Mediavine,2022-09-26,2023-09-07,346,Not Assisted,None,False,True,True,True,Returned,Rina Gray,Majid Sebti,snowflake_site_id,100
+Sports Mole,Sports,Luminary,Other,2022-09-26,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Alan Jay,snowflake_site_id,100
+RV Troop,Lifestyle,Insider,Mediavine,2022-09-27,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Charles Sperber,snowflake_site_id,100
+Craiyon,Entertainment,Luminary,Other,2022-09-28,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Boris Dayma,snowflake_site_id,100
+Set Ready Game,Gaming,Insider,Ezoic,2022-10-06,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Jeffrey Brady,snowflake_site_id,100
+Squaredle,Gaming,Insider,AdSense,2022-10-06,,,Assisted,None,False,False,False,False,Dropped,Rina Gray,Michael Giuffrida,snowflake_site_id,100
+Notion Wizard,Tech,Insider,Mediavine,2022-10-10,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Josh Levenson,snowflake_site_id,100
+The Bojon Gourmet,Food,Insider,Mediavine,2022-10-10,2026-05-04,1302,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Alanna Taylor-Tobin,snowflake_site_id,100
+Bustling Nest,Gardening,Insider,Mediavine,2022-10-11,,,Assisted,None,False,False,False,False,Dropped,Rina Gray,Jeffrey Cheng,snowflake_site_id,100
+NJMom,Family and Parenting,Insider,SHE Media,2022-10-11,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Christine Curatolo,snowflake_site_id,100
+Clash Magazine,Entertainment,Insider,AdSense,2022-10-17,,,Assisted,None,False,False,False,False,Dropped,Rina Gray,Nick Annan,snowflake_site_id,100
+AgeFriendly,Other,Insider,AdSense,2022-10-20,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Jody Shue,snowflake_site_id,100
+Fifi McGee,Home Decor and Design,Insider,No ads,2022-10-20,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Neil Shaw,snowflake_site_id,100
+NFL Trade Rumors,Sports,Luminary,Mediavine,2022-10-20,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Nathan Bouda,snowflake_site_id,100
+Prepared Cooks,Food,Insider,Mediavine,2022-10-20,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Robert Barta,snowflake_site_id,100
+RetirementJobs,Personal Finance,Insider,AdSense,2022-10-20,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Emily Johnson,snowflake_site_id,100
+The Montessori Minded Mom,Family and Parenting,Insider,Mediavine,2022-10-21,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Suzanne Bucknam,snowflake_site_id,100
+Simply Psychology,Health and Wellness,Platinum Elite,Ezoic,2022-10-25,,,Not Assisted,None,False,False,False,False,Dropped,Rina Gray,Saul Mcleod,snowflake_site_id,100
+UpHomes,Other,Insider,No ads,2022-10-25,2023-06-28,246,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Ryan Fitzgerald,snowflake_site_id,100
+The Savvy Backpacker,Travel,Insider,Mediavine,2022-10-27,,,Not Assisted,None,False,False,False,False,Dropped,Rina Gray,James Feess,snowflake_site_id,100
+Dragon Ball Guru,Entertainment,Insider,AdSense,2022-11-03,2023-03-30,147,Not Assisted,None,False,True,True,True,Returned,Amy Burgess,William Samuel,snowflake_site_id,100
+Grillseeker,Food,Insider,Mediavine,2022-11-07,2023-12-13,401,Not Assisted,None,False,True,True,True,Returned,Rina Gray,Matt Eads,snowflake_site_id,100
+MidderMusic,Entertainment,Insider,Mediavine,2022-11-07,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Will Fenton,snowflake_site_id,100
+Crafting Jeannie,Crafts,Insider,Monumetric,2022-11-09,2023-01-16,68,Not Assisted,None,False,True,True,True,Returned,Whitney Harrist,Regina Irwin,snowflake_site_id,100
+The Primary Parade,Crafts,Insider,Mediavine,2022-11-11,2023-02-08,89,Assisted,None,False,True,True,True,Returned,Antoinette Smith,Jessica Garza,snowflake_site_id,100
+Electrifying,Auto,Insider,Other,2022-11-14,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Helen Brawn,snowflake_site_id,100
+Discover The Great Smokies,Travel,Insider,No ads,2022-11-15,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Audrey Roberts,snowflake_site_id,100
+Attainable Sustainable,Lifestyle,Insider,Other,2022-11-22,2023-10-10,322,Not Assisted,None,False,True,True,True,Returned,Amy Burgess,Kris Bordessa,snowflake_site_id,100
+Fan Fest,Entertainment,Insider,AdSense,2022-11-22,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Tony Smithson,snowflake_site_id,100
+Roaming With Kids,Travel,Platinum,No ads,2022-11-29,2023-04-14,136,Not Assisted,None,False,True,True,True,Returned,Amy Burgess,LAUREN HAPPEL,snowflake_site_id,100
+WebTrickz,Tech,Insider,AdSense,2022-11-29,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Mayur Agarwal,snowflake_site_id,100
+FemmeNordic,Beauty,Insider,Mediavine,2022-12-05,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Calum Torrington,snowflake_site_id,100
+WealthyCelebrity,Entertainment,Insider,Mediavine,2022-12-14,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Hassan Saleem,snowflake_site_id,100
+Real Business,Other,Insider,Other,2022-12-15,,,Assisted,None,False,False,False,False,Dropped,Rina Gray,Chris Williams,snowflake_site_id,100
+Grade Calculator,Other,Insider,Monumetric,2023-01-03,2025-07-08,917,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Rachel Parisi,snowflake_site_id,100
+Grubiks,Other,Platinum,AdSense,2023-01-03,,,Not Assisted,None,False,False,False,False,Dropped,Angelina Ryan,Yotam Omer,snowflake_site_id,100
+Something Swanky,Food,Insider,Mediavine,2023-01-06,,,Not Assisted,None,False,False,False,False,Dropped,Rina Gray,Andrew Shackleford,snowflake_site_id,100
+App Advice,Tech,Platinum,AdSense,2023-01-10,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Marek Brys,snowflake_site_id,100
+Deer Hunting Guide,Other,Insider,No ads,2023-01-11,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,John Vanderlaan,snowflake_site_id,100
+Mind Over Munch,Food,Insider,Mediavine,2023-01-19,,,Not Assisted,None,False,False,False,False,Dropped,Rina Gray,Christian Lopetz,snowflake_site_id,100
+Winding Creek Ranch,Food,Insider,Mediavine,2023-01-23,2024-08-15,570,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Jeri Walker,snowflake_site_id,100
+Options Profit Calculator,Personal Finance,Insider,Other,2023-01-24,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Beau C,snowflake_site_id,100
+Hungry Paprikas,Food,Insider,Mediavine,2023-01-26,2024-05-30,490,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Amina Al-Saigh,snowflake_site_id,100
+Le Coup de Grace,Food,Insider,Other,2023-01-26,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Samuel Joubert,snowflake_site_id,100
+FlashpackingFamily,Travel,Insider,Mediavine,2023-02-06,,,Not Assisted,None,False,False,False,False,Dropped,Rina Gray,Ed Goldswain,snowflake_site_id,100
+Howchoo,Tech,Insider,Other,2023-02-06,2024-03-01,389,Not Assisted,None,False,True,True,True,Returned,Amy Burgess,Colin Ma,snowflake_site_id,100
+My Automated Palace,Tech,Insider,Ezoic,2023-02-06,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Nelson Barbosa,snowflake_site_id,100
+TeacherLists,Other,Insider,No ads,2023-02-06,,,Not Assisted,None,False,False,False,False,Dropped,Rina Gray,Charles Field,snowflake_site_id,100
+Discover Discomfort,Travel,Insider,Mediavine,2023-02-08,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Joara Hyun,snowflake_site_id,100
+JustFreshKicks,News,Insider,AdSense,2023-02-08,2025-01-10,702,Assisted,None,False,True,True,True,Returned,Whitney Harrist,zack jenkin,snowflake_site_id,100
+Lil Tigers,Crafts,Insider,Mediavine,2023-02-08,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Susanne Williams,snowflake_site_id,100
+Lineup Experts,Sports,Insider,Other,2023-02-08,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Michael Goldfarb,snowflake_site_id,100
+Blue by Ninety,Sports,Insider,Ezoic,2023-02-20,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Anthony Wright,snowflake_site_id,100
+Bedroom Producers Blog,Entertainment,Insider,Mediavine,2023-02-23,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Tomislav Zlatic,snowflake_site_id,100
+Lara Clevenger,Food,Insider,Mediavine,2023-02-23,2024-08-06,530,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Lara Clevenger,snowflake_site_id,100
+Racine County Eye,News,Insider,Other,2023-02-23,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Denise Lockwood,snowflake_site_id,100
+The Vegan 8,Food,Insider,No ads,2023-02-28,,,Not Assisted,None,False,False,False,False,Dropped,Rina Gray,Brandi Doming,snowflake_site_id,100
+Boxing News 24,Sports,Platinum Elite,AdSense,2023-03-01,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Vanessa Giebel,snowflake_site_id,100
+StreamersWorld,Tech,Insider,AdSense,2023-03-02,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Mitchell Bartlett,snowflake_site_id,100
+Levels Answers,Gaming,Insider,Ezoic,2023-03-03,2023-05-19,77,Assisted,None,False,True,True,True,Returned,Michelle Stappert,Mejdi Khamessi,snowflake_site_id,100
+The Quality Edit,Lifestyle,Insider,No ads,2023-03-08,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Scott Silver,snowflake_site_id,100
+GamingINTEL,Gaming,Platinum,Mediavine,2023-03-10,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Stephen Cotton,snowflake_site_id,100
+Maddys Avenue,Travel,Insider,Mediavine,2023-03-10,2025-05-21,803,Assisted,None,False,True,True,True,Returned,Michelle Stappert,Maddy Cornelius,snowflake_site_id,100
+GetEasySolution,Other,Platinum,AdSense,2023-03-13,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Fabian Skiba,snowflake_site_id,100
+I am Going Vegan,Health and Wellness,Insider,Mediavine,2023-03-13,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Robin Kim,snowflake_site_id,100
+Social Science Statistics,Other,Platinum Elite,Other,2023-03-13,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Jeremy Stangroom,snowflake_site_id,100
+heyVR,Gaming,Insider,No ads,2023-03-17,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Mark Neuhoff,snowflake_site_id,100
+UpHomes,Other,Insider,No ads,2023-03-20,2023-06-28,100,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Ryan Fitzgerald,snowflake_site_id,100
+Honeymoon Goals,Travel,Insider,Mediavine,2023-03-27,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Jim Campbell,snowflake_site_id,100
+Chaz Hound,Pets,Luminary,AdSense,2023-03-28,2023-11-16,233,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Bryan Doble,snowflake_site_id,100
+Travel Mexico Solo,Travel,Insider,Mediavine,2023-03-30,2024-03-14,350,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Shelley Marmor,snowflake_site_id,100
+Travel to Merida,Travel,Insider,Mediavine,2023-03-30,2024-03-14,350,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Shelley Marmor,snowflake_site_id,100
+Travel to Oaxaca,Travel,Insider,No ads,2023-03-30,2024-03-14,350,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Shelley Marmor,snowflake_site_id,100
+1000 Logos,Tech,Insider,AdSense,2023-03-31,2024-01-18,293,Assisted,None,False,True,True,True,Returned,Brianna Eaddy,Aleksei Titov,snowflake_site_id,100
+Bolde,Lifestyle,Platinum,No ads,2023-03-31,2023-07-05,96,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Harleen Kahlon,snowflake_site_id,100
+HSH,Personal Finance,Insider,Other,2023-03-31,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,John Medina,snowflake_site_id,100
+Northshore Magazine,Lifestyle,Insider,Other,2023-03-31,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Paxton Sedler,snowflake_site_id,100
+Steeler Nation,Sports,Insider,Ezoic,2023-03-31,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Justin McGonigle,snowflake_site_id,100
+Rethority,Home Decor and Design,Insider,Mediavine,2023-04-01,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Jacques Glenisson,snowflake_site_id,100
+TechnoBark,Pets,Insider,No ads,2023-04-01,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Ryan Reed,snowflake_site_id,100
+Barbara Bakes,Food,Platinum Elite,Mediavine,2023-04-03,2023-09-20,170,Not Assisted,None,False,True,True,True,Returned,Amy Burgess,Melissa Griffiths,snowflake_site_id,100
+CPUGPU Nerds,Tech,Insider,No ads,2023-04-06,2023-07-13,98,Not Assisted,None,False,True,True,True,Returned,Whitney Harrist,Viliam Sulek,snowflake_site_id,100
+Diabetic and Me,Health and Wellness,Insider,Mediavine,2023-04-07,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Ely Fornoville,snowflake_site_id,100
+Find Me a Brewery,Other,Insider,Mediavine,2023-04-07,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Thomas Feeley,snowflake_site_id,100
+Doberman Planet,Pets,Insider,Mediavine,2023-04-10,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,John van Groos,snowflake_site_id,100
+Field Mag,Sports,Insider,AdSense,2023-04-10,,,Not Assisted,None,False,False,False,False,Dropped,Brianna Eaddy,Chris Stillitano,snowflake_site_id,100
+Sea of Knowledge,Crafts,Insider,Mediavine,2023-04-10,2023-10-25,198,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Yara Habanbou,snowflake_site_id,100
+SheBuysTravel,Travel,Insider,Mediavine,2023-04-11,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Kim Orlando,snowflake_site_id,100
+Razzball,Sports,Insider,Other,2023-04-12,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Grey Albright,snowflake_site_id,100
+The Green Watt,Home Decor and Design,Platinum Elite,No ads,2023-04-12,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Marko Sifer,snowflake_site_id,100
+WebNots,Tech,Insider,AdSense,2023-04-13,2025-04-23,741,Not Assisted,None,False,True,True,True,Returned,Brianna Eaddy,Naga Arumugham,snowflake_site_id,100
+Black Southern Belle,Lifestyle,Insider,Other,2023-04-14,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Michiel Perry,snowflake_site_id,100
+Going Concern,Personal Finance,Insider,Other,2023-04-14,2023-11-20,220,Not Assisted,None,False,True,True,True,Returned,Whitney Harrist,Liz Branch,snowflake_site_id,100
+DoYou,Health and Wellness,Insider,No ads,2023-04-15,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Andy Zoltan,snowflake_site_id,100
+Drumming Review,Entertainment,Insider,Mediavine,2023-04-17,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Nick Cesarz,snowflake_site_id,100
+FalasteeniFoodie,Food,Insider,No ads,2023-04-17,2025-01-06,630,Assisted,None,False,True,True,True,Returned,Michelle Stappert,Fatimah Alghweir,snowflake_site_id,100
+On The Feeder,Pets,Insider,Ezoic,2023-04-18,2023-07-12,85,Not Assisted,None,False,True,True,True,Returned,Salesforce Bot,Tammy Poppie,snowflake_site_id,100
+Best Stocks,Personal Finance,Insider,Mediavine,2023-04-24,,,Not Assisted,None,False,False,False,False,Dropped,Brianna Eaddy,Roberto Liccardo,snowflake_site_id,100
+Enterprise DNA,Other,Insider,No ads,2023-04-24,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Jason Bridger-Berkeley,snowflake_site_id,100
+Bake With Zoha,Food,Insider,No ads,2023-05-01,2023-07-13,73,Not Assisted,None,False,True,True,True,Returned,Amy Burgess,Zoha Malik,snowflake_site_id,100
+Knowt,Other,Platinum Elite,Other,2023-05-01,,,Not Assisted,None,False,False,False,False,Dropped,Brianna Eaddy,Akash Kedari,snowflake_site_id,100
+QwikResume,Other,Insider,AdSense,2023-05-01,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Sujith Kosaraju,snowflake_site_id,100
+Bicycle 2 Work,Sports,Insider,Mediavine,2023-05-04,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Martin Williams,snowflake_site_id,100
+Rowing Machine King,Fitness,Insider,Ezoic,2023-05-05,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Ross Gerson,snowflake_site_id,100
+Simply2Moms,Lifestyle,Insider,Mediavine,2023-05-05,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Anne Zirkle,snowflake_site_id,100
+Who2,Other,Insider,AdSense,2023-05-08,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Fritz Holznagel,snowflake_site_id,100
+Bass Magazine,Entertainment,Insider,No ads,2023-05-10,2023-10-12,155,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Jon D'Auria,snowflake_site_id,100
+FaChords Guitar,Other,Insider,Mediavine,2023-05-10,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Giancarlo Facoetti,snowflake_site_id,100
+CopyKat Chat,Food,Platinum Elite,No ads,2023-05-12,,,Assisted,None,False,False,False,False,Dropped,Brianna Eaddy,Stephanie L Manley,snowflake_site_id,100
+QuantHockey,Sports,Platinum Elite,Other,2023-05-12,2025-08-25,836,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Miro Koutaniemi,snowflake_site_id,100
+Forbes Advisor Australia,Personal Finance,Insider,AdSense,2023-05-15,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Stephen Flanagan,snowflake_site_id,100
+Wedding Rule,Wedding,Insider,No ads,2023-05-16,2023-10-24,161,Not Assisted,None,False,True,True,True,Returned,Whitney Harrist,Emma Liam,snowflake_site_id,100
+Forever Puppy,Pets,Platinum,AdSense,2023-05-17,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Chris Morledge,snowflake_site_id,100
+RunRepeat,Sports,Platinum Elite,Other,2023-05-17,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Jens Jakob Andersen,snowflake_site_id,100
+CompareTV,Entertainment,Platinum,Other,2023-05-18,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Chris Smith,snowflake_site_id,100
+Mobile Internist,Tech,Insider,Ezoic,2023-05-18,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Ivan Jenic,snowflake_site_id,100
+Hard Times,Other,Insider,Other,2023-05-19,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,matt saincome,snowflake_site_id,100
+The LiederNet Archive,Other,Insider,AdSense,2023-05-19,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Emily Ezust,snowflake_site_id,100
+Toby Christie,Sports,Insider,AdSense,2023-05-19,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Toby Christie,snowflake_site_id,100
+WordsRated,Entertainment,Insider,Other,2023-05-19,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Daniel McLoughlin,snowflake_site_id,100
+Advanced Marketing Institute,Tech,Insider,Ezoic,2023-05-22,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Muhammad Chishti,snowflake_site_id,100
+Playoholic,Gaming,Insider,Mediavine,2023-05-22,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Arran Rice,snowflake_site_id,100
+TractorByNet,Gardening,Platinum Elite,Ezoic,2023-05-22,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Muhammad Chishti,snowflake_site_id,100
+Who Called Me UK,Other,Platinum Elite,AdSense,2023-05-22,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Denis Sergeev,snowflake_site_id,100
+Neal Schaffer,Other,Insider,AdSense,2023-05-23,,,Assisted,None,False,False,False,False,Dropped,Brianna Eaddy,Neal Schaffer,snowflake_site_id,100
+College Factual,Other,Platinum,Ezoic,2023-05-25,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Joshua McWilliam,snowflake_site_id,100
+College Beach VB,Sports,Insider,No ads,2023-05-26,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Kevin McColloch,snowflake_site_id,100
+Law School Data,Other,Insider,No ads,2023-05-26,2025-12-19,938,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Jarron Lord,snowflake_site_id,100
+Volleyball Life,Sports,Platinum,No ads,2023-05-26,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Kevin McColloch,snowflake_site_id,100
+Water Cooler Trivia,Gaming,Insider,No ads,2023-05-26,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Eli Robinson,snowflake_site_id,100
+Beautifully Alive,Lifestyle,Insider,No ads,2023-05-30,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Alexandru Mistreanu,snowflake_site_id,100
+Geek For The Win,Entertainment,Insider,No ads,2023-05-30,2023-07-26,57,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Alexandru Mistreanu,snowflake_site_id,100
+SchoolWix,Family and Parenting,Insider,Ezoic,2023-06-01,2026-03-15,1018,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Robert O'Donnell,snowflake_site_id,100
+Bold,Personal Finance,Insider,No ads,2023-06-02,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Dror Liebenthal,snowflake_site_id,100
+Mark Manson,Other,Insider,No ads,2023-06-02,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Mark Manson,snowflake_site_id,100
+San Antonio Things To Do,Travel,Insider,Mediavine,2023-06-05,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Saleel Limaye,snowflake_site_id,100
+The Austinot,Entertainment,Insider,Ezoic,2023-06-05,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Saleel Limaye,snowflake_site_id,100
+The Seasoned Skillet,Food,Insider,Mediavine,2023-06-07,2026-04-30,1058,Not Assisted,None,False,True,True,True,Returned,Whitney Harrist,Taneisha Morris,snowflake_site_id,100
+Tip Calculator,Personal Finance,Platinum Elite,AdSense,2023-06-07,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,John Hostetler,snowflake_site_id,100
+During Pregnancy,Pregnancy,Insider,AdSense,2023-06-08,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Michael Tucker,snowflake_site_id,100
+PlaneHistoria,Other,Insider,Ezoic,2023-06-08,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Russell Beckett,snowflake_site_id,100
+Pray With Confidence,Lifestyle,Insider,Mediavine,2023-06-08,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Jessica Synan,snowflake_site_id,100
+Water Is A Right,Other,Insider,No ads,2023-06-13,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Alexandru Mistreanu,snowflake_site_id,100
+Lawn Phix,Gardening,Insider,Ezoic,2023-06-14,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Mark Marino,snowflake_site_id,100
+Crochet News,Crafts,Insider,Mediavine,2023-06-15,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Nathan Broadbridge,snowflake_site_id,100
+Freebie Mom,Lifestyle,Insider,Other,2023-06-15,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Laura Andriessen,snowflake_site_id,100
+Bird Chronicle,Gardening,Insider,Mediavine,2023-06-16,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Akash Makwana,snowflake_site_id,100
+Name Doctor,Other,Insider,No ads,2023-06-22,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Kyle Machol,snowflake_site_id,100
+The Coin Expert,Lifestyle,Insider,Ezoic,2023-06-23,,,Not Assisted,None,False,False,False,False,Dropped,Marya Chuong,Eyal David,snowflake_site_id,100
+SongBPM,Entertainment,Platinum,AdSense,2023-06-26,,,Not Assisted,None,False,False,False,False,Dropped,Adam Giacopuzzi,Matt Venables,snowflake_site_id,100
+976 TUNA,Sports,Insider,AdSense,2023-06-28,2024-09-04,434,Not Assisted,None,False,True,True,True,Returned,Whitney Harrist,Terrence Berg,snowflake_site_id,100
+Beautymone,Beauty,Insider,Mediavine,2023-06-28,2023-09-01,65,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Simone de Vlaming,snowflake_site_id,100
+The Fact File,Other,Insider,Mediavine,2023-06-28,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Shehzan Azad,snowflake_site_id,100
+Daze Puzzle,Entertainment,Luminary,Ezoic,2023-06-29,2023-10-17,110,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Mostafa Mokhayyeran,snowflake_site_id,100
+Physician on Fire,Personal Finance,Insider,Other,2023-06-29,2024-03-01,246,Assisted,None,False,True,True,True,Returned,Michelle Stappert,Nirav Shah,snowflake_site_id,100
+Everyday Power,Other,Platinum,Mediavine,2023-07-03,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Jeffrey Moore,snowflake_site_id,100
+Real Estate License Wizard,Other,Insider,Ezoic,2023-07-03,2025-07-07,735,Assisted,None,False,True,True,True,Returned,Amy Burgess,Leo Smigel,snowflake_site_id,100
+Sporked,Food,Platinum,Other,2023-07-03,2025-07-31,759,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Neel Yalamarthy,snowflake_site_id,100
+Whisky and Whiskey,Food,Insider,Mediavine,2023-07-03,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Juan Highland,snowflake_site_id,100
+Hebbars Kitchen,Food,Luminary,Other,2023-07-05,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Sudarshan Hebbar,snowflake_site_id,100
+Looria,Tech,Insider,No ads,2023-07-05,2023-10-09,96,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Tavis Lochhead,snowflake_site_id,100
+CaliforniaBeaches,Travel,Insider,Ezoic,2023-07-07,2023-09-18,73,Not Assisted,None,False,True,True,True,Returned,Amy Burgess,Doug Colbeck,snowflake_site_id,100
+FederalPay,Personal Finance,Platinum Elite,AdSense,2023-07-07,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Jonathan Weber,snowflake_site_id,100
+The Arcade Stick,Gaming,Insider,No ads,2023-07-10,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Sam B.,snowflake_site_id,100
+Purplemath,Other,Insider,AdSense,2023-07-11,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Elizabeth Stapel,snowflake_site_id,100
+Dont Forget The Bubbles,Health and Wellness,Insider,No ads,2023-07-17,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Josh Willett,snowflake_site_id,100
+Trash Schedules,Other,Insider,Ezoic,2023-07-18,2023-09-20,64,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Grayson Carter,snowflake_site_id,100
+Classic Country Music,Entertainment,Luminary,AdSense,2023-07-20,2023-09-06,48,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Kevin Blue,snowflake_site_id,100
+Country Rebel,Entertainment,Luminary,AdSense,2023-07-20,2023-09-06,48,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Kevin Blue,snowflake_site_id,100
+Borrowing Better,Personal Finance,Insider,No ads,2023-07-24,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Victor Mistreanu,snowflake_site_id,100
+Job Application World,Other,Insider,No ads,2023-07-24,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Victor Mistreanu,snowflake_site_id,100
+Mom Crib,Natural Parenting,Insider,No ads,2023-07-24,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Victor Mistreanu,snowflake_site_id,100
+NursingNotes,News,Insider,AdSense,2023-07-24,,,Not Assisted,None,False,False,False,False,Dropped,Marya Chuong,Matt Bodell,snowflake_site_id,100
+SalariesWiki,Other,Insider,No ads,2023-07-24,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Victor Mistreanu,snowflake_site_id,100
+Tourist2Traveler,Travel,Insider,No ads,2023-07-24,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Victor Mistreanu,snowflake_site_id,100
+Vegan Green Living,Food,Insider,No ads,2023-07-24,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Victor Mistreanu,snowflake_site_id,100
+WikiProfessional,Other,Insider,No ads,2023-07-24,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Victor Mistreanu,snowflake_site_id,100
+Encyclopedia Titanica,Other,Platinum,Ezoic,2023-07-28,2024-09-06,406,Not Assisted,None,False,True,True,True,Returned,Amy Burgess,Philip Hind,snowflake_site_id,100
+STEAMsational,Other,Insider,Mediavine,2023-07-28,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Brenda MacArthur,snowflake_site_id,100
+Tennis Tribe,Sports,Insider,No ads,2023-07-29,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Will Boucek,snowflake_site_id,100
+Scholarships360,Personal Finance,Insider,No ads,2023-08-01,2024-03-21,233,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Brian Geiger,snowflake_site_id,100
+Gitnux,Tech,Insider,AdSense,2023-08-02,2023-08-29,27,Not Assisted,None,False,True,True,True,Returned,Whitney Harrist,Jannik Lindner,snowflake_site_id,100
+Food Stamps Now,Other,Insider,Ezoic,2023-08-09,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Carrie Brenner,snowflake_site_id,100
+HiChee,Travel,Insider,AdSense,2023-08-09,2024-05-21,286,Assisted,None,False,True,True,True,Returned,Michelle Stappert,Monica Lee,snowflake_site_id,100
+The Connecticut Explorer,Travel,Insider,Mediavine,2023-08-09,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Suzanne Bucknam,snowflake_site_id,100
+Outbound Collective,Travel,Platinum,AdVally,2023-08-11,2024-01-04,146,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Brian Heifferon,snowflake_site_id,100
+ReadWrite,Tech,Insider,AdSense,2023-08-14,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,John Rampton,snowflake_site_id,100
+The Droid Guy,Tech,Insider,Mediavine,2023-08-14,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,George Tsay,snowflake_site_id,100
+Basketball GM,Sports,Luminary,Other,2023-08-16,2024-09-27,408,Not Assisted,None,False,True,True,True,Returned,Amy Burgess,Jeremy Scheff,snowflake_site_id,100
+Need To Know Facts,Entertainment,Platinum Elite,Ezoic,2023-08-16,,,Not Assisted,None,False,False,False,False,Dropped,Brianna Eaddy,Michael Hasenfratz,snowflake_site_id,100
+SAVEUR,Food,Platinum Elite,Other,2023-08-16,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Kat Craddock,snowflake_site_id,100
+Words Trivia,Entertainment,Platinum Elite,Ezoic,2023-08-16,,,Not Assisted,None,False,False,False,False,Dropped,Brianna Eaddy,Michael Hasenfratz,snowflake_site_id,100
+Classpop,Crafts,Platinum,No ads,2023-08-18,2024-03-21,216,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Sam Nasserian,snowflake_site_id,100
+FeelingVegas,Travel,Insider,Ezoic,2023-08-18,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Bryan Mullennix,snowflake_site_id,100
+Laura in the Kitchen,Food,Platinum Elite,AdSense,2023-08-21,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Laura Vitale,snowflake_site_id,100
+HonestlyWTF,Lifestyle,Insider,No ads,2023-08-23,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Abrahm Coffman,snowflake_site_id,100
+Wind Vintage,Lifestyle,Insider,No ads,2023-08-23,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,eric wind,snowflake_site_id,100
+Call of Duty Maps,Gaming,Insider,AdSense,2023-08-24,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Luong Tan,snowflake_site_id,100
+Whats Up Newp,News,Insider,AdSense,2023-08-24,,,Not Assisted,None,False,False,False,False,Dropped,Brianna Eaddy,Ryan Belmore,snowflake_site_id,100
+Christian Walls,Home Decor and Design,Insider,Mediavine,2023-08-28,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Peter Song,snowflake_site_id,100
+CollegeSimply,Other,Insider,AdSense,2023-08-28,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Jeff Soukup,snowflake_site_id,100
+Flooring Stores,Home Decor and Design,Insider,No ads,2023-08-28,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Todd Saunders,snowflake_site_id,100
+Find Unclaimed Assets,Personal Finance,Insider,Other,2023-08-31,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Kasey Klaas,snowflake_site_id,100
+MensGroup,Health and Wellness,Insider,No ads,2023-09-04,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Sean Galla,snowflake_site_id,100
+Budget Your Trip,Travel,Insider,Other,2023-09-06,2026-03-10,916,Assisted,None,False,True,True,True,Returned,Amy Burgess,Bryan Tighe,snowflake_site_id,100
+Sammy Montgoms,Food,Insider,No ads,2023-09-06,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Samantha Montgomery,snowflake_site_id,100
+Steamy Kitchen,Food,Luminary,Mediavine,2023-09-08,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Kevin Wallace,snowflake_site_id,100
+Barndominium Life,Home Decor and Design,Insider,Mediavine,2023-09-09,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Michael Weinstein,snowflake_site_id,100
+QuizExpo,Entertainment,Luminary,Other,2023-09-14,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Ata Navabi,snowflake_site_id,100
+Appliance Analysts,Home Decor and Design,Insider,Mediavine,2023-09-18,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Craig Anderson,snowflake_site_id,100
+Lawn Phix,Other,Insider,Ezoic,2023-09-18,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Mark Marino,snowflake_site_id,100
+Translate,Other,Platinum Elite,Other,2023-09-19,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Denys Dubner,snowflake_site_id,100
+CFL News Hub,Sports,Insider,Ezoic,2023-09-21,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Mark Perry,snowflake_site_id,100
+My Morning Espresso,Food,Insider,Ezoic,2023-09-22,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Michael Conti,snowflake_site_id,100
+Porch Daydreamer,Home Decor and Design,Insider,Mediavine,2023-09-22,2024-09-11,355,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Tracey Amadio,snowflake_site_id,100
+Thomasnet,Other,Platinum Elite,AdSense,2023-09-22,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Michael Hayes,snowflake_site_id,100
+Travelling Thirties,Travel,Insider,No ads,2023-09-22,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Fiona Boyle,snowflake_site_id,100
+eMathHelp,Other,Insider,Other,2023-09-22,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Pavlo Roik,snowflake_site_id,100
+AllClash,Gaming,Insider,Ezoic,2023-09-24,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Tim Albrecht,snowflake_site_id,100
+AnAdnet,Tech,Insider,No ads,2023-09-25,,,Not Assisted,None,False,False,False,False,Dropped,Brad Milligan,Tom Golan,snowflake_site_id,100
+Best Clean Eating,Food,Insider,No ads,2023-09-25,2024-02-16,144,Not Assisted,None,False,True,True,True,Returned,Amy Burgess,Zuzana Paar,snowflake_site_id,100
+Low Carb No Carb,Food,Insider,Mediavine,2023-09-25,2024-02-16,144,Not Assisted,None,False,True,True,True,Returned,Amy Burgess,Zuzana Paar,snowflake_site_id,100
+Edarabia,Other,Platinum Elite,No ads,2023-09-26,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Farid Gasim,snowflake_site_id,100
+Boston Girl Bakes,Food,Insider,Mediavine,2023-09-29,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Heather Farmer,snowflake_site_id,100
+iprospectcheck,Other,Insider,No ads,2023-10-02,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Matthew Rodgers,snowflake_site_id,100
+Reach For Travel,Travel,Insider,No ads,2023-10-03,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Justin Samsom,snowflake_site_id,100
+iColorpalette,Tech,Insider,Ezoic,2023-10-06,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,sethuram sobiya,snowflake_site_id,100
+Nice Kicks,Mens Style and Grooming,Insider,No ads,2023-10-07,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Matt Halfhill,snowflake_site_id,100
+Hamilton Park Home,Home Decor and Design,Insider,AdSense,2023-10-09,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Erin Gerlach,snowflake_site_id,100
+How To Cake It,Food,Insider,No ads,2023-10-10,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Caleigh Nevin,snowflake_site_id,100
+Wealth Factory,Personal Finance,Insider,No ads,2023-10-11,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Mathieu Silverstein,snowflake_site_id,100
+myMotherLode,News,Platinum,AdSense,2023-10-12,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Jason Banks,snowflake_site_id,100
+LSATHacks,Other,Insider,No ads,2023-10-13,2026-02-12,853,Assisted,None,False,True,True,True,Returned,Michelle Stappert,Graeme Blake,snowflake_site_id,100
+My Bartender,Food,Platinum Elite,Mediavine,2023-10-16,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Brian Nagele,snowflake_site_id,100
+Positive Psychology,Health and Wellness,Platinum,Ezoic,2023-10-16,2024-02-20,127,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Lucinda Allen,snowflake_site_id,100
+Wandering Wheatleys,Travel,Insider,Mediavine,2023-10-16,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Nick Wheatley,snowflake_site_id,100
+Yeah Weddings,Wedding,Insider,Mediavine,2023-10-16,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Brian Nagele,snowflake_site_id,100
+Domestic Superhero,Food,Platinum,Mediavine,2023-10-17,2024-03-05,140,Assisted,None,False,True,True,True,Returned,Amy Burgess,Allyson Zea,snowflake_site_id,100
+Enterprise DNA,Tech,Insider,Mediavine,2023-10-18,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Sam McKay,snowflake_site_id,100
+FourWeekMBA,Other,Insider,Mediavine,2023-10-18,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Gennaro Cuofano,snowflake_site_id,100
+All Things How,Tech,Insider,Mediavine,2023-10-19,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Shivam Malani,snowflake_site_id,100
+Upstate Ramblings,Food,Platinum,Mediavine,2023-10-19,2024-07-09,264,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Anne Jolly Gustke,snowflake_site_id,100
+Dont Forget The Bubbles,Health and Wellness,Insider,Mediavine,2023-10-20,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Josh Willett,snowflake_site_id,100
+Family Vacation Critic,Travel,Insider,Other,2023-10-20,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Sam McGeachie,snowflake_site_id,100
+Medimap,Health and Wellness,Insider,Other,2023-10-24,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Thomas Jankowski,snowflake_site_id,100
+The Absolute Sound,Other,Insider,Other,2023-10-24,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Jesse Brede,snowflake_site_id,100
+Errens Kitchen,Food,Platinum Elite,Mediavine,2023-10-26,2024-04-22,179,Not Assisted,None,False,True,True,True,Returned,Amy Burgess,Erren Hart,snowflake_site_id,100
+Best Minecraft Servers,Gaming,Platinum,Other,2023-10-27,2024-07-29,276,Assisted,None,False,True,True,True,Returned,Antoinette Smith,Ian Bazinet,snowflake_site_id,100
+The Salted Sweets,Food,Insider,Mediavine,2023-10-29,2024-03-13,136,Not Assisted,None,False,True,True,True,Returned,Whitney Harrist,Brooke Homec,snowflake_site_id,100
+Buffalo Trace Daily,Food,Insider,Other,2023-10-31,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Michael Danhauer,snowflake_site_id,100
+SwordEncyclopedia,Other,Insider,No ads,2023-10-31,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Valentin Munteanu,snowflake_site_id,100
+Feeling Foodish,Food,Insider,Mediavine,2023-11-01,2024-04-10,161,Not Assisted,None,False,True,True,True,Returned,Whitney Harrist,Marie Bialek,snowflake_site_id,100
+Pray With Confidence,Other,Insider,Mediavine,2023-11-07,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Jessica Synan,snowflake_site_id,100
+Foodie With Family,Food,Insider,Mediavine,2023-11-08,2025-10-22,714,Assisted,None,False,True,True,True,Returned,Antoinette Smith,Rebecca Lindamood,snowflake_site_id,100
+Virtualization How To,Tech,Insider,Mediavine,2023-11-08,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Brandon Lee,snowflake_site_id,100
+The Law of Attraction,Health and Wellness,Insider,Ezoic,2023-11-10,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Andrew Shorten,snowflake_site_id,100
+Simply Aligned Home,Home Decor and Design,Insider,Mediavine,2023-11-14,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Nicole Pankopp,snowflake_site_id,100
+Clean Plates,Clean Eating,Insider,SHE Media,2023-11-17,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Jared Koch,snowflake_site_id,100
+PC Player Hub,Gaming,Insider,Ezoic,2023-11-17,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Daniel Papcke,snowflake_site_id,100
+Susi Vidal,Food,Insider,No ads,2023-11-17,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Andrew Vidal,snowflake_site_id,100
+Love from the Oven,Food,Platinum Elite,Mediavine,2023-11-18,2024-01-26,69,Assisted,None,False,True,True,True,Returned,Amy Burgess,Christi Johnstone,snowflake_site_id,100
+N Gen,Other,Luminary,AdSense,2023-11-22,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Peter Cybriwsky,snowflake_site_id,100
+Pinch of Nom,Food,Platinum,Mediavine,2023-11-27,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Kay Allinson,snowflake_site_id,100
+Chorus,Entertainment,Insider,AdSense,2023-11-30,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Tom Hicks,snowflake_site_id,100
+Dream Plan Experience,Travel,Insider,Mediavine,2023-11-30,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Renee Hannes,snowflake_site_id,100
+Exercise Prescription on the Net,Health and Wellness,Insider,Ezoic,2023-11-30,2025-02-28,456,Not Assisted,None,False,True,True,True,Returned,Brianna Eaddy,James Griffing,snowflake_site_id,100
+Soap Opera Magazine,Entertainment,Insider,AdSense,2023-12-01,2025-01-16,412,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Terrence Brown,snowflake_site_id,100
+WINK News,News,Insider,AdSense,2023-12-01,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Melvin Vigo,snowflake_site_id,100
+Brownwood News,News,Insider,Ezoic,2023-12-05,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Mitchell Dillard,snowflake_site_id,100
+Bioaddict,Health and Wellness,Insider,Mediavine,2023-12-08,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Fabien Dupuis,snowflake_site_id,100
+A Spectacled Owl,Food,Platinum Elite,Mediavine,2023-12-12,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Cindy Fan,snowflake_site_id,100
+SportingLad,Sports,Insider,No ads,2023-12-18,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Huzaifa Murad,snowflake_site_id,100
+Ultimate Motorcycling Magazine,Auto,Insider,Other,2023-12-26,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Arthur Coldwells,snowflake_site_id,100
+Fit Men Cook,Food,Insider,Other,2024-01-05,2025-02-25,417,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Kevin Curry,snowflake_site_id,100
+Exercise Prescription on the Net,Fitness,Insider,Ezoic,2024-01-10,2025-02-28,415,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,James Griffing,snowflake_site_id,100
+inkPx,Other,Insider,AdSense,2024-01-12,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Shuai Zhang,snowflake_site_id,100
+LeafScore,Green Living,Insider,No ads,2024-01-18,2024-05-17,120,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,John OConnor,snowflake_site_id,100
+BunnyMuffins,Gaming,Insider,Other,2024-01-30,2024-10-02,246,Not Assisted,None,False,True,True,True,Returned,Amy Burgess,Ryan Tam,snowflake_site_id,100
+West Virginia Record,News,Insider,No ads,2024-01-30,2024-10-16,260,Assisted,None,False,True,True,True,Returned,Michelle Stappert,Todd Olson,snowflake_site_id,100
+Club Trader Joes,Food,Insider,Mediavine,2024-02-09,2025-02-06,363,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Steve Snyder,snowflake_site_id,100
+National Guitar Academy,Other,Insider,No ads,2024-02-14,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Mike Kennedy,snowflake_site_id,100
+Cura4U,Health and Wellness,Insider,AdSense,2024-02-15,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Waqas Ahmed,snowflake_site_id,100
+Bakes by Brown Sugar,Food,Insider,Mediavine,2024-02-21,2026-04-23,792,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Cheryl Norris,snowflake_site_id,100
+Interactive Mathematics App,Other,Insider,No ads,2024-02-22,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Casey Allen,snowflake_site_id,100
+The Crafty Quilter,Other,Insider,SHE Media,2024-02-23,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Julie Cefalu,snowflake_site_id,100
+Urban Farm and Kitchen,Food,Insider,SHE Media,2024-02-24,2025-02-14,356,Not Assisted,None,False,True,True,True,Returned,Whitney Harrist,Luay Ghafari,snowflake_site_id,100
+Honeymoons,Travel,Insider,Other,2024-03-01,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Jim Campbell,snowflake_site_id,100
+Golf Sidekick,Sports,Insider,No ads,2024-03-05,2025-06-18,470,Assisted,None,False,True,True,True,Returned,Michelle Stappert,Matthew Bartlett,snowflake_site_id,100
+Animal World,Pets,Insider,No ads,2024-03-07,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Simon Treulle,snowflake_site_id,100
+Ask Angels,Other,Insider,No ads,2024-03-08,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Miles Beckler,snowflake_site_id,100
+LebTown,News,Insider,AdSense,2024-03-11,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Davis Shaver,snowflake_site_id,100
+Sports Card Club,Other,Insider,No ads,2024-03-13,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Micheal Matthews,snowflake_site_id,100
+World History Encyclopedia,Other,Platinum Elite,Other,2024-03-19,2024-11-08,234,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Jan van der Crabben,snowflake_site_id,100
+Volleyball Life,Sports,Insider,No ads,2024-03-26,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Jonathan Alvarez,snowflake_site_id,100
+Cake,Other,Platinum,Mediavine,2024-03-29,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Isaac Krasny,snowflake_site_id,100
+The Delicious Spoon,Food,Insider,Mediavine,2024-04-04,2025-02-14,316,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Alisa Infanti,snowflake_site_id,100
+Real Food with Sarah - Rise,Food,Insider,Mediavine,2024-04-05,2024-10-24,202,Not Assisted,None,False,True,True,True,Returned,Whitney Harrist,Sarah Hill,snowflake_site_id,100
+A Butterfly House,Home Decor and Design,Insider,Mediavine,2024-04-08,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Lindsay McDowell,snowflake_site_id,100
+Entirely Elizabeth,Food,Insider,Mediavine,2024-04-11,2025-05-12,396,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Elizabeth Swoish,snowflake_site_id,100
+Mel's Kitchen Cafe,Food,Luminary,Mediavine,2024-04-11,2025-05-12,396,Assisted,None,False,True,True,True,Returned,Antoinette Smith,Melanie Gunnell,snowflake_site_id,100
+Modern Honey,Food,Luminary,Mediavine,2024-04-11,2024-09-24,166,Assisted,None,False,True,True,True,Returned,Amy Burgess,Melissa Stadler,snowflake_site_id,100
+Sole Retriever,Mens Style and Grooming,Platinum,Other,2024-04-12,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Zach Guerra,snowflake_site_id,100
+Tulum Travel Secrets,Travel,Insider,Mediavine,2024-04-12,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Shelley Marmor,snowflake_site_id,100
+A Sweet Alternative,Food,Insider,SHE Media,2024-04-17,2025-11-14,576,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Jennifer Bell,snowflake_site_id,100
+Broken Oven Baking Company,Food,Insider,Mediavine,2024-04-18,2024-10-02,167,Assisted,None,False,True,True,True,Returned,Michelle Stappert,Kayla Burton,snowflake_site_id,100
+Kitchen MisAdventures,Food,Insider,Mediavine,2024-04-18,2024-06-11,54,Assisted,None,False,True,True,True,Returned,Whitney Harrist,Fangyong Che,snowflake_site_id,100
+Clarks Condensed,Lifestyle,Insider,Mediavine,2024-04-24,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Katie Clark,snowflake_site_id,100
+Gift of Hospitality,Food,Insider,Mediavine,2024-04-24,2025-12-02,587,Assisted,None,False,True,True,True,Returned,Antoinette Smith,Kate Shungu,snowflake_site_id,100
+Simply Side Dishes,Food,Insider,Mediavine,2024-04-24,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Katie Clark,snowflake_site_id,100
+Cooking With Carlee,Food,Platinum,Mediavine,2024-04-26,2024-09-23,150,Assisted,None,False,True,True,True,Returned,Whitney Harrist,Carlee Scharnhorst,snowflake_site_id,100
+The American Legion,News,Insider,AdSense,2024-05-01,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Anthony Heath,snowflake_site_id,100
+Buoy Health,Health and Wellness,Platinum Elite,Mediavine,2024-05-02,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Jimmy Mills,snowflake_site_id,100
+Modsella,Gaming,Insider,Mediavine,2024-05-02,2025-04-14,347,Assisted,None,False,True,True,True,Returned,Michelle Stappert,Debbie Morgan,snowflake_site_id,100
+My Bartender,Other,Insider,Mediavine,2024-05-03,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Brian Nagele,snowflake_site_id,100
+Vegan Protein Powder Reviews,Health and Wellness,Insider,Mediavine,2024-05-03,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Tyler Tafelsky,snowflake_site_id,100
+Wardrobe Oxygen,Womens Style,Insider,Mediavine,2024-05-03,2025-10-27,542,Assisted,None,False,True,True,True,Returned,Michelle Stappert,Alison Gary,snowflake_site_id,100
+Go Viral,Entertainment,Luminary,Ezoic,2024-05-06,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Nina Ross Rostomashvili,snowflake_site_id,100
+Oh Snap Macros,Food,Insider,Mediavine,2024-05-06,2024-10-28,175,Assisted,None,False,True,True,True,Returned,Antoinette Smith,Danielle Lima,snowflake_site_id,100
+The Business Model Analyst,Other,Insider,AdSense,2024-05-07,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Daniel Pereira,snowflake_site_id,100
+SAVEUR,Food,Platinum Elite,Other,2024-05-10,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Kat Craddock,snowflake_site_id,100
+Falasteenifoodie,Food,Insider,Mediavine,2024-05-14,2025-01-06,237,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Fatimah Alghweir,snowflake_site_id,100
+Outdoorsy,Travel,Insider,AdSense,2024-05-15,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Josh Schukman,snowflake_site_id,100
+BBQing With The Nolands,Food,Insider,Mediavine,2024-05-21,2025-07-14,419,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Tara Noland,snowflake_site_id,100
+Soap Opera Magazine,Entertainment,Insider,AdSense,2024-05-23,2025-01-16,238,Assisted,None,False,True,True,True,Returned,Amy Burgess,Terry Brown,snowflake_site_id,100
+MetroDreamin,Other,Insider,AdSense,2024-05-28,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Isaac Nemzer,snowflake_site_id,100
+Eat At Home Club,Food,Platinum Elite,No ads,2024-06-03,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,TOURIA ABADA,snowflake_site_id,100
+Dont Just Fly,Travel,Insider,Mediavine,2024-06-06,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Tiffany Dahle,snowflake_site_id,100
+Peanut Blossom Book Club,Other,Insider,No ads,2024-06-06,2025-12-02,544,Assisted,None,False,True,True,True,Returned,Antoinette Smith,Tiffany Dahle,snowflake_site_id,100
+Joshua Weissman,Food,Insider,No ads,2024-06-18,2025-08-08,416,Assisted,None,False,True,True,True,Returned,Antoinette Smith,Lawrence Weibman,snowflake_site_id,100
+People Managing People,Other,Insider,Other,2024-06-19,2024-07-26,37,Not Assisted,None,False,True,True,True,Returned,Whitney Harrist,Ben Aston,snowflake_site_id,100
+The Digital Project Manager,Other,Insider,Other,2024-06-19,2024-07-30,41,Not Assisted,None,False,True,True,True,Returned,Whitney Harrist,Ben Aston,snowflake_site_id,100
+Urban Farm and Kitchen,Food,Insider,Mediavine,2024-06-21,2025-02-14,238,Not Assisted,None,False,True,True,True,Returned,Whitney Harrist,Luay Ghafari,snowflake_site_id,100
+Yorkshire,Travel,Insider,No ads,2024-06-21,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Jono Farrington,snowflake_site_id,100
+Home Decor Bliss,Home Decor and Design,Platinum Elite,Mediavine,2024-07-01,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Anat El Hashahar,snowflake_site_id,100
+Entirely Elizabeth,Food,Insider,Mediavine,2024-07-02,2025-05-12,314,Not Assisted,None,False,True,True,True,Returned,Whitney Harrist,Elizabeth Swoish,snowflake_site_id,100
+SimRacingCockpit,Gaming,Insider,No ads,2024-07-09,,,Not Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Richard Baxter,snowflake_site_id,100
+The Absolute Sound,Other,Insider,Other,2024-07-09,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Jesse Brede,snowflake_site_id,100
+Crowded Kitchen,Food,Platinum,Mediavine,2024-07-10,2025-10-29,476,Assisted,None,False,True,True,True,Returned,Antoinette Smith,Alexis Harrison,snowflake_site_id,100
+Letter Boxed Answer,Gaming,Insider,No ads,2024-07-16,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Erni Mice,snowflake_site_id,100
+Game Table,Gaming,Insider,AdSense,2024-07-19,,,Not Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Matthew Valadie,snowflake_site_id,100
+Simple Everyday Recipes,Food,Insider,Mediavine,2024-07-19,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Christina Tattory,snowflake_site_id,100
+Tiffany Allison,Lifestyle,Insider,No ads,2024-07-19,,,Not Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Tiffany Regalado,snowflake_site_id,100
+Red Carpet Fashion Awards,Womens Style,Insider,SHE Media,2024-07-22,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Catherine Kallon,snowflake_site_id,100
+Peru Delicias,Food,Insider,AdSense,2024-07-24,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Hector Escardo,snowflake_site_id,100
+Talk Nats,Sports,Insider,Other,2024-07-25,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Brandon PLACEHOLDER,snowflake_site_id,100
+Classic Nerd,Entertainment,Insider,AdSense,2024-07-30,2024-11-01,94,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Jordan Sternberg,snowflake_site_id,100
+Global View,Other,Insider,Other,2024-08-06,2025-08-15,374,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Jay Meisler,snowflake_site_id,100
+HiChee,Travel,Insider,AdSense,2024-08-08,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Monica Lee,snowflake_site_id,100
+For Busy Bees,Other,Insider,Mediavine,2024-08-12,2025-01-22,163,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Afshan Sayed,snowflake_site_id,100
+Savory Nothings,Food,Platinum Elite,Mediavine,2024-08-13,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Nora Rušev,snowflake_site_id,100
+Unfussy Kitchen,Food,Insider,Mediavine,2024-08-13,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Nora Rusev,snowflake_site_id,100
+Wholesome Recipe Box,Food,Insider,Mediavine,2024-08-13,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Nora Rusev,snowflake_site_id,100
+BookBrowse,Entertainment,Insider,Other,2024-08-28,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Nick Stager,snowflake_site_id,100
+LonerWolf,Other,Insider,AdSense,2024-09-05,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Matthew Melissant,snowflake_site_id,100
+Cooking with Nart,Food,Insider,Mediavine,2024-09-10,2025-04-28,230,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Treenart Nilpruek,snowflake_site_id,100
+The Family Conscience,Travel,Insider,Monumetric,2024-09-13,,,Not Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Jane Geffin,snowflake_site_id,100
+Green Smoothie Gourmet,Food,Insider,Mediavine,2024-09-17,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Dee Dine,snowflake_site_id,100
+Home Theater Forum,Other,Insider,Other,2024-09-24,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Jonathan Keane,snowflake_site_id,100
+ValueInvesting,Other,Insider,No ads,2024-09-27,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Steve Fagan,snowflake_site_id,100
+Easy Dinner Ideas,Food,Insider,Mediavine,2024-10-01,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Jessica Segarra,snowflake_site_id,100
+The Novice Chef,Food,Platinum Elite,Mediavine,2024-10-01,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Jessica Segarra,snowflake_site_id,100
+The Navigatio,Travel,Insider,Mediavine,2024-10-03,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Nele van Hout,snowflake_site_id,100
+The Unlikely Baker,Food,Insider,Mediavine,2024-10-09,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Jolina Bantayan,snowflake_site_id,100
+Football GM,Gaming,Platinum Elite,Other,2024-10-11,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Jeremy Scheff,snowflake_site_id,100
+The Noise,Sports,Platinum Elite,No ads,2024-10-11,2024-12-18,68,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Cy Amundson,snowflake_site_id,100
+ZenGM,Gaming,Platinum,Other,2024-10-11,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Jeremy Scheff,snowflake_site_id,100
+Web Magic Tool,Other,Insider,No ads,2024-10-15,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Aloysius Adejo,snowflake_site_id,100
+Math Forums,Other,Luminary,No ads,2024-10-16,2025-03-07,142,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Bryan Doble,snowflake_site_id,100
+Sense and Edibility,Food,Insider,Mediavine,2024-10-23,2025-03-26,154,Not Assisted,None,False,True,True,True,Returned,Antoinette Smith,Marta Rivera Diaz,snowflake_site_id,100
+Techie Dad,Tech,Platinum Elite,No ads,2024-10-30,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Donya Mullins,snowflake_site_id,100
+Fat Girl Hedonist,Food,Insider,Mediavine,2024-11-01,2025-01-31,91,Not Assisted,None,False,True,True,True,Returned,Jade Carpenter,Cari Garcia,snowflake_site_id,100
+Healthy Seasonal Recipes,Food,Insider,Mediavine,2024-11-05,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Katie Webster,snowflake_site_id,100
+Cooking with Nart,Food,Insider,Mediavine,2024-11-11,2025-04-28,168,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Treenart Nilpruek,snowflake_site_id,100
+The Peasants Daughter,Food,Insider,Mediavine,2024-11-11,2025-12-03,387,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Jana Dziak,snowflake_site_id,100
+Flagle Game,Other,Platinum,No ads,2024-11-13,2024-12-13,30,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Thomas Winters,snowflake_site_id,100
+Cookilicious,Food,Insider,Mediavine,2024-12-02,2025-09-11,283,Not Assisted,None,False,True,True,True,Returned,Jade Carpenter,Priya Lakshminarayan,snowflake_site_id,100
+Nice Kicks,Lifestyle,Platinum Elite,No ads,2024-12-03,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Matt Halfhill,snowflake_site_id,100
+CHROMETHEMER,Other,Insider,AdSense,2024-12-16,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Arnold van den Heever,snowflake_site_id,100
+PracticeEHR,Health and Wellness,Platinum,Other,2024-12-17,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Hashir Mughal,snowflake_site_id,100
+Mxriyum,Food,Insider,No ads,2024-12-23,,,Not Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Mariam Daud,snowflake_site_id,100
+QM Games,Gaming,Insider,Other,2024-12-23,,,Not Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Kumar Harshvardhan,snowflake_site_id,100
+Wild Thistle Kitchen,Food,Insider,Mediavine Journey,2024-12-26,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Anita Soule,snowflake_site_id,100
 The Global Vegetarian,Food,Insider,Other,2025-01-09,,,Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Pooja Jhunjhunwala,snowflake_site_id,100
-4 Filming,Entertainment,Insider,Mediavine,2025-01-15,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Jitendra Sanwal,snowflake_site_id,100
+4 Filming,Entertainment,Insider,Mediavine,2025-01-15,2025-04-10,85,Assisted,None,False,True,True,True,Returned,Antoinette Smith,Jitendra Sanwal,snowflake_site_id,100
 Air Purifiers Lab,Home Decor and Design,Platinum Elite,No ads,2025-01-16,,,Not Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Marko Sifer,snowflake_site_id,100
 The Green Watt,Green Living,Platinum Elite,No ads,2025-01-16,,,Not Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Marko Sifer,snowflake_site_id,100
 Travel Power Plugs,Travel,Platinum Elite,No ads,2025-01-16,,,Not Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Marko Sifer,snowflake_site_id,100
 hookok,Crafts,Insider,No ads,2025-01-27,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Jiangyu Luo,snowflake_site_id,100
 Frugal Mom Eh,Food,Insider,Mediavine,2025-01-31,2026-01-13,347,Assisted,None,False,True,True,True,Returned,Whitney Harrist,Elizabeth Lampman,snowflake_site_id,100
 Life Love Liz,Food,Insider,Mediavine,2025-01-31,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Elizabeth Lampman,snowflake_site_id,100
-Stretch and Folds,Food,Insider,Mediavine,2025-01-31,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Tina Bevk,snowflake_site_id,100
+Stretch and Folds,Food,Insider,Mediavine,2025-01-31,2025-11-18,291,Assisted,None,False,True,True,True,Returned,Whitney Harrist,Tina Bevk,snowflake_site_id,100
 Chubbies by Ash,Other,Insider,Mediavine Journey,2025-02-03,,,Not Assisted,None,False,False,False,False,Dropped,Jade Carpenter,AYE SU HAN,snowflake_site_id,100
 Club Locker,Sports,Insider,AdSense,2025-02-06,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Ryan Rayfield,snowflake_site_id,100
 My New Roots,Food,Insider,No ads,2025-02-10,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Sarah Britton,snowflake_site_id,100
 Red Cottage Chronicles,Food,Insider,Mediavine,2025-02-10,2026-02-24,379,Assisted,None,False,True,True,True,Returned,Michelle Stappert,Maureen Reynolds,snowflake_site_id,100
-Hungry in Thailand,Food,Insider,Mediavine,2025-02-11,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Maninut Chanpum,snowflake_site_id,100
+Hungry in Thailand,Food,Insider,Mediavine,2025-02-11,2025-05-14,92,Assisted,None,False,True,True,True,Returned,Michelle Stappert,Maninut Chanpum,snowflake_site_id,100
 Quiche My Grits,Food,Insider,Mediavine,2025-02-13,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Debi Morgan,snowflake_site_id,100
 Ambitious Foodie,Food,Insider,Mediavine Journey,2025-02-24,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Hamid Senouci,snowflake_site_id,100
-MGEVs,Auto,Insider,Other,2025-02-28,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Gemma Reeves,snowflake_site_id,100
+MGEVs,Auto,Insider,Other,2025-02-28,2025-11-12,257,Assisted,None,False,True,True,True,Returned,Whitney Harrist,Gemma Reeves,snowflake_site_id,100
 Afar,Travel,Platinum,Other,2025-03-17,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Donna Delmas,snowflake_site_id,100
 Fit Mama Real Food,Food,Insider,Mediavine,2025-03-25,2026-02-24,336,Assisted,None,False,True,True,True,Returned,Jade Carpenter,Heather Englund,snowflake_site_id,100
 Food Safety News,Food,Insider,AdSense,2025-03-25,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Peter Gustafson,snowflake_site_id,100
 YouLookFab,Womens Style,Insider,No ads,2025-03-25,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Gregory Cox,snowflake_site_id,100
 Bakes by Brown Sugar,Food,Insider,Mediavine,2025-03-28,2026-04-23,391,Assisted,None,False,True,True,True,Returned,Michelle Stappert,Cheryl Norris,snowflake_site_id,100
-That Girl Cooks Heathy,Food,Insider,Mediavine,2025-03-28,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Charlene Harris,snowflake_site_id,100
+That Girl Cooks Heathy,Food,Insider,Mediavine,2025-03-28,2025-10-10,196,Assisted,None,False,True,True,True,Returned,Antoinette Smith,Charlene Harris,snowflake_site_id,100
 Join Jules,Food,Insider,Other,2025-04-03,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Julianna McIntosh,snowflake_site_id,100
 A Blissful Nest,Home Decor and Design,Insider,Mediavine,2025-04-07,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Rebekah Dempsey,snowflake_site_id,100
 Ethnic Spoon,Food,Insider,Mediavine,2025-04-07,2026-05-07,395,Assisted,None,False,True,True,True,Returned,Jade Carpenter,Thomas Braeger,snowflake_site_id,100
@@ -36,21 +442,22 @@ Morning Offering,Other,Insider,No ads,2025-04-23,,,Assisted,None,False,False,Fal
 Matrix Calculator,Other,Insider,Other,2025-04-30,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Andrei Shishkin,snowflake_site_id,100
 Birdguides,Other,Insider,Other,2025-05-02,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Nick Greenwood,snowflake_site_id,100
 Out and About Live,Auto,Insider,Other,2025-05-02,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Nick Greenwood,snowflake_site_id,100
+Tiny Footsteps Travel,Travel,Insider,Mediavine,2025-05-05,,,Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Kristin Matthews,snowflake_site_id,100
 Patti Fagan,Lifestyle,Insider,No ads,2025-05-07,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Patti Fagan,snowflake_site_id,100
-Mon Petit Four,Food,Insider,Mediavine,2025-05-20,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Beeta Hashempour,snowflake_site_id,100
+Mon Petit Four,Food,Insider,Mediavine,2025-05-20,2025-09-25,128,Assisted,None,False,True,True,True,Returned,Amy Burgess,Beeta Hashempour,snowflake_site_id,100
 La Jolla Mom,Travel,Insider,Mediavine,2025-05-21,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Katie Dillon,snowflake_site_id,100
-Crystal and Co,Family and Parenting,Insider,Mediavine,2025-06-13,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Crystal Lopez,snowflake_site_id,100
+Crystal and Co,Family and Parenting,Insider,Mediavine,2025-06-13,2025-10-14,123,Assisted,None,False,True,True,True,Returned,Amy Burgess,Crystal Lopez,snowflake_site_id,100
 Finbold Finance in Bold,News,Platinum,AdSense,2025-06-13,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Justin Baltrusaitis,snowflake_site_id,100
 Familia Kitchen,Food,Insider,Other,2025-06-19,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Lisa Hunt Stevens,snowflake_site_id,100
-Wholesomely Morgan,Food,Insider,Mediavine,2025-06-20,,,Not Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Morgan Hancock,snowflake_site_id,100
+Wholesomely Morgan,Food,Insider,Mediavine,2025-06-20,2025-08-08,49,Not Assisted,None,False,True,True,True,Returned,Jade Carpenter,Morgan Hancock,snowflake_site_id,100
 Fantasy Guru,Sports,Insider,No ads,2025-06-23,,,Not Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Brett Nyquist,snowflake_site_id,100
-Melissa K Norris,Lifestyle,Insider,Mediavine,2025-06-30,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Melissa Norris,snowflake_site_id,100
+Melissa K Norris,Lifestyle,Insider,Mediavine,2025-06-30,2025-10-16,108,Assisted,None,False,True,True,True,Returned,Amy Burgess,Melissa Norris,snowflake_site_id,100
 Tennis Connected,Fitness,Insider,AdSense,2025-07-01,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Nima Naderi,snowflake_site_id,100
 Well Made by Kiley,Food,Insider,Mediavine,2025-07-02,,,Not Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Kiley Heard,snowflake_site_id,100
 Wild Thistle Kitchen,Food,Insider,Mediavine Journey,2025-07-02,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Anita Soule,snowflake_site_id,100
 Creative Kids Color,Other,Insider,AdSense,2025-07-03,,,Not Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Alper Ãzbay,snowflake_site_id,100
 Mining,News,Insider,Other,2025-07-12,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Scott Spence,snowflake_site_id,100
-Clean Food Crush,Food,Platinum,No ads,2025-07-18,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Cory Shanes,snowflake_site_id,100
+Clean Food Crush,Food,Platinum,No ads,2025-07-18,2025-10-30,104,Assisted,None,False,True,True,True,Returned,Michelle Stappert,Cory Shanes,snowflake_site_id,100
 A Solo Woman Traveling,Travel,Insider,Mediavine,2025-07-28,,,Not Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Melissa Byron,snowflake_site_id,100
 Bricks n Blooms with Stacy Ling,Gardening,Insider,Mediavine,2025-08-01,,,Not Assisted,None,False,False,False,False,Dropped,Jade Carpenter,Stacy Ling,snowflake_site_id,100
 My Online Training Hub,Other,Insider,Mediavine,2025-08-04,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Philip Treacy,snowflake_site_id,100
@@ -62,7 +469,7 @@ Tiny Footsteps Travel,Travel,Insider,Mediavine,2025-08-19,,,Assisted,None,False,
 Dinosaur Mama,Crafts,Insider,Mediavine Journey,2025-09-05,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Kelsey Sergi,snowflake_site_id,100
 Campfire Foodie,Food,Insider,Mediavine,2025-09-17,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Heather Painchaud,snowflake_site_id,100
 Chef Denise,Food,Insider,Mediavine,2025-09-29,2026-02-17,141,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Denise Macuk,snowflake_site_id,100
-Optimized Portfolio,Personal Finance,Insider,Ezoic,2025-09-29,,,Assisted,None,False,False,False,False,Dropped,Jade Carpenter,John Williamson,snowflake_site_id,100
+Optimized Portfolio,Personal Finance,Insider,Ezoic,2025-09-29,2025-11-25,57,Assisted,None,False,True,True,True,Returned,Jade Carpenter,John Williamson,snowflake_site_id,100
 Greysheet,Hobbies & Interests,Insider,No ads,2025-10-06,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,John Feigenbaum,snowflake_site_id,100
 Workology,Business,Rise,No ads,2025-10-07,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Jessica Miller-Merrell,snowflake_site_id,100
 Midlife Posh Closet,Shopping,Insider,No ads,2025-10-08,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Valarie Linnen,snowflake_site_id,100
@@ -88,7 +495,7 @@ Simply Happenings,Food,Insider,Mediavine,2025-12-01,2026-02-12,73,Not Assisted,N
 The Jeopardy Fan,Entertainment,Insider,Other,2025-12-01,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Andrew Saunders,snowflake_site_id,100
 Craft Fix,Crafts,Insider,Mediavine Journey,2025-12-04,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Janine Dalton,snowflake_site_id,100
 Moon and Honey Travel,Travel,Insider,Mediavine,2025-12-04,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Katrin Walzl,snowflake_site_id,100
-The Mac Observer,Tech,Platinum,Mediavine,2025-12-04,2026-02-23,81,Assisted,None,False,True,True,True,Returned,Whitney Harrist,Alex Serban,snowflake_site_id,100
+The Mac Observer,Tech,Platinum,Mediavine,2025-12-04,2026-02-20,78,Assisted,None,False,True,True,True,Returned,Whitney Harrist,Alex Serban,snowflake_site_id,100
 A Home Is Announced,Home Decor and Design,Insider,Mediavine Journey,2025-12-05,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Kadie Pangburn,snowflake_site_id,100
 Beyond the Yellow Brick Road,Travel,Insider,Mediavine Journey,2025-12-05,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Ada Igoe,snowflake_site_id,100
 Boston Discovery Guide,Travel,Insider,Mediavine,2025-12-09,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Susan Vik,snowflake_site_id,100
@@ -104,56 +511,65 @@ The Vegan 8,Food,Insider,No ads,2025-12-19,,,Assisted,None,False,False,False,Fal
 EconoFact,Other,Insider,No ads,2025-12-22,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Michael Klein,snowflake_site_id,100
 Discover Over There,Travel,Insider,Mediavine,2025-12-26,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Chihuei Liu,snowflake_site_id,100
 Aviation A2Z,Travel,Luminary,Freestar,2026-01-06,,,Assisted,3,False,False,False,False,Dropped,Antoinette Smith,Bhavya Velani,,0.0
-My Name Is Snickerdoodle,Food,Rise,Mediavine,2026-01-07,,,Not Assisted,3/7,False,False,False,False,Dropped,Michelle Stappert,Amy Williams,,0.0
-Growing Dawn,Lifestyle,Rise,Mediavine Journey,2026-01-08,,,Not Assisted,3,False,False,False,False,Dropped,Amy Burgess,Tiffany Brewer,,0.0
-The Carpenters Daughter,Home Decor and Design,Rise,Mediavine,2026-01-08,,,Not Assisted,3,False,False,False,False,Dropped,Amy Burgess,Vikkie Lee,,0.0
-Thank You Berry Much,Food,Insider,Mediavine,2026-01-12,,,Assisted,3,False,False,False,False,Dropped,Michelle Stappert,Emily Wise,,0.0
+My Name Is Snickerdoodle,Food,Insider,Mediavine,2026-01-07,2026-03-11,63,Not Assisted,None,False,True,True,True,Returned,Michelle Stappert,Amy Williams,snowflake_site_id,100
+Growing Dawn,Lifestyle,Insider,Mediavine Journey,2026-01-08,2026-03-25,76,Not Assisted,None,False,True,True,True,Returned,Amy Burgess,Tiffany Brewer,snowflake_site_id,100
+The Carpenters Daughter,Home Decor and Design,Insider,Mediavine,2026-01-08,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Vikkie Lee,snowflake_site_id,100
+Thank You Berry Much,Food,Insider,Mediavine,2026-01-12,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Emily Wise,snowflake_site_id,100
 Super Age,Health and Wellness,Insider,AdSense,2026-01-14,2026-02-24,41,Assisted,None,True,True,False,False,Returned,Antoinette Smith,Amr Saleh,manual_override,100
-Gretas Travels,Travel,Rise,Mediavine,2026-01-16,,,Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Greta Omoboni,,0.0
-CelebrityCipher Answer,Gaming,Insider,Other,2026-01-19,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Michael Felch,,0.0
-Cryptoquip Answer,Gaming,Insider,Other,2026-01-19,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Michael Felch,,0.0
-Style Your Occasion,Womens Style,Insider,Mediavine,2026-01-22,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Christal Sczebel,,0.0
-XboxEra,Gaming,Insider,Other,2026-01-23,,,Not Assisted,7,False,False,False,False,Dropped,Whitney Harrist,Jon Clarke,,0.0
-Kelly Neil,Food,Insider,Mediavine,2026-01-26,,,Not Assisted,3/7,False,False,False,False,Dropped,Amy Burgess,Kelly Neil,,0.0
-The Vivienne Files,Womens Style,Insider,Mediavine,2026-01-27,,,Not Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Janice Riggs,,0.0
-PNW HOME,Home Decor and Design,Rise,No ads,2026-01-29,,,Not Assisted,7,False,False,False,False,Dropped,Whitney Harrist,Cody Smith,,0.0
-The Color Concierge,Home Decor and Design,Insider,Mediavine,2026-01-29,,,Not Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Michelle Marceny,,0.0
-Somewhere In Arkansas,Travel,Rise,No ads,2026-01-30,,,Not Assisted,7,False,False,False,False,Dropped,Whitney Harrist,Karen Keathley,,0.0
-Dish by Rish,Food,Insider,Mediavine,2026-02-02,,,Not Assisted,3,False,False,False,False,Dropped,Michelle Stappert,Rishi Nanavati,,0.0
-Margaux Food,Food,Insider,Other,2026-02-04,,,Not Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Margaux Verdier,,0.0
-Take Two Tapas,Food,,Mediavine,2026-02-05,,,Not Assisted,3/7,False,False,False,False,Dropped,Amy Burgess,Jennifer Stewart,,0.0
-Beginners Guide to RVing,Travel,Platinum,No ads,2026-02-06,,,Not Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Charles Woodbury,,0.0
-foodgawker,Food,Rise,Mediavine,2026-02-13,,,Not Assisted,3,False,False,False,False,Dropped,Michelle Stappert,Daniel Fell,,0.0
+Gretas Travels,Travel,Insider,Mediavine,2026-01-16,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Greta Omoboni,snowflake_site_id,100
+CelebrityCipher Answer,Gaming,Insider,Other,2026-01-19,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Michael Felch,snowflake_site_id,100
+Cryptoquip Answer,Gaming,Insider,Other,2026-01-19,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Michael Felch,snowflake_site_id,100
+Style Your Occasion,Womens Style,Insider,Mediavine,2026-01-22,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Christal Sczebel,snowflake_site_id,100
+XboxEra,Gaming,Insider,Other,2026-01-23,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Jon Clarke,snowflake_site_id,100
+Kelly Neil,Food,Insider,Mediavine,2026-01-26,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Kelly Neil,snowflake_site_id,100
+The Vivienne Files,Womens Style,Insider,Mediavine,2026-01-27,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Janice Riggs,snowflake_site_id,100
+PNW HOME,Home Decor and Design,Insider,No ads,2026-01-29,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Cody Smith,snowflake_site_id,100
+The Color Concierge,Home Decor and Design,Insider,Mediavine,2026-01-29,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Michelle Marceny,snowflake_site_id,100
+Somewhere In Arkansas,Travel,Insider,No ads,2026-01-30,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Karen Keathley,snowflake_site_id,100
+Dish by Rish,Food,Insider,Mediavine,2026-02-02,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Rishi Nanavati,snowflake_site_id,100
+Margaux Food,Food,Insider,Other,2026-02-04,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Margaux Verdier,snowflake_site_id,100
+Take Two Tapas,Food,Insider,Mediavine,2026-02-05,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Jennifer Stewart,snowflake_site_id,100
+Beginners Guide to RVing,Travel,Platinum,No ads,2026-02-06,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Charles Woodbury,snowflake_site_id,100
+foodgawker,Food,Insider,Mediavine,2026-02-13,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Daniel Fell,snowflake_site_id,100
 Tecmint Linux Howtos Tutorials and Guides,Tech,Insider,Freestar,2026-02-17,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Ravi Kumar Saive,,0.0
-Pint Sized Baker,Food,Rise,Mediavine,2026-02-26,,,Not Assisted,3/7,False,False,False,False,Dropped,Michelle Stappert,Susanne Queck,,0.0
-On The Water,Hobbies & Interests,Rise,AdSense,2026-03-12,,,Not Assisted,3/7,False,False,False,False,Dropped,Michelle Stappert,Kevin Blinkoff,,0.0
-Southern Bytes,Food,Insider,Mediavine,2026-03-19,,,Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Kari Anderson,,0.0
+Pint Sized Baker,Food,Insider,Mediavine,2026-02-26,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Susanne Queck,snowflake_site_id,100
+On The Water,Hobbies & Interests,Insider,AdSense,2026-03-12,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Kevin Blinkoff,snowflake_site_id,100
+Aviation A2Z,Travel,Platinum Elite,Freestar,2026-03-18,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Bhavya Velani,snowflake_site_id,100
+Southern Bytes,Food,Insider,Mediavine,2026-03-19,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Kari Anderson,snowflake_site_id,100
 Whats Good at Trader Joes,Food,Rise,AdSense,2026-03-19,,,Not Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Nathan Rodgers,,0.0
-footyscores,Sports,Rise,No ads,2026-03-19,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Lachlan Hamilton,,0.0
-Novel Games,Gaming,Insider,AdSense,2026-03-20,,,Assisted,7,False,False,False,False,Dropped,Michelle Stappert,Peter Lee,,0.0
-Sydney Expert,Travel,Insider,Mediavine,2026-03-20,,,Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Paula Morgan,,0.0
+Whats Good at Trader Joes,Food,Insider,AdSense,2026-03-19,2026-05-05,47,Not Assisted,None,False,True,True,True,Returned,Whitney Harrist,Nathan Rogers,snowflake_site_id,100
+footyscores,Sports,Insider,No ads,2026-03-19,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Lachlan Hamilton,snowflake_site_id,100
+Novel Games,Gaming,Insider,AdSense,2026-03-20,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Peter Lee,snowflake_site_id,100
+Sydney Expert,Travel,Insider,Mediavine,2026-03-20,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Paula Morgan,snowflake_site_id,100
 Bored Button,Entertainment,Insider,AdSense,2026-03-23,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Tyler Cole,,0.0
-Fisheries,Hobbies & Interests,Rise,No ads,2026-03-24,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Steve Tipson,,0.0
-The Royal Court of Pasta,Food,Insider,No ads,2026-03-24,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Nadia Munno,,0.0
-PkmnCards,Gaming,Insider,AdSense,2026-03-25,,,Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Adam Capriola,,0.0
-Kellys Clean Kitchen,Food,Insider,No ads,2026-03-27,,,Not Assisted,7,False,False,False,False,Dropped,Michelle Stappert,Kelly Scott,,0.0
-Zelda Central,Gaming,Insider,AdSense,2026-03-30,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Victor Williams,,0.0
-Xfire,Gaming,Platinum Elite,Mediavine,2026-04-02,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Matt Gibbs,,0.0
-Gabriela Eats,Food,Rise,No ads,2026-04-08,,,Not Assisted,3/7,False,False,False,False,Dropped,Michelle Stappert,Gabriela Campos Kelley,,0.0
-DeSoto County News,News,Insider,AdSense,2026-04-10,,,Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Jon Myers,,0.0
+Fisheries,Hobbies & Interests,Insider,No ads,2026-03-24,,,Not Assisted,None,False,False,False,False,Dropped,Amy Burgess,Steve Tipson,snowflake_site_id,100
+The Royal Court of Pasta,Food,Insider,No ads,2026-03-24,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Nadia Munno,snowflake_site_id,100
+PkmnCards,Gaming,Insider,AdSense,2026-03-25,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Adam Capriola,snowflake_site_id,100
+Bored Button,Entertainment,Platinum Elite,AdSense,2026-03-26,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Tyler Cole,snowflake_site_id,100
+Kellys Clean Kitchen,Food,Insider,No ads,2026-03-27,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Kelly Scott,snowflake_site_id,100
+Zelda Central,Gaming,Insider,AdSense,2026-03-30,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Victor Williams,snowflake_site_id,100
+Tecmint Linux Howtos Tutorials and Guides,Tech,Insider,Freestar,2026-03-31,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Ravi Kumar Saive,snowflake_site_id,100
+Xfire,Gaming,Platinum Elite,Mediavine,2026-04-02,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Matt Gibbs,snowflake_site_id,100
+Gabriela Eats,Food,Insider,No ads,2026-04-08,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Gabriela Campos Kelley,snowflake_site_id,100
+DeSoto County News,News,Insider,AdSense,2026-04-10,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Jon Myers,snowflake_site_id,100
 Batter Up,Sports,Insider,Other,2026-04-13,,,Not Assisted,3,False,False,False,False,Dropped,Antoinette Smith,Cristian Lopez,,0.0
 Random Pokemon Picker,Gaming,Insider,No ads,2026-04-13,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Devashish Sharma,,0.0
-Boggle Wizard,Gaming,Insider,AdSense,2026-04-16,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Corpuz Ferdinand,,0.0
-Rogueliker,Gaming,Insider,Other,2026-04-16,,,Not Assisted,3/7,False,False,False,False,Dropped,Michelle Stappert,Mike Holmes,,0.0
-Sally Sees,Travel,Rise,Mediavine,2026-04-20,,,Assisted,3/7,False,False,False,False,Dropped,Whitney Harrist,Sally Rodrick,,0.0
-My Goodness Kitchen,Food,Rise,Mediavine,2026-04-23,,,Assisted,3,False,False,False,False,Dropped,Whitney Harrist,Amanda Logan,,0.0
-Jonathan Zaragoza,Food,Rise,AdSense,2026-04-24,,,Assisted,3/7,False,False,False,False,Dropped,Antoinette Smith,Jonathan Zaragoza,,0.0
-Mobile Suit Arena,Gaming,Insider,AdSense,2026-04-24,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Douglas Godinho,,0.0
-Headfonia,Tech,Insider,Mediavine,2026-04-30,,,Assisted,7,False,False,False,False,Dropped,Amy Burgess,Lieven Vranken,,0.0
-Scrabble Cheat,Entertainment,Insider,Ezoic,2026-04-30,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Steven Fuchs,,0.0
-Hawaii,Travel,Insider,In house,2026-05-01,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Corinne van den Heuvel,,0.0
-The Food in my Beard,Food,Rise,Mediavine,2026-05-01,,,Assisted,7,False,False,False,False,Dropped,Michelle Stappert,Dan Whalen,,0.0
+Batter Up,Sports,Insider,Other,2026-04-16,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Cristian Lopez,snowflake_site_id,100
+Boggle Wizard,Gaming,Insider,AdSense,2026-04-16,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Corpuz Ferdinand,snowflake_site_id,100
+Rogueliker,Gaming,Insider,Other,2026-04-16,,,Not Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Mike Holmes,snowflake_site_id,100
+Random Pokemon Picker,Gaming,Insider,No ads,2026-04-17,,,Not Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Devashish Sharma,snowflake_site_id,100
+Sally Sees,Travel,Insider,Mediavine,2026-04-20,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Sally Rodrick,snowflake_site_id,100
+My Goodness Kitchen,Food,Insider,Mediavine,2026-04-23,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Amanda Logan,snowflake_site_id,100
+Jonathan Zaragoza,Food,Insider,AdSense,2026-04-24,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Jonathan Zaragoza,snowflake_site_id,100
+Mobile Suit Arena,Gaming,Insider,AdSense,2026-04-24,,,Assisted,None,False,False,False,False,Dropped,Antoinette Smith,Douglas Godinho,snowflake_site_id,100
+Headfonia,Tech,Insider,Mediavine,2026-04-30,,,Assisted,None,False,False,False,False,Dropped,Amy Burgess,Lieven Vranken,snowflake_site_id,100
+Scrabble Cheat,Entertainment,Platinum,Ezoic,2026-04-30,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Steven Fuchs,snowflake_site_id,100
+Hawaii,Travel,Insider,In house,2026-05-01,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Corinne van den Heuvel,snowflake_site_id,100
+The Food in my Beard,Food,Insider,Mediavine,2026-05-01,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Dan Whalen,snowflake_site_id,100
 HealthyGreenSavvy,Other,Rise,Mediavine,2026-05-04,,,Assisted,3/7,False,False,False,False,Dropped,Michelle Stappert,Susannah Shmurak,,0.0
-Maple and Mango,Food,Rise,Mediavine,2026-05-04,,,Assisted,7,False,False,False,False,Dropped,Michelle Stappert,Vanessa Gilic,,0.0
-Posh in Progress,Lifestyle,Rise,Mediavine,2026-05-11,,,Assisted,3/7,False,False,False,False,Dropped,Michelle Stappert,Jade Freeman,,0.0
-The Art of Manliness,Lifestyle,Insider,AdSense; Other,2026-05-13,,,Assisted,5,False,False,False,False,Dropped,Whitney Harrist,Brett McKay,,0.0
+Maple and Mango,Food,Insider,Mediavine,2026-05-04,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Vanessa Gilic,snowflake_site_id,100
+HealthyGreenSavvy,Other,Insider,Mediavine,2026-05-07,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Susannah Shmurak,snowflake_site_id,100
+Posh in Progress,Lifestyle,Insider,Mediavine,2026-05-11,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Jade Freeman,snowflake_site_id,100
+The Art of Manliness,Lifestyle,Platinum,AdSense;Other,2026-05-13,,,Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Brett McKay,snowflake_site_id,100
+PJIP,Science,Insider,In house,2026-05-15,,,Not Assisted,None,False,False,False,False,Dropped,Whitney Harrist,Sam Andrews,snowflake_site_id,100
+Sweety High,Entertainment,Insider,Other,2026-05-17,,,Assisted,None,False,False,False,False,Dropped,Michelle Stappert,Frank Simonetti,snowflake_site_id,100

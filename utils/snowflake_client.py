@@ -10,8 +10,8 @@ except ImportError:
 from utils.config import Settings
 
 
-DROPPED_2025_QUERY = """
-WITH dropped_onboards_2025 AS (
+DROPPED_ONBOARDS_QUERY = """
+WITH dropped_onboards AS (
     SELECT
         p.id AS project_id,
         a.site_id AS site_id,
@@ -55,7 +55,7 @@ WITH dropped_onboards_2025 AS (
     WHERE COALESCE(p.isdeleted, FALSE) = FALSE
       AND p.record_type_name__c = 'Onboarding'
       AND p.mpm4_base__status__c = 'Cancelled'
-      AND YEAR(p.project_cancelled_date) = 2025
+      AND p.project_cancelled_date IS NOT NULL
       AND COALESCE(
           NULLIF(l.forecasted_service_level__c, ''),
           NULLIF(se.service_level, ''),
@@ -89,19 +89,20 @@ SELECT
     cg_effort,
     dropped_reason,
     raw_description
-FROM dropped_onboards_2025
+FROM dropped_onboards
 ORDER BY actual_close_date DESC
 """
 
 
-RETURNED_2026_QUERY = """
-WITH dropped_onboards_2025 AS (
+RETURNED_ONBOARDS_QUERY = """
+WITH dropped_onboards AS (
     SELECT
         p.id AS project_id,
         a.site_id AS site_id,
         p.name AS creator_name,
         COALESCE(NULLIF(l.company, ''), NULLIF(a.account_name, '')) AS company_name,
-        TO_VARCHAR(p.project_cancelled_date, 'YYYY-MM-DD') AS actual_close_date
+        TO_VARCHAR(p.project_cancelled_date, 'YYYY-MM-DD') AS actual_close_date,
+        p.project_cancelled_date AS actual_close_ts
     FROM ANALYTICS.SALESFORCE.MPM4_BASE__MILESTONE1_PROJECT__C p
     LEFT JOIN ANALYTICS.SALESFORCE.LEAD l
         ON p.related_lead_id__c = l.id
@@ -114,7 +115,7 @@ WITH dropped_onboards_2025 AS (
     WHERE COALESCE(p.isdeleted, FALSE) = FALSE
       AND p.record_type_name__c = 'Onboarding'
       AND p.mpm4_base__status__c = 'Cancelled'
-      AND YEAR(p.project_cancelled_date) = 2025
+      AND p.project_cancelled_date IS NOT NULL
       AND COALESCE(
           NULLIF(l.forecasted_service_level__c, ''),
           NULLIF(se.service_level, ''),
@@ -128,8 +129,9 @@ WITH dropped_onboards_2025 AS (
       )
 ),
 
-returned_2026 AS (
+returned_onboards AS (
     SELECT
+        d.project_id,
         d.site_id,
         d.creator_name,
         d.company_name,
@@ -137,35 +139,42 @@ returned_2026 AS (
         TO_VARCHAR(h1.install_date, 'YYYY-MM-DD') AS expected_install_date,
         d.actual_close_date,
         ROW_NUMBER() OVER (
-            PARTITION BY d.site_id
+            PARTITION BY d.project_id
             ORDER BY
+                h1.install_date,
                 CASE h1.status
                     WHEN 'Active' THEN 1
                     WHEN 'Checkup' THEN 2
                     WHEN 'Install' THEN 3
                     ELSE 9
                 END,
-                h1.install_date
+                TO_TIMESTAMP_NTZ(h1.updated_at)
         ) AS row_num
-    FROM dropped_onboards_2025 d
+    FROM dropped_onboards d
     INNER JOIN ANALYTICS.ADTHRIVE.SITE_HISTORY h1
         ON d.site_id = h1.id
     WHERE h1.status IN ('Install', 'Checkup', 'Active')
-      AND YEAR(h1.install_date) = 2026
-      AND TO_DATE(d.actual_close_date) < TO_TIMESTAMP_NTZ(h1.updated_at)
+      AND h1.install_date IS NOT NULL
+      AND TO_DATE(h1.install_date) >= TO_DATE(d.actual_close_ts)
+      AND TO_TIMESTAMP_NTZ(h1.updated_at) > TO_TIMESTAMP_NTZ(d.actual_close_ts)
 )
 
 SELECT
+    project_id,
     site_id,
     creator_name,
     company_name,
     current_status,
     actual_close_date,
     expected_install_date
-FROM returned_2026
+FROM returned_onboards
 WHERE row_num = 1
-ORDER BY creator_name, current_status
+ORDER BY expected_install_date DESC, creator_name, current_status
 """
+
+
+DROPPED_2025_QUERY = DROPPED_ONBOARDS_QUERY
+RETURNED_2026_QUERY = RETURNED_ONBOARDS_QUERY
 
 
 def _connection_kwargs(settings: Settings) -> dict[str, str]:

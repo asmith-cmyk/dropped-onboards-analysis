@@ -1,8 +1,5 @@
 normalized_category,count,pct_of_dropped,reengaged_count,reengagement_rate,installed_count,install_rate,avg_confidence_score
-Unknown,110,0.6962,10,0.0909,10,0.0909,0.4
-Technical Blockers,22,0.1392,1,0.0455,0,0.0,0.72
-Timing / Busy,8,0.0506,0,0.0,0,0.0,0.72
-Communication Dropoff,7,0.0443,0,0.0,0,0.0,0.72
-Monetization Concerns,5,0.0316,0,0.0,0,0.0,0.72
-Competitive Loyalty,3,0.019,0,0.0,0,0.0,0.72
-Personal Reasons,3,0.019,0,0.0,0,0.0,0.72
+Unknown,567,0.9878,146,0.2575,145,0.2557,
+Technical Blockers,5,0.0087,0,0.0,0,0.0,0.72
+Competitive Loyalty,1,0.0017,0,0.0,0,0.0,0.72
+Timing / Busy,1,0.0017,0,0.0,0,0.0,0.72

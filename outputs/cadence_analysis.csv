@@ -1,6 +1,4 @@
 cohort_type,cohort_value,total_dropped,reengaged_count,reengagement_rate,installed_count,install_rate,converted_count,conversion_rate,median_days_to_return
-Macro Cadence,3,8,0,0.0,0,0.0,0,0.0,
-Macro Cadence,3/7,21,0,0.0,0,0.0,0,0.0,
-Macro Cadence,5,1,0,0.0,0,0.0,0,0.0,
-Macro Cadence,7,8,0,0.0,0,0.0,0,0.0,
-Macro Cadence,None,120,11,0.0917,10,0.0833,10,0.0833,198.0
+Macro Cadence,3,2,0,0.0,0,0.0,0,0.0,
+Macro Cadence,3/7,2,0,0.0,0,0.0,0,0.0,
+Macro Cadence,None,570,146,0.2561,145,0.2544,145,0.2544,233.0

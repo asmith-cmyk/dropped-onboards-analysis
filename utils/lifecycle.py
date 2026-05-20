@@ -290,17 +290,36 @@ def _dedupe_snowflake_returned(returned: pd.DataFrame) -> pd.DataFrame:
         return returned
 
     out = _normalize_snowflake_columns(returned)
-    for column in ("site_id", "creator_name", "company_name", "current_status", "actual_close_date", "expected_install_date"):
+    for column in (
+        "project_id",
+        "site_id",
+        "creator_name",
+        "company_name",
+        "current_status",
+        "actual_close_date",
+        "expected_install_date",
+    ):
         if column not in out.columns:
             out[column] = ""
+    out["_return_key"] = out["project_id"].map(clean_blank)
+    fallback_key = (
+        out["site_id"].map(clean_blank)
+        + "|"
+        + out["actual_close_date"].map(clean_blank)
+        + "|"
+        + out["creator_name"].map(normalize_creator_name)
+    )
+    out.loc[out["_return_key"].eq(""), "_return_key"] = fallback_key
     status_priority = {"active": 0, "checkup": 1, "install": 2}
     out["_status_priority"] = out["current_status"].fillna("").astype(str).str.lower().map(status_priority).fillna(99)
     out["_expected_install_at"] = pd.to_datetime(
         _format_date_like(out["expected_install_date"], numeric_unit="D"), errors="coerce"
     )
     out["_actual_close_at"] = pd.to_datetime(_format_date_like(out["actual_close_date"], numeric_unit="s"), errors="coerce")
-    out = out.sort_values(["site_id", "_status_priority", "_expected_install_at", "_actual_close_at"])
-    return out.drop_duplicates(subset=["site_id"], keep="first").drop(columns=["_status_priority"])
+    out = out.sort_values(["_return_key", "_expected_install_at", "_status_priority", "_actual_close_at"])
+    return out.drop_duplicates(subset=["_return_key"], keep="first").drop(
+        columns=["_return_key", "_status_priority"]
+    )
 
 
 def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) -> pd.DataFrame:
@@ -312,13 +331,24 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
         if column not in d.columns:
             d[column] = ""
     d["_actual_close_at"] = pd.to_datetime(_format_date_like(d["actual_close_date"], numeric_unit="s"), errors="coerce")
-    d = d.sort_values(["site_id", "_actual_close_at"]).drop_duplicates(subset=["site_id"], keep="last")
+    d["_drop_key"] = d.get("project_id", pd.Series("", index=d.index)).map(clean_blank)
+    fallback_key = (
+        d["site_id"].map(clean_blank)
+        + "|"
+        + d["actual_close_date"].map(clean_blank)
+        + "|"
+        + d["creator_name"].map(normalize_creator_name)
+    )
+    d.loc[d["_drop_key"].eq(""), "_drop_key"] = fallback_key
+    d = d.sort_values(["_drop_key", "_actual_close_at"]).drop_duplicates(subset=["_drop_key"], keep="last")
 
     r = _dedupe_snowflake_returned(returned)
     if not r.empty:
+        has_project_id = "project_id" in r.columns and r["project_id"].map(clean_blank).astype(bool).any()
+        merge_key = "project_id" if has_project_id else "site_id"
         r = r[
             [
-                "site_id",
+                merge_key,
                 "current_status",
                 "expected_install_date",
                 "actual_close_date",
@@ -330,7 +360,7 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
                 "actual_close_date": "returned_actual_close_date",
             }
         )
-        d = d.merge(r, on="site_id", how="left")
+        d = d.merge(r, on=merge_key, how="left")
     else:
         d["returning_status"] = ""
         d["returned_expected_install_date"] = ""
@@ -401,6 +431,31 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     lifecycle["source_snowflake"] = True
 
     return lifecycle[MASTER_COLUMNS]
+
+
+def _dedupe_lifecycle_rows(lifecycle: pd.DataFrame) -> pd.DataFrame:
+    if lifecycle.empty:
+        return lifecycle
+
+    out = lifecycle.copy()
+    out["_source_priority"] = (~bool_series(out.get("source_snowflake", False), index=out.index)).astype(int)
+    out = out.sort_values(["_source_priority", "dropped_date", "creator_project_name"])
+
+    out["_project_key"] = out["salesforce_project_id"].map(clean_blank)
+    with_project = out[out["_project_key"].ne("")].drop_duplicates(subset=["_project_key"], keep="first")
+    without_project = out[out["_project_key"].eq("")]
+    out = pd.concat([with_project, without_project], ignore_index=True)
+
+    out["_natural_key"] = (
+        out["creator_key"].map(clean_blank)
+        + "|"
+        + out["dropped_date"].map(clean_blank)
+        + "|"
+        + out["lead_key"].map(clean_blank)
+    )
+    out = out.sort_values(["_natural_key", "_source_priority"])
+    out = out.drop_duplicates(subset=["_natural_key"], keep="first")
+    return out.drop(columns=["_source_priority", "_project_key", "_natural_key"])
 
 
 def build_master_creator_lifecycle(
@@ -536,6 +591,7 @@ def build_master_creator_lifecycle(
     )
     if not snowflake_lifecycle.empty:
         lifecycle = pd.concat([lifecycle, snowflake_lifecycle], ignore_index=True)
+        lifecycle = _dedupe_lifecycle_rows(lifecycle)
     if manual_overrides is not None and not manual_overrides.empty:
         lifecycle = apply_manual_overrides(lifecycle, manual_overrides)
     lifecycle = _recalculate_lifecycle_flags(lifecycle)

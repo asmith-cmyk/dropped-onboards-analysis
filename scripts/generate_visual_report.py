@@ -283,6 +283,13 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       text-align: left;
       vertical-align: top;
     }}
+    .number-col {{
+      width: 46px;
+      min-width: 46px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }}
     th {{
       position: sticky;
       top: 0;
@@ -369,7 +376,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       <label>Search
         <input id="search" type="search" placeholder="Creator, lead, owner, reason">
       </label>
-      <label>Year
+      <label>Returned Year
         <select id="year"></select>
       </label>
       <label>Service Level
@@ -416,6 +423,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         <table>
           <thead>
             <tr>
+              <th class="number-col">#</th>
               <th><button class="sort-button" type="button" data-sort="creator_project_name">Creator <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="lead">Lead <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="service_level">Service <span class="sort-indicator"></span></button></th>
@@ -478,7 +486,19 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 
     function yearValue(value) {{
       const clean = text(value).trim();
-      return clean ? clean.slice(0, 4) : 'Unknown';
+      if (!clean) return '';
+      const parsed = new Date(clean);
+      return Number.isNaN(parsed.getTime()) ? '' : String(parsed.getUTCFullYear());
+    }}
+
+    function dateInYear(value, year) {{
+      const clean = text(value).trim();
+      if (!clean || !year) return false;
+      const parsed = new Date(clean);
+      if (Number.isNaN(parsed.getTime())) return false;
+      const start = Date.UTC(Number(year), 0, 1);
+      const end = Date.UTC(Number(year) + 1, 0, 1);
+      return parsed.getTime() >= start && parsed.getTime() < end;
     }}
 
     function reasonValue(row) {{
@@ -548,6 +568,13 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       select.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
     }}
 
+    function populateYearSelect() {{
+      const select = fields.year;
+      const values = [...new Set(RECORDS.map(row => yearValue(row.returned_date)).filter(Boolean))]
+        .sort((a, b) => b.localeCompare(a));
+      select.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
+    }}
+
     function escapeHtml(value) {{
       return text(value).replace(/[&<>"']/g, char => ({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}}[char]));
     }}
@@ -559,7 +586,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function filtered() {{
       const query = fields.search.value.trim().toLowerCase();
       return RECORDS.filter(row => {{
-        if (fields.year.value && yearValue(row.dropped_date) !== fields.year.value) return false;
+        if (fields.year.value && !dateInYear(row.returned_date, fields.year.value)) return false;
         if (fields.service.value && optionValue(row.service_level) !== fields.service.value) return false;
         if (fields.vertical.value && optionValue(row.vertical) !== fields.vertical.value) return false;
         if (fields.owner.value && optionValue(row.onboarding_owner) !== fields.owner.value) return false;
@@ -574,6 +601,8 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           row.cancellation_reason,
           row.dropped_status,
           row.dropped_date,
+          row.returned_date,
+          row.outcome,
           row.previous_ad_network,
           row.vertical,
           row.service_level
@@ -656,8 +685,9 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function renderTable(rows) {{
       document.getElementById('row-count').textContent = `${{rows.length}} rows`;
       const tbody = document.getElementById('creator-rows');
-      tbody.innerHTML = rows.map(row => `
+      tbody.innerHTML = rows.map((row, index) => `
         <tr>
+          <td class="number-col">${{index + 1}}</td>
           <td><strong>${{escapeHtml(row.creator_project_name)}}</strong></td>
           <td>${{escapeHtml(row.lead_contact || row.company_name)}}</td>
           <td>${{escapeHtml(row.service_level || 'Unknown')}}</td>
@@ -689,14 +719,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       updateSortIndicators();
     }}
 
-    populateSelect('year', 'dropped_date', yearValue);
+    populateYearSelect();
     populateSelect('service', 'service_level');
     populateSelect('vertical', 'vertical');
     populateSelect('owner', 'onboarding_owner');
     populateSelect('cadence', 'macro_cadence', cadenceValue);
-    if ([...fields.year.options].some(option => option.value === '2025')) {{
-      fields.year.value = '2025';
-    }}
     Object.values(fields).forEach(control => control.addEventListener('input', render));
     Object.values(fields).forEach(control => control.addEventListener('change', render));
     document.querySelectorAll('.sort-button').forEach(button => {{

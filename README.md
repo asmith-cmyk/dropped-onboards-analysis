@@ -46,9 +46,9 @@ Snowflake:
 - `ANALYTICS.SALESFORCE.USER`
 - `ANALYTICS.ADTHRIVE.SITE_HISTORY`
 - `ANALYTICS.ADTHRIVE.SITE_EXTENDED`
-- `snowflake_dropped_2025.csv` captures cancelled Salesforce Onboarding projects in 2025 for `Rise`, `Insider`, `Platinum`, `Platinum Elite`, `Luminary`, and `Mid Market Enterprise`.
+- `snowflake_dropped_onboards.csv` captures cancelled Salesforce Onboarding projects across available years for `Rise`, `Insider`, `Platinum`, `Platinum Elite`, `Luminary`, and `Mid Market Enterprise`.
 - The Snowflake dropped cohort excludes pre-onboarding/non-engagement and non-onboarding lifecycle reasons such as duplicate, merged, new-owner churn, retiring site, left-Raptive, and offboarding records.
-- `snowflake_returned_2026.csv` captures that 2025 onboarding cohort when it later appears in `Install`, `Checkup`, or `Active` with a 2026 install date.
+- `snowflake_returned_onboards.csv` captures dropped onboarding projects when the same site later appears in `Install`, `Checkup`, or `Active`.
 - Snowflake enrichment supplies service level, vertical, previous ad network, onboarding owner, monthly pageviews, CG involvement, and dropped/canceled reason where available.
 
 Zendesk:
@@ -138,7 +138,7 @@ python scripts/generate_outputs.py --run-pulls --force-salesforce-api --force-sn
 ## Pipeline Stages
 
 1. `pull_salesforce_reports.py` fetches the dropped and returning Salesforce reports.
-2. `pull_snowflake_data.py` fetches 2025 cancelled Salesforce Onboarding projects and 2026 returned-site cohorts.
+2. `pull_snowflake_data.py` fetches all available cancelled Salesforce Onboarding projects and returned-site cohorts.
 3. `pull_zendesk_data.py` pulls Zendesk onboarding ticket/tag data or normalizes an exported CSV.
 4. `pull_slack_data.py` pulls intervention messages from Slack.
 5. `normalize_creators.py` canonicalizes creator, lead, network, owner, vertical, service level, and date fields.
@@ -218,7 +218,7 @@ Generate the static HTML dashboard with:
 python scripts/generate_visual_report.py
 ```
 
-The dashboard is written to `outputs/lifecycle_dashboard.html`. It is self-contained and can be opened directly in Chrome. The regular `generate_outputs.py` pipeline also regenerates it automatically.
+The dashboard is written to `outputs/lifecycle_dashboard.html`. It is self-contained and can be opened directly in Chrome. The regular `generate_outputs.py` pipeline also regenerates it automatically. The `Returned Year` filter is based on the `returned_date` column, so selecting a year shows creators whose return/install date falls within that calendar year.
 
 For GitHub Pages, the same dashboard is also written to `docs/index.html`.
 

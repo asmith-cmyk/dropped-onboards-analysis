@@ -1,29 +1,29 @@
 # Onboarding Lifecycle Executive Summary
 
-Generated from the master lifecycle dataset with 158 dropped onboarding creators/sites and 11 returned creators/sites.
+Generated from the master lifecycle dataset with 574 dropped onboarding creators/sites and 146 returned creators/sites.
 
 ## Headline Metrics
 
-- Re-engagement rate: 7.0%
-- Install/conversion rate among dropped creators: 6.3%
-- Median days to return: 198.0
-- Re-engaged & Installed after 3/5/7 follow-up: 0/158
+- Re-engagement rate: 25.4%
+- Install/conversion rate among dropped creators: 25.3%
+- Median days to return: 233.0
+- Re-engaged & Installed after 3/5/7 follow-up: 0/574
 
 ## Strongest Cohorts
 
-- Vertical = Health and Wellness: 50.0% re-engagement (1/2).
-- Vertical = Tech: 25.0% re-engagement (1/4).
-- Service Level = Platinum: 20.0% re-engagement (1/5).
-- Vertical = Food: 16.7% re-engagement (9/54).
-- Previous Ad Network = Mediavine: 13.4% re-engagement (9/67).
-- Onboarding Owner = Michelle Stappert: 13.2% re-engagement (5/38).
-- Onboarding Owner = Jade Carpenter: 11.8% re-engagement (2/17).
-- Previous Ad Network = AdSense: 10.0% re-engagement (2/20).
+- Previous Ad Network = AdVally: 100.0% re-engagement (1/1).
+- Vertical = Family and Parenting: 50.0% re-engagement (2/4).
+- Previous Ad Network = Monumetric: 50.0% re-engagement (2/4).
+- Vertical = Beauty: 50.0% re-engagement (1/2).
+- Vertical = Green Living: 50.0% re-engagement (1/2).
+- Vertical = Wedding: 50.0% re-engagement (1/2).
+- Onboarding Owner = Kate Fitzpatrick: 50.0% re-engagement (1/2).
+- Vertical = Food: 45.7% re-engagement (64/140).
 
 ## Creator Growth
 
-- Assisted: 9.2% re-engagement across 87 creators.
-- Not Assisted: 4.2% re-engagement across 71 creators.
+- Assisted: 25.7% re-engagement across 187 creators.
+- Not Assisted: 25.3% re-engagement across 387 creators.
 
 ## Rise Creators
 
