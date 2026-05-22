@@ -714,7 +714,9 @@ def build_master_creator_lifecycle(
         lifecycle[column] = lifecycle[column].map(clean_blank)
         lifecycle[column] = lifecycle[column].str.replace(r"\s+", " ", regex=True).str.strip()
     lifecycle["macro_cadence"] = lifecycle["macro_cadence"].replace("", "None")
-    missing_reason = lifecycle["cancellation_reason"].str.lower().isin({"", "dropped", "canceled", "cancelled"})
+    missing_reason = lifecycle["cancellation_reason"].str.lower().isin(
+        {"", "dropped", "canceled", "cancelled", "prior site dropped status"}
+    )
     lifecycle.loc[missing_reason, "cancellation_reason"] = "No reason captured"
     lifecycle["cg_involvement"] = _cg_involvement_label(lifecycle["cg_involvement"])
     lifecycle["outcome"] = _outcome_series(lifecycle)

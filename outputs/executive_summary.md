@@ -1,13 +1,13 @@
 # Onboarding Lifecycle Executive Summary
 
-Generated from the master lifecycle dataset with 799 dropped onboarding creators/sites and 374 returned creators/sites.
+Generated from the master lifecycle dataset with 778 dropped onboarding creators/sites and 353 returned creators/sites.
 
 ## Headline Metrics
 
-- Re-engagement rate: 46.8%
-- Install/conversion rate among dropped creators: 43.3%
-- Median days to return: 312.5
-- Re-engaged & Installed after any follow-up cadence: 25/799
+- Re-engagement rate: 45.4%
+- Install/conversion rate among dropped creators: 42.2%
+- Median days to return: 334.0
+- Re-engaged & Installed after 3 or 5 day follow up cadence: 17/778
 
 ## Strongest Cohorts
 
@@ -22,8 +22,8 @@ Generated from the master lifecycle dataset with 799 dropped onboarding creators
 
 ## Creator Growth
 
-- Assisted: 61.7% re-engagement across 363 creators.
-- Not Assisted: 34.4% re-engagement across 436 creators.
+- Assisted: 59.6% re-engagement across 344 creators.
+- Not Assisted: 34.1% re-engagement across 434 creators.
 
 ## Rise Creators
 

@@ -10,7 +10,7 @@ Vertical,Education,5,5,1.0,5,1.0,5,1.0,853.0
 Vertical,Entertainment,37,14,0.3784,14,0.3784,14,0.3784,102.0
 Vertical,Family and Parenting,7,5,0.7143,5,0.7143,5,0.7143,103.0
 Vertical,Fitness,5,3,0.6,3,0.6,3,0.6,415.0
-Vertical,Food,298,224,0.7517,213,0.7148,213,0.7148,342.5
+Vertical,Food,281,207,0.7367,198,0.7046,198,0.7046,349.0
 Vertical,Gaming,37,7,0.1892,6,0.1622,6,0.1622,246.0
 Vertical,Gardening,7,2,0.2857,1,0.1429,1,0.1429,81.0
 Vertical,Green Living,2,1,0.5,1,0.5,1,0.5,120.0
@@ -18,7 +18,7 @@ Vertical,Health and Wellness,18,2,0.1111,1,0.0556,1,0.0556,427.5
 Vertical,Hobbies & Interests,5,2,0.4,2,0.4,2,0.4,572.5
 Vertical,Home Decor and Design,21,3,0.1429,2,0.0952,2,0.0952,355.0
 Vertical,"Law, Gov't & Politics",1,0,0.0,0,0.0,0,0.0,
-Vertical,Lifestyle,34,14,0.4118,11,0.3235,11,0.3235,350.5
+Vertical,Lifestyle,33,13,0.3939,11,0.3333,11,0.3333,379.0
 Vertical,Mens Style and Grooming,4,1,0.25,1,0.25,1,0.25,2242.0
 Vertical,Natural Parenting,1,0,0.0,0,0.0,0,0.0,
 Vertical,News,14,1,0.0714,1,0.0714,1,0.0714,260.0
@@ -31,13 +31,13 @@ Vertical,Religion & Spirituality,1,0,0.0,0,0.0,0,0.0,
 Vertical,Science,2,1,0.5,0,0.0,0,0.0,82.0
 Vertical,Shopping,2,1,0.5,0,0.0,0,0.0,477.0
 Vertical,Sports,39,10,0.2564,9,0.2308,9,0.2308,287.5
-Vertical,Tech,32,11,0.3438,11,0.3438,11,0.3438,98.0
-Vertical,Travel,67,20,0.2985,17,0.2537,17,0.2537,251.5
+Vertical,Tech,31,10,0.3226,10,0.3226,10,0.3226,136.5
+Vertical,Travel,65,18,0.2769,15,0.2308,15,0.2308,314.0
 Vertical,Wedding,2,1,0.5,1,0.5,1,0.5,161.0
 Vertical,Womens Style,6,1,0.1667,0,0.0,0,0.0,542.0
-Service Level,Insider,619,264,0.4265,242,0.391,242,0.391,308.5
-Service Level,Luminary,37,27,0.7297,26,0.7027,26,0.7027,356.0
-Service Level,Platinum,78,56,0.7179,53,0.6795,53,0.6795,285.0
+Service Level,Insider,604,249,0.4123,228,0.3775,228,0.3775,316.0
+Service Level,Luminary,36,26,0.7222,26,0.7222,26,0.7222,376.0
+Service Level,Platinum,73,51,0.6986,49,0.6712,49,0.6712,285.0
 Service Level,Platinum Elite,62,27,0.4355,25,0.4032,25,0.4032,342.0
 Service Level,Rise,3,0,0.0,0,0.0,0,0.0,
 Previous Ad Network,AdSense,86,16,0.186,15,0.1744,15,0.1744,190.0
@@ -46,32 +46,32 @@ Previous Ad Network,AdVally,1,1,1.0,1,1.0,1,1.0,146.0
 Previous Ad Network,Ezoic,42,8,0.1905,8,0.1905,8,0.1905,97.5
 Previous Ad Network,Freestar,7,3,0.4286,2,0.2857,2,0.2857,91.0
 Previous Ad Network,In house,7,3,0.4286,3,0.4286,3,0.4286,542.0
-Previous Ad Network,Mediavine,400,265,0.6625,245,0.6125,245,0.6125,346.0
+Previous Ad Network,Mediavine,382,247,0.6466,230,0.6021,230,0.6021,350.0
 Previous Ad Network,Mediavine Journey,17,4,0.2353,4,0.2353,4,0.2353,314.5
 Previous Ad Network,Monumetric,4,2,0.5,2,0.5,2,0.5,492.5
-Previous Ad Network,No ads,131,35,0.2672,33,0.2519,33,0.2519,142.0
-Previous Ad Network,Other,96,35,0.3646,31,0.3229,31,0.3229,276.0
+Previous Ad Network,No ads,130,34,0.2615,32,0.2462,32,0.2462,139.0
+Previous Ad Network,Other,95,34,0.3579,30,0.3158,30,0.3158,299.0
 Previous Ad Network,Playwire,1,1,1.0,1,1.0,1,1.0,284.0
-Previous Ad Network,SHE Media,6,1,0.1667,1,0.1667,1,0.1667,60.0
-Creator Growth,Assisted,363,224,0.6171,203,0.5592,203,0.5592,345.0
-Creator Growth,Not Assisted,436,150,0.344,143,0.328,143,0.328,233.5
+Previous Ad Network,SHE Media,5,0,0.0,0,0.0,0,0.0,
+Creator Growth,Assisted,344,205,0.5959,187,0.5436,187,0.5436,363.0
+Creator Growth,Not Assisted,434,148,0.341,141,0.3249,141,0.3249,235.5
 Macro Cadence,3 and 5 day follow up,1,1,1.0,0,0.0,0,0.0,59.0
-Macro Cadence,3 and 7 day follow up,44,6,0.1364,4,0.0909,4,0.0909,177.5
+Macro Cadence,3 and 7 day follow up,43,5,0.1163,4,0.093,4,0.093,257.0
 Macro Cadence,3 day follow up,39,17,0.4359,13,0.3333,13,0.3333,175.0
 Macro Cadence,"3, 5 and 7 day follow up",1,1,1.0,0,0.0,0,0.0,217.0
-Macro Cadence,5 day follow up,2,1,0.5,0,0.0,0,0.0,122.0
+Macro Cadence,5 day follow up,1,0,0.0,0,0.0,0,0.0,
 Macro Cadence,7 day follow up,22,8,0.3636,8,0.3636,8,0.3636,411.5
-Macro Cadence,None,690,340,0.4928,321,0.4652,321,0.4652,319.0
+Macro Cadence,None,671,321,0.4784,303,0.4516,303,0.4516,335.0
 Onboarding Owner,Adam Giacopuzzi,1,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Amy Burgess,149,73,0.4899,72,0.4832,72,0.4832,322.0
+Onboarding Owner,Amy Burgess,144,68,0.4722,67,0.4653,67,0.4653,328.5
 Onboarding Owner,Angelina Ryan,1,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Antoinette Smith,213,101,0.4742,92,0.4319,92,0.4319,338.0
+Onboarding Owner,Antoinette Smith,209,97,0.4641,88,0.4211,88,0.4211,342.0
 Onboarding Owner,Brad Milligan,1,0,0.0,0,0.0,0,0.0,
 Onboarding Owner,Brianna Eaddy,9,1,0.1111,1,0.1111,1,0.1111,293.0
-Onboarding Owner,Jade Carpenter,29,9,0.3103,8,0.2759,8,0.2759,379.0
+Onboarding Owner,Jade Carpenter,28,8,0.2857,7,0.25,7,0.25,392.0
 Onboarding Owner,Kate Fitzpatrick,2,1,0.5,1,0.5,1,0.5,566.0
 Onboarding Owner,Marya Chuong,2,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Michelle Stappert,180,76,0.4222,70,0.3889,70,0.3889,246.0
+Onboarding Owner,Michelle Stappert,177,73,0.4124,68,0.3842,68,0.3842,246.0
 Onboarding Owner,Rina Gray,18,2,0.1111,2,0.1111,2,0.1111,373.5
 Onboarding Owner,Salesforce Bot,4,1,0.25,1,0.25,1,0.25,85.0
-Onboarding Owner,Whitney Harrist,190,110,0.5789,99,0.5211,99,0.5211,290.0
+Onboarding Owner,Whitney Harrist,182,102,0.5604,93,0.511,93,0.511,325.0

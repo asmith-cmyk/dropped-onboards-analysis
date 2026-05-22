@@ -290,7 +290,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
     .controls {{
       display: grid;
-      grid-template-columns: minmax(220px, 2fr) repeat(5, minmax(130px, 1fr));
+      grid-template-columns: minmax(220px, 2fr) repeat(6, minmax(130px, 1fr));
       gap: 10px;
       align-items: end;
       margin-bottom: 16px;
@@ -327,6 +327,9 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     .tile {{
       padding: 12px 13px;
       min-height: 82px;
+    }}
+    .tile.has-tooltip {{
+      cursor: help;
     }}
     .tile .label {{
       color: var(--muted);
@@ -551,6 +554,9 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       <label>Cadence
         <select id="cadence"></select>
       </label>
+      <label>Dropped Reason
+        <select id="reason"></select>
+      </label>
     </section>
 
     <section class="kpis" id="kpis"></section>
@@ -614,7 +620,8 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       service: document.getElementById('service'),
       vertical: document.getElementById('vertical'),
       owner: document.getElementById('owner'),
-      cadence: document.getElementById('cadence')
+      cadence: document.getElementById('cadence'),
+      reason: document.getElementById('reason')
     }};
 
     function text(value) {{
@@ -649,8 +656,9 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return requiredDays.every(day => days.has(day));
     }}
 
-    function hasCadence(value) {{
-      return cadenceValue(value) !== 'None';
+    function cadenceHasAnyDays(value, targetDays) {{
+      const days = new Set((text(value).match(/\\b(?:3|5|7|10)\\b/g) || []));
+      return targetDays.some(day => days.has(day));
     }}
 
     function yearValue(value) {{
@@ -672,7 +680,9 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 
     function reasonValue(row) {{
       const reason = text(row.cancellation_reason).trim();
-      return reason && !['Dropped', 'Canceled', 'Cancelled'].includes(reason) ? reason : 'No reason captured';
+      return reason && !['Dropped', 'Canceled', 'Cancelled', 'Prior site dropped status'].includes(reason)
+        ? reason
+        : 'No reason captured';
     }}
 
     function displayValue(row, key) {{
@@ -746,6 +756,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       select.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
     }}
 
+    function populateReasonSelect() {{
+      const values = [...new Set(RECORDS.map(row => reasonValue(row)))].sort((a, b) => a.localeCompare(b));
+      fields.reason.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
+    }}
+
     function escapeHtml(value) {{
       return text(value).replace(/[&<>"']/g, char => ({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}}[char]));
     }}
@@ -762,6 +777,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         if (fields.vertical.value && optionValue(row.vertical) !== fields.vertical.value) return false;
         if (fields.owner.value && optionValue(row.onboarding_owner) !== fields.owner.value) return false;
         if (fields.cadence.value && cadenceValue(row.macro_cadence) !== fields.cadence.value) return false;
+        if (fields.reason.value && reasonValue(row) !== fields.reason.value) return false;
         if (!query) return true;
         const haystack = [
           row.creator_project_name,
@@ -786,7 +802,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function summarize(rows) {{
       const total = rows.length;
       const reengaged = rows.filter(row => truthy(row.reengaged)).length;
-      const installedWithCadence = rows.filter(row => truthy(row.install_completed) && hasCadence(row.macro_cadence)).length;
+      const installedWithCadence = rows.filter(row => truthy(row.install_completed) && cadenceHasAnyDays(row.macro_cadence, ['3', '5'])).length;
       const rise = rows.filter(row => text(row.service_level).toLowerCase() === 'rise').length;
       return {{ total, reengaged, installedWithCadence, rise }};
     }}
@@ -794,24 +810,32 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function renderKpis(rows) {{
       const s = summarize(rows);
       const tiles = [
-        ['Dropped onboards', s.total, 'Filtered rows'],
-        ['Returned', s.reengaged, pct(s.reengaged, s.total)],
-        ['Re-engaged & Installed', pct(s.installedWithCadence, s.total), `${{s.installedWithCadence}} of ${{s.total}} sites`],
-        ['Rise creators', s.rise, pct(s.rise, s.total)]
+        {{ label: 'Dropped onboards', value: s.total, note: 'Filtered rows' }},
+        {{ label: 'Returned', value: s.reengaged, note: pct(s.reengaged, s.total) }},
+        {{
+          label: 'Re-engaged & Installed',
+          value: pct(s.installedWithCadence, s.total),
+          note: `${{s.installedWithCadence}} of ${{s.total}} sites`,
+          tooltip: 'Percentage of sites that received a 3 or 5 day follow up cadence and were installed.'
+        }},
+        {{ label: 'Rise creators', value: s.rise, note: pct(s.rise, s.total) }}
       ];
-      document.getElementById('kpis').innerHTML = tiles.map(([label, value, note]) => `
-        <div class="tile">
-          <div class="label">${{escapeHtml(label)}}</div>
-          <div class="value">${{escapeHtml(value)}}</div>
-          <div class="note">${{escapeHtml(note)}}</div>
+      document.getElementById('kpis').innerHTML = tiles.map(tile => {{
+        const tooltip = tile.tooltip ? ` title="${{escapeAttr(tile.tooltip)}}" aria-label="${{escapeAttr(`${{tile.label}}: ${{tile.tooltip}}`)}}"` : '';
+        return `
+        <div class="tile${{tile.tooltip ? ' has-tooltip' : ''}}"${{tooltip}}>
+          <div class="label">${{escapeHtml(tile.label)}}</div>
+          <div class="value">${{escapeHtml(tile.value)}}</div>
+          <div class="note">${{escapeHtml(tile.note)}}</div>
         </div>
-      `).join('');
+      `;
+      }}).join('');
     }}
 
     function groupCounts(rows, key, limit = 8, formatter = optionValue) {{
       const counts = new Map();
       rows.forEach(row => {{
-        const value = formatter(row[key]);
+        const value = formatter(row[key], row);
         counts.set(value, (counts.get(value) || 0) + 1);
       }});
       return [...counts.entries()]
@@ -883,11 +907,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       const rows = sortRows(filtered());
       renderKpis(rows);
       renderBars('service-bars', groupCounts(rows, 'service_level'), '');
-      renderBars('reason-bars', groupCounts(rows, 'cancellation_reason'), 'amber');
+      renderBars('reason-bars', groupCounts(rows, 'cancellation_reason', 8, (_value, row) => reasonValue(row)), 'amber');
       renderBars('cg-bars', groupCounts(rows, 'cg_involvement'), 'blue');
       renderBars('network-bars', groupCounts(rows, 'previous_ad_network'), 'rose');
       document.getElementById('service-count').textContent = `${{groupCounts(rows, 'service_level', 50).length}} segments`;
-      document.getElementById('reason-count').textContent = `${{groupCounts(rows, 'cancellation_reason', 50).length}} reasons`;
+      document.getElementById('reason-count').textContent = `${{groupCounts(rows, 'cancellation_reason', 50, (_value, row) => reasonValue(row)).length}} reasons`;
       document.getElementById('cg-count').textContent = `${{groupCounts(rows, 'cg_involvement', 50).length}} groups`;
       document.getElementById('network-count').textContent = `${{groupCounts(rows, 'previous_ad_network', 50).length}} networks`;
       renderTable(rows);
@@ -899,6 +923,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     populateSelect('vertical', 'vertical');
     populateSelect('owner', 'onboarding_owner');
     populateSelect('cadence', 'macro_cadence', cadenceValue);
+    populateReasonSelect();
     Object.values(fields).forEach(control => control.addEventListener('input', render));
     Object.values(fields).forEach(control => control.addEventListener('change', render));
     document.querySelectorAll('.sort-button').forEach(button => {{

@@ -65,7 +65,7 @@ WITH qualifying_dropped_onboards AS (
       AND COALESCE(p.cancelled_reason__c, '') NOT IN ('Cancelled Pre-onboarding', 'Never Engaged')
       AND NOT REGEXP_LIKE(
           LOWER(COALESCE(dr.text, se.non_standard_reason, '')),
-          '(cancelled pre-onboarding|pre-onboarding|never engaged|duplicate|merged|new owner did not want to stay with adthrive|retiring site|left raptive|offboarding)'
+          '(cancelled pre[-[:space:]0]?onboarding|pre[-[:space:]0]?onboarding|never engaged|duplicate|merged|new owner did not want to stay with adthrive|retiring site|left raptive|offboarding)'
       )
 ),
 
@@ -122,6 +122,63 @@ current_return_projects AS (
       AND a.site_id IS NOT NULL
 ),
 
+prior_cancelled_onboarding_projects AS (
+    SELECT
+        rp.return_project_id,
+        p.id AS prior_project_id,
+        CASE
+            WHEN p.cancelled_reason__c = 'Blogger missed deadline' THEN 'Non-responsive'
+            WHEN p.cancelled_reason__c = 'Blogger refused ads' THEN 'Refused ad layout'
+            ELSE NULLIF(p.cancelled_reason__c, '')
+        END AS prior_cancelled_reason,
+        NULLIF(p.dropped_reason__c, '') AS prior_dropped_reason,
+        NULLIF(p.dropped_reason_category__c, '') AS prior_dropped_reason_category,
+        NULLIF(p.reason_they_left__c, '') AS prior_reason_they_left,
+        NULLIF(p.reasontheyleftspecifics__c, '') AS prior_reason_left_specifics,
+        NULLIF(
+            TRIM(
+                SPLIT_PART(
+                    REGEXP_REPLACE(
+                        IFF(
+                            POSITION('setup cancellation' IN LOWER(COALESCE(p.mpm4_base__description__c, ''))) > 0,
+                            SUBSTR(
+                                p.mpm4_base__description__c,
+                                POSITION('setup cancellation' IN LOWER(p.mpm4_base__description__c)) + LENGTH('setup cancellation'),
+                                240
+                            ),
+                            NULL
+                        ),
+                        '^[:[:space:]-]*(note[:[:space:]-]*)?',
+                        '',
+                        1,
+                        0,
+                        'i'
+                    ),
+                    CHR(10),
+                    1
+                )
+            ),
+            ''
+        ) AS setup_cancellation_reason,
+        p.mpm4_base__description__c AS prior_raw_description,
+        ROW_NUMBER() OVER (
+            PARTITION BY rp.return_project_id
+            ORDER BY p.project_cancelled_date DESC NULLS LAST, TO_TIMESTAMP_NTZ(p.createddate) DESC, p.id DESC
+        ) AS prior_project_row_num
+    FROM current_return_projects rp
+    INNER JOIN ANALYTICS.SALESFORCE.ACCOUNT a
+        ON rp.site_id = a.site_id
+    INNER JOIN ANALYTICS.SALESFORCE.LEAD l
+        ON l.site__c = a.account_id
+    INNER JOIN ANALYTICS.SALESFORCE.MPM4_BASE__MILESTONE1_PROJECT__C p
+        ON p.related_lead_id__c = l.id
+    WHERE rp.project_row_num = 1
+      AND COALESCE(p.isdeleted, FALSE) = FALSE
+      AND p.record_type_name__c = 'Onboarding'
+      AND p.mpm4_base__status__c = 'Cancelled'
+      AND TO_TIMESTAMP_NTZ(p.createddate) < rp.project_created_at
+),
+
 supplemental_returning_site_drops AS (
     SELECT
         '' AS project_id,
@@ -141,8 +198,27 @@ supplemental_returning_site_drops AS (
         rp.monthly_pageviews,
         rp.cg_involvement,
         rp.cg_effort,
-        'Prior site dropped status' AS dropped_reason,
-        'Supplemental return signal from current Salesforce onboarding project ' || rp.return_project_id AS raw_description,
+        COALESCE(
+            IFF(
+                LOWER(pcop.setup_cancellation_reason) IN ('note', 'notes', 'dropped')
+                OR REGEXP_LIKE(LOWER(COALESCE(pcop.setup_cancellation_reason, '')), '(pre[-[:space:]0]?onboarding|never engaged)'),
+                NULL,
+                pcop.setup_cancellation_reason
+            ),
+            IFF(REGEXP_LIKE(LOWER(COALESCE(hdr.text, '')), '(pre[-[:space:]0]?onboarding|never engaged)'), NULL, NULLIF(hdr.text, '')),
+            IFF(REGEXP_LIKE(LOWER(COALESCE(pcop.prior_cancelled_reason, '')), '(pre[-[:space:]0]?onboarding|never engaged)'), NULL, pcop.prior_cancelled_reason),
+            IFF(REGEXP_LIKE(LOWER(COALESCE(pcop.prior_dropped_reason, '')), '(pre[-[:space:]0]?onboarding|never engaged)'), NULL, pcop.prior_dropped_reason),
+            IFF(REGEXP_LIKE(LOWER(COALESCE(pcop.prior_dropped_reason_category, '')), '(pre[-[:space:]0]?onboarding|never engaged)'), NULL, pcop.prior_dropped_reason_category),
+            IFF(REGEXP_LIKE(LOWER(COALESCE(pcop.prior_reason_they_left, '')), '(pre[-[:space:]0]?onboarding|never engaged)'), NULL, pcop.prior_reason_they_left),
+            IFF(REGEXP_LIKE(LOWER(COALESCE(pcop.prior_reason_left_specifics, '')), '(pre[-[:space:]0]?onboarding|never engaged)'), NULL, pcop.prior_reason_left_specifics),
+            IFF(REGEXP_LIKE(LOWER(COALESCE(dr.text, '')), '(pre[-[:space:]0]?onboarding|never engaged)'), NULL, NULLIF(dr.text, '')),
+            IFF(REGEXP_LIKE(LOWER(COALESCE(se.non_standard_reason, '')), '(pre[-[:space:]0]?onboarding|never engaged)'), NULL, NULLIF(se.non_standard_reason, '')),
+            'No dropped reason captured'
+        ) AS dropped_reason,
+        COALESCE(
+            NULLIF(pcop.prior_raw_description, ''),
+            'Supplemental return signal from current Salesforce onboarding project ' || rp.return_project_id
+        ) AS raw_description,
         ROW_NUMBER() OVER (
             PARTITION BY rp.site_id, rp.return_project_id
             ORDER BY TO_TIMESTAMP_NTZ(h.updated_at) DESC
@@ -150,16 +226,39 @@ supplemental_returning_site_drops AS (
     FROM current_return_projects rp
     INNER JOIN ANALYTICS.ADTHRIVE.SITE_HISTORY h
         ON rp.site_id = h.id
+    LEFT JOIN ANALYTICS.ADTHRIVE.DROPPED_REASON hdr
+        ON h.dropped_reason_id = hdr.id
     LEFT JOIN qualifying_dropped_onboards q
         ON rp.site_id = q.site_id
     LEFT JOIN ANALYTICS.ADTHRIVE.SITE_EXTENDED se
         ON rp.site_id = se.site_id
     LEFT JOIN ANALYTICS.ADTHRIVE.DROPPED_REASON dr
         ON se.dropped_reason_id = dr.id
+    LEFT JOIN prior_cancelled_onboarding_projects pcop
+        ON rp.return_project_id = pcop.return_project_id
+       AND pcop.prior_project_row_num = 1
     WHERE rp.project_row_num = 1
       AND q.site_id IS NULL
       AND h.status IN ('Dropped', 'Canceled', 'Cancelled')
       AND TO_TIMESTAMP_NTZ(h.updated_at) < rp.project_created_at
+      AND NOT REGEXP_LIKE(
+          LOWER(
+              COALESCE(
+                  pcop.setup_cancellation_reason,
+                  hdr.text,
+                  pcop.prior_cancelled_reason,
+                  pcop.prior_dropped_reason,
+                  pcop.prior_dropped_reason_category,
+                  pcop.prior_reason_they_left,
+                  pcop.prior_reason_left_specifics,
+                  pcop.prior_raw_description,
+                  dr.text,
+                  se.non_standard_reason,
+                  ''
+              )
+          ),
+          '(cancelled pre[-[:space:]0]?onboarding|pre[-[:space:]0]?onboarding|never engaged|duplicate|merged|new owner did not want to stay with adthrive|retiring site|left raptive|offboarding)'
+      )
 )
 
 SELECT
@@ -243,7 +342,7 @@ WITH qualifying_dropped_onboards AS (
       AND COALESCE(p.cancelled_reason__c, '') NOT IN ('Cancelled Pre-onboarding', 'Never Engaged')
       AND NOT REGEXP_LIKE(
           LOWER(COALESCE(dr.text, se.non_standard_reason, '')),
-          '(cancelled pre-onboarding|pre-onboarding|never engaged|duplicate|merged|new owner did not want to stay with adthrive|retiring site|left raptive|offboarding)'
+          '(cancelled pre[-[:space:]0]?onboarding|pre[-[:space:]0]?onboarding|never engaged|duplicate|merged|new owner did not want to stay with adthrive|retiring site|left raptive|offboarding)'
       )
 ),
 

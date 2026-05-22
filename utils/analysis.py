@@ -35,6 +35,11 @@ def cadence_has_days(value: object, required_days: set[str]) -> bool:
     return required_days.issubset(days)
 
 
+def cadence_has_any_days(value: object, target_days: set[str]) -> bool:
+    days = set(re.findall(r"\b(?:3|5|7|10)\b", clean_blank(value)))
+    return bool(days.intersection(target_days))
+
+
 def has_cadence(value: object) -> bool:
     cadence = clean_blank(value)
     return cadence != "" and cadence.lower() not in {"none", "unknown"}
@@ -328,7 +333,7 @@ def write_executive_summary(
     installed_with_cadence = int(
         (
             bool_series(reengaged_output.get("install_completed", False), index=reengaged_output.index)
-            & cadence.map(has_cadence)
+            & cadence.map(lambda value: cadence_has_any_days(value, {"3", "5"}))
         ).sum()
     ) if total else 0
     rate = reengaged / total if total else 0
@@ -352,7 +357,7 @@ def write_executive_summary(
         f"- Re-engagement rate: {rate:.1%}",
         f"- Install/conversion rate among dropped creators: {install_rate:.1%}",
         f"- Median days to return: {median_days:.1f}" if pd.notna(median_days) else "- Median days to return: unavailable",
-        f"- Re-engaged & Installed after any follow-up cadence: {installed_with_cadence}/{total}",
+        f"- Re-engaged & Installed after 3 or 5 day follow up cadence: {installed_with_cadence}/{total}",
         "",
         "## Strongest Cohorts",
         "",
