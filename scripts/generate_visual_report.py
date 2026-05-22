@@ -649,6 +649,10 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return requiredDays.every(day => days.has(day));
     }}
 
+    function hasCadence(value) {{
+      return cadenceValue(value) !== 'None';
+    }}
+
     function yearValue(value) {{
       const clean = text(value).trim();
       if (!clean) return '';
@@ -782,9 +786,9 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function summarize(rows) {{
       const total = rows.length;
       const reengaged = rows.filter(row => truthy(row.reengaged)).length;
-      const installedAfter357 = rows.filter(row => truthy(row.install_completed) && cadenceHasDays(row.macro_cadence, ['3', '5', '7'])).length;
+      const installedWithCadence = rows.filter(row => truthy(row.install_completed) && hasCadence(row.macro_cadence)).length;
       const rise = rows.filter(row => text(row.service_level).toLowerCase() === 'rise').length;
-      return {{ total, reengaged, installedAfter357, rise }};
+      return {{ total, reengaged, installedWithCadence, rise }};
     }}
 
     function renderKpis(rows) {{
@@ -792,7 +796,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       const tiles = [
         ['Dropped onboards', s.total, 'Filtered rows'],
         ['Returned', s.reengaged, pct(s.reengaged, s.total)],
-        ['Re-engaged & Installed', s.installedAfter357, pct(s.installedAfter357, s.total)],
+        ['Re-engaged & Installed', pct(s.installedWithCadence, s.total), `${{s.installedWithCadence}} of ${{s.total}} sites`],
         ['Rise creators', s.rise, pct(s.rise, s.total)]
       ];
       document.getElementById('kpis').innerHTML = tiles.map(([label, value, note]) => `

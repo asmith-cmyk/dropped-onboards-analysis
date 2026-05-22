@@ -35,6 +35,11 @@ def cadence_has_days(value: object, required_days: set[str]) -> bool:
     return required_days.issubset(days)
 
 
+def has_cadence(value: object) -> bool:
+    cadence = clean_blank(value)
+    return cadence != "" and cadence.lower() not in {"none", "unknown"}
+
+
 def derive_cg_timing(row: pd.Series) -> str:
     involvement = normalize_text(row.get("cg_involvement", ""))
     event_at = pd.to_datetime(row.get("first_cg_touch_at", ""), errors="coerce")
@@ -320,10 +325,10 @@ def write_executive_summary(
     reengaged = int(bool_series(reengaged_output["reengaged"]).sum()) if total else 0
     installed = int(bool_series(reengaged_output["install_completed"]).sum()) if total else 0
     cadence = reengaged_output.get("macro_cadence", pd.Series("", index=reengaged_output.index))
-    installed_after_357 = int(
+    installed_with_cadence = int(
         (
             bool_series(reengaged_output.get("install_completed", False), index=reengaged_output.index)
-            & cadence.map(lambda value: cadence_has_days(value, {"3", "5", "7"}))
+            & cadence.map(has_cadence)
         ).sum()
     ) if total else 0
     rate = reengaged / total if total else 0
@@ -347,7 +352,7 @@ def write_executive_summary(
         f"- Re-engagement rate: {rate:.1%}",
         f"- Install/conversion rate among dropped creators: {install_rate:.1%}",
         f"- Median days to return: {median_days:.1f}" if pd.notna(median_days) else "- Median days to return: unavailable",
-        f"- Re-engaged & Installed after 3, 5 and 7 day follow up: {installed_after_357}/{total}",
+        f"- Re-engaged & Installed after any follow-up cadence: {installed_with_cadence}/{total}",
         "",
         "## Strongest Cohorts",
         "",
