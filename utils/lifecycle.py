@@ -307,6 +307,12 @@ def _dedupe_snowflake_returned(returned: pd.DataFrame) -> pd.DataFrame:
         "current_status",
         "actual_close_date",
         "expected_install_date",
+        "lead_contact",
+        "service_level",
+        "vertical",
+        "previous_ad_network",
+        "onboarding_owner",
+        "monthly_pageviews",
     ):
         if column not in out.columns:
             out[column] = ""
@@ -352,28 +358,126 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     d = d.sort_values(["_drop_key", "_actual_close_at"]).drop_duplicates(subset=["_drop_key"], keep="last")
 
     r = _dedupe_snowflake_returned(returned)
+    d["returning_status"] = ""
+    d["returned_expected_install_date"] = ""
+    d["returned_actual_close_date"] = ""
     if not r.empty:
-        has_project_id = "project_id" in r.columns and r["project_id"].map(clean_blank).astype(bool).any()
-        merge_key = "project_id" if has_project_id else "site_id"
         r = r[
             [
-                merge_key,
+                "project_id",
+                "site_id",
                 "current_status",
                 "expected_install_date",
                 "actual_close_date",
+                "lead_contact",
+                "service_level",
+                "vertical",
+                "previous_ad_network",
+                "onboarding_owner",
+                "monthly_pageviews",
             ]
         ].rename(
             columns={
                 "current_status": "returning_status",
                 "expected_install_date": "returned_expected_install_date",
                 "actual_close_date": "returned_actual_close_date",
+                "lead_contact": "returning_lead_contact",
+                "service_level": "returning_service_level",
+                "vertical": "returning_vertical",
+                "previous_ad_network": "returning_previous_ad_network",
+                "onboarding_owner": "returning_onboarding_owner",
+                "monthly_pageviews": "returning_monthly_pageviews",
             }
         )
-        d = d.merge(r, on=merge_key, how="left")
-    else:
-        d["returning_status"] = ""
-        d["returned_expected_install_date"] = ""
-        d["returned_actual_close_date"] = ""
+        r["_project_key"] = r["project_id"].map(clean_blank)
+        r_project = r[r["_project_key"].ne("")].drop_duplicates(subset=["_project_key"], keep="first")
+        if not r_project.empty:
+            d = d.merge(
+                r_project[
+                    [
+                        "project_id",
+                        "returning_status",
+                        "returned_expected_install_date",
+                        "returned_actual_close_date",
+                        "returning_lead_contact",
+                        "returning_service_level",
+                        "returning_vertical",
+                        "returning_previous_ad_network",
+                        "returning_onboarding_owner",
+                        "returning_monthly_pageviews",
+                    ]
+                ],
+                on="project_id",
+                how="left",
+                suffixes=("", "_project"),
+            )
+            for column in (
+                "returning_status",
+                "returned_expected_install_date",
+                "returned_actual_close_date",
+                "returning_lead_contact",
+                "returning_service_level",
+                "returning_vertical",
+                "returning_previous_ad_network",
+                "returning_onboarding_owner",
+                "returning_monthly_pageviews",
+            ):
+                project_column = f"{column}_project"
+                if project_column in d.columns:
+                    d[column] = d[project_column].where(d[project_column].map(_is_present), d[column])
+                    d = d.drop(columns=[project_column])
+
+        r_site = r.drop_duplicates(subset=["site_id", "returned_actual_close_date"], keep="first")
+        if not r_site.empty:
+            d = d.merge(
+                r_site[
+                    [
+                        "site_id",
+                        "returning_status",
+                        "returned_expected_install_date",
+                        "returned_actual_close_date",
+                        "returning_lead_contact",
+                        "returning_service_level",
+                        "returning_vertical",
+                        "returning_previous_ad_network",
+                        "returning_onboarding_owner",
+                        "returning_monthly_pageviews",
+                    ]
+                ],
+                left_on=["site_id", "actual_close_date"],
+                right_on=["site_id", "returned_actual_close_date"],
+                how="left",
+                suffixes=("", "_site"),
+            )
+            for column in (
+                "returning_status",
+                "returned_expected_install_date",
+                "returned_actual_close_date",
+                "returning_lead_contact",
+                "returning_service_level",
+                "returning_vertical",
+                "returning_previous_ad_network",
+                "returning_onboarding_owner",
+                "returning_monthly_pageviews",
+            ):
+                site_column = f"{column}_site"
+                if site_column in d.columns:
+                    d[column] = d[column].where(d[column].map(_is_present), d[site_column])
+                    d = d.drop(columns=[site_column])
+
+        return_metadata = {
+            "lead_contact": "returning_lead_contact",
+            "service_level": "returning_service_level",
+            "vertical": "returning_vertical",
+            "previous_ad_network": "returning_previous_ad_network",
+            "onboarding_owner": "returning_onboarding_owner",
+            "monthly_pageviews": "returning_monthly_pageviews",
+        }
+        for target, source in return_metadata.items():
+            if source in d.columns:
+                if target not in d.columns:
+                    d[target] = ""
+                d[target] = d[source].where(d[source].map(_is_present), d[target])
 
     dropped_date = d["_actual_close_at"]
     expected_install = pd.to_datetime(_format_date_like(d["returned_expected_install_date"], numeric_unit="D"), errors="coerce")

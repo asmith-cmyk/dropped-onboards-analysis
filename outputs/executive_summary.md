@@ -1,29 +1,29 @@
 # Onboarding Lifecycle Executive Summary
 
-Generated from the master lifecycle dataset with 574 dropped onboarding creators/sites and 146 returned creators/sites.
+Generated from the master lifecycle dataset with 799 dropped onboarding creators/sites and 374 returned creators/sites.
 
 ## Headline Metrics
 
-- Re-engagement rate: 25.4%
-- Install/conversion rate among dropped creators: 25.3%
-- Median days to return: 233.0
-- Re-engaged & Installed after 3, 5 and 7 day follow up: 0/574
+- Re-engagement rate: 46.8%
+- Install/conversion rate among dropped creators: 43.3%
+- Median days to return: 312.5
+- Re-engaged & Installed after 3, 5 and 7 day follow up: 0/799
 
 ## Strongest Cohorts
 
+- Vertical = Education: 100.0% re-engagement (5/5).
+- Vertical = Deals: 100.0% re-engagement (1/1).
+- Vertical = Professional Finance: 100.0% re-engagement (1/1).
 - Previous Ad Network = AdVally: 100.0% re-engagement (1/1).
-- Vertical = Family and Parenting: 50.0% re-engagement (2/4).
-- Previous Ad Network = Monumetric: 50.0% re-engagement (2/4).
-- Vertical = Beauty: 50.0% re-engagement (1/2).
-- Vertical = Green Living: 50.0% re-engagement (1/2).
-- Vertical = Wedding: 50.0% re-engagement (1/2).
-- Onboarding Owner = Kate Fitzpatrick: 50.0% re-engagement (1/2).
-- Vertical = Food: 45.7% re-engagement (64/140).
+- Previous Ad Network = Playwire: 100.0% re-engagement (1/1).
+- Macro Cadence = 3 and 5 day follow up: 100.0% re-engagement (1/1).
+- Macro Cadence = 3, 5 and 7 day follow up: 100.0% re-engagement (1/1).
+- Vertical = Arts & Creativity: 80.0% re-engagement (4/5).
 
 ## Creator Growth
 
-- Assisted: 25.7% re-engagement across 187 creators.
-- Not Assisted: 25.3% re-engagement across 387 creators.
+- Assisted: 61.7% re-engagement across 363 creators.
+- Not Assisted: 34.4% re-engagement across 436 creators.
 
 ## Rise Creators
 

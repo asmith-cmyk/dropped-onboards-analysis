@@ -126,11 +126,11 @@ def display_days_to_return(dropped_date: str, returned_date: str, fallback: obje
 
 
 def collapse_returned_attempts(records: list[dict[str, object]]) -> list[dict[str, object]]:
-    """Show one dashboard row when repeat drops share one official return date.
+    """Show one dashboard row when repeat drops share one lifecycle outcome.
 
     The master lifecycle CSV stays event-level. The dashboard is creator-level for
-    returned sites, so multiple dropped attempts with the same return date are
-    represented as one row with visible drop history.
+    sites, so multiple dropped attempts with the same return state are represented
+    as one row with visible drop history.
     """
     groups: dict[tuple[str, str], list[dict[str, object]]] = {}
     passthrough: list[dict[str, object]] = []
@@ -143,7 +143,7 @@ def collapse_returned_attempts(records: list[dict[str, object]]) -> list[dict[st
         if not site_key:
             site_key = clean_text(record.get("creator_key", "")) or clean_text(record.get("creator_project_name", "")).lower()
 
-        if returned_date and site_key:
+        if site_key:
             groups.setdefault((site_key, returned_date), []).append(record)
         else:
             passthrough.append(record)
