@@ -80,6 +80,46 @@
       font: inherit;
       min-height: 38px;
     }
+    .control-group {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .control-title {
+      display: block;
+    }
+    .cadence-options {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      padding: 5px 6px;
+    }
+    .cadence-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--text);
+      background: var(--ink-soft);
+      border-radius: 6px;
+      padding: 4px 7px;
+      font-size: 12px;
+      font-weight: 650;
+      line-height: 1;
+    }
+    .cadence-option input {
+      width: auto;
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+      accent-color: var(--teal);
+    }
     .kpis {
       display: grid;
       grid-template-columns: repeat(4, minmax(130px, 1fr));
@@ -296,7 +336,7 @@
     <div class="title-row">
       <div>
         <h1>Onboarding Lifecycle Dashboard</h1>
-        <div class="subtitle">754 dropped onboarding creators · Generated 2026-05-22 11:46</div>
+        <div class="subtitle">754 dropped onboarding creators · Generated 2026-05-22 11:49</div>
       </div>
       <div class="subtitle">Source: outputs/master_creator_lifecycle.csv</div>
     </div>
@@ -319,9 +359,14 @@
       <label>Owner
         <select id="owner"></select>
       </label>
-      <label>Cadence
-        <select id="cadence"></select>
-      </label>
+      <div class="control-group">
+        <span class="control-title">Cadence</span>
+        <div class="cadence-options" id="cadence-options" role="group" aria-label="Cadence follow-up days">
+          <label class="cadence-option"><input type="checkbox" name="cadence-day" value="3">3 day</label>
+          <label class="cadence-option"><input type="checkbox" name="cadence-day" value="5">5 day</label>
+          <label class="cadence-option"><input type="checkbox" name="cadence-day" value="7">7 day</label>
+        </div>
+      </div>
       <label>Dropped Reason
         <select id="reason"></select>
       </label>
@@ -388,7 +433,7 @@
       service: document.getElementById('service'),
       vertical: document.getElementById('vertical'),
       owner: document.getElementById('owner'),
-      cadence: document.getElementById('cadence'),
+      cadenceOptions: document.getElementById('cadence-options'),
       reason: document.getElementById('reason')
     };
 
@@ -529,6 +574,10 @@
       fields.reason.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${escapeAttr(value)}">${escapeHtml(value)}</option>`).join('');
     }
 
+    function selectedCadenceDays() {
+      return [...document.querySelectorAll('input[name="cadence-day"]:checked')].map(input => input.value);
+    }
+
     function escapeHtml(value) {
       return text(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
     }
@@ -544,7 +593,8 @@
         if (fields.service.value && optionValue(row.service_level) !== fields.service.value) return false;
         if (fields.vertical.value && optionValue(row.vertical) !== fields.vertical.value) return false;
         if (fields.owner.value && optionValue(row.onboarding_owner) !== fields.owner.value) return false;
-        if (fields.cadence.value && cadenceValue(row.macro_cadence) !== fields.cadence.value) return false;
+        const cadenceDays = selectedCadenceDays();
+        if (cadenceDays.length && !cadenceHasAnyDays(row.macro_cadence, cadenceDays)) return false;
         if (fields.reason.value && reasonValue(row) !== fields.reason.value) return false;
         if (!query) return true;
         const haystack = [
@@ -570,9 +620,9 @@
     function summarize(rows) {
       const total = rows.length;
       const reengaged = rows.filter(row => truthy(row.reengaged)).length;
-      const installedWithCadence = rows.filter(row => truthy(row.install_completed) && cadenceHasAnyDays(row.macro_cadence, ['3', '5'])).length;
+      const returnedWithCadence = rows.filter(row => truthy(row.reengaged) && cadenceHasAnyDays(row.macro_cadence, ['3', '5', '7'])).length;
       const rise = rows.filter(row => text(row.service_level).toLowerCase() === 'rise').length;
-      return { total, reengaged, installedWithCadence, rise };
+      return { total, reengaged, returnedWithCadence, rise };
     }
 
     function renderKpis(rows) {
@@ -582,9 +632,9 @@
         { label: 'Returned', value: s.reengaged, note: pct(s.reengaged, s.total) },
         {
           label: 'Re-engaged & Installed',
-          value: pct(s.installedWithCadence, s.total),
-          note: `${s.installedWithCadence} of ${s.total} sites`,
-          tooltip: 'Percentage of sites that received a 3 or 5 day follow up cadence and were installed.'
+          value: pct(s.returnedWithCadence, s.total),
+          note: `${s.returnedWithCadence} of ${s.total} sites`,
+          tooltip: 'Percentage of sites that received a 3, 5, or 7 day follow up and returned.'
         },
         { label: 'Rise creators', value: s.rise, note: pct(s.rise, s.total) }
       ];
@@ -690,7 +740,6 @@
     populateSelect('service', 'service_level');
     populateSelect('vertical', 'vertical');
     populateSelect('owner', 'onboarding_owner');
-    populateSelect('cadence', 'macro_cadence', cadenceValue);
     populateReasonSelect();
     Object.values(fields).forEach(control => control.addEventListener('input', render));
     Object.values(fields).forEach(control => control.addEventListener('change', render));

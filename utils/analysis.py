@@ -330,10 +330,10 @@ def write_executive_summary(
     reengaged = int(bool_series(reengaged_output["reengaged"]).sum()) if total else 0
     installed = int(bool_series(reengaged_output["install_completed"]).sum()) if total else 0
     cadence = reengaged_output.get("macro_cadence", pd.Series("", index=reengaged_output.index))
-    installed_with_cadence = int(
+    returned_with_cadence = int(
         (
-            bool_series(reengaged_output.get("install_completed", False), index=reengaged_output.index)
-            & cadence.map(lambda value: cadence_has_any_days(value, {"3", "5"}))
+            bool_series(reengaged_output.get("reengaged", False), index=reengaged_output.index)
+            & cadence.map(lambda value: cadence_has_any_days(value, {"3", "5", "7"}))
         ).sum()
     ) if total else 0
     rate = reengaged / total if total else 0
@@ -357,7 +357,7 @@ def write_executive_summary(
         f"- Re-engagement rate: {rate:.1%}",
         f"- Install/conversion rate among dropped creators: {install_rate:.1%}",
         f"- Median days to return: {median_days:.1f}" if pd.notna(median_days) else "- Median days to return: unavailable",
-        f"- Re-engaged & Installed after 3 or 5 day follow up cadence: {installed_with_cadence}/{total}",
+        f"- Returned after 3, 5, or 7 day follow up cadence: {returned_with_cadence}/{total}",
         "",
         "## Strongest Cohorts",
         "",
