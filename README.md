@@ -51,6 +51,7 @@ Snowflake:
 - `ANALYTICS.ADTHRIVE.DROPPED_REASON_CATEGORY`
 - `snowflake_dropped_onboards.csv` captures cancelled Salesforce Onboarding projects across available years for `Rise`, `Insider`, `Platinum`, `Platinum Elite`, `Luminary`, and `Mid Market Enterprise`.
 - The Snowflake dropped cohort excludes pre-onboarding/non-engagement and unrelated lifecycle reasons such as duplicate, merged, new-owner churn, and retiring site records. For returned creators that were previously active with Raptive, prior `SITE_OFFBOARDING` rows are used as the drop/offboarding event before falling back to Salesforce onboarding cancellation notes.
+- `queries/search_mpm4_missing_dropped_reasons.sql` can be run in Snowflake to inspect Salesforce MPM4 fields for dashboard rows still showing `No dropped reason captured` or `No reason captured`.
 - `snowflake_returned_onboards.csv` captures dropped onboarding projects when the same site later appears in `Setup`, `Install`, `Checkup`, or `Active`. `Setup` rows are included when they have an expected install date in the current calendar year.
 - Snowflake enrichment supplies service level, vertical, previous ad network, onboarding owner, monthly pageviews, CG involvement, dropped/canceled reason, and dropped reason category where available.
 - Dropped reason category is joined through `DROPPED_REASON_CATEGORY`. The setup cancellation value is stored as `Set-up cancellation`, so matching should be punctuation-insensitive.

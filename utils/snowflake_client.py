@@ -134,6 +134,8 @@ qualifying_dropped_onboards AS (
                 NULLIF(hdr.text, ''),
                 NULLIF(dr.text, ''),
                 NULLIF(p.dropped_reason__c, ''),
+                NULLIF(p.reason_they_left__c, ''),
+                NULLIF(p.reasontheyleftspecifics__c, ''),
                 CASE
                     WHEN p.cancelled_reason__c = 'Blogger missed deadline' THEN 'Non-responsive'
                     WHEN p.cancelled_reason__c = 'Blogger refused ads' THEN 'Refused ad layout'
