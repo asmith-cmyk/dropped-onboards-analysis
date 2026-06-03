@@ -736,15 +736,28 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return parsed.getTime() >= start && parsed.getTime() < end;
     }}
 
-    function reasonValue(row) {{
+    const GENERIC_REASON_VALUES = new Set(['Dropped', 'Canceled', 'Cancelled', 'Prior site dropped status']);
+    const NO_REASON_CATEGORY = 'No dropped reason category captured';
+
+    function isUsefulReason(value) {{
+      const clean = text(value).trim();
+      return clean && !GENERIC_REASON_VALUES.has(clean);
+    }}
+
+    function reasonCategoryValue(row) {{
       const category = text(row.dropped_reason_category).trim();
-      if (category && !['Dropped', 'Canceled', 'Cancelled', 'Prior site dropped status'].includes(category)) {{
-        return category;
-      }}
+      return isUsefulReason(category) ? category : NO_REASON_CATEGORY;
+    }}
+
+    function reasonDetailValue(row) {{
       const reason = text(row.cancellation_reason).trim();
-      return reason && !['Dropped', 'Canceled', 'Cancelled', 'Prior site dropped status'].includes(reason)
-        ? reason
-        : 'No reason captured';
+      const category = reasonCategoryValue(row);
+      if (!isUsefulReason(reason) || reason === 'No reason captured' || reason === category) return '';
+      return reason;
+    }}
+
+    function reasonValue(row) {{
+      return reasonCategoryValue(row);
     }}
 
     function displayValue(row, key) {{
@@ -773,7 +786,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       if (key === 'dropped_date') return !text(row.dropped_sort_date || row.latest_dropped_date || row.dropped_date).trim();
       if (key === 'returned_date') return !text(row[key]).trim();
       const value = displayValue(row, key).trim();
-      return !value || value === 'Unknown' || value === 'No reason captured';
+      return !value || value === 'Unknown' || value === NO_REASON_CATEGORY;
     }}
 
     function sortRows(rows) {{
@@ -819,7 +832,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function populateReasonSelect() {{
-      const values = [...new Set(RECORDS.map(row => reasonValue(row)))].sort((a, b) => a.localeCompare(b));
+      const values = [...new Set(RECORDS.map(row => reasonCategoryValue(row)))].sort((a, b) => a.localeCompare(b));
       fields.reason.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
     }}
 
@@ -844,7 +857,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         if (fields.owner.value && optionValue(row.onboarding_owner) !== fields.owner.value) return false;
         const cadenceDays = selectedCadenceDays();
         if (cadenceDays.length && !cadenceHasAnyDays(row.macro_cadence, cadenceDays)) return false;
-        if (fields.reason.value && reasonValue(row) !== fields.reason.value) return false;
+        if (fields.reason.value && reasonCategoryValue(row) !== fields.reason.value) return false;
         if (!query) return true;
         const haystack = [
           row.creator_project_name,
@@ -965,7 +978,10 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <td>${{escapeHtml(row.previous_ad_network || 'Unknown')}}</td>
           <td>${{escapeHtml(row.onboarding_owner || 'Unknown')}}</td>
           <td title="${{escapeAttr(row.drop_history || row.dropped_date)}}">${{escapeHtml(row.dropped_date)}}</td>
-          <td>${{escapeHtml(reasonValue(row))}}</td>
+          <td>
+            ${{escapeHtml(reasonCategoryValue(row))}}
+            ${{reasonDetailValue(row) ? `<div class="cell-note">${{escapeHtml(reasonDetailValue(row))}}</div>` : ''}}
+          </td>
           <td title="${{escapeAttr(cadenceDetail(row))}}">${{escapeHtml(cadenceValue(row.macro_cadence))}}</td>
           <td>${{escapeHtml(row.cg_involvement || 'Not Assisted')}}</td>
           <td>${{escapeHtml(row.returned_date)}}</td>
@@ -978,11 +994,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       const rows = sortRows(filtered());
       renderKpis(rows);
       renderBars('service-bars', groupCounts(rows, 'service_level'), '');
-      renderBars('reason-bars', groupCounts(rows, 'dropped_reason_category', 8, (_value, row) => reasonValue(row)), 'amber');
+      renderBars('reason-bars', groupCounts(rows, 'dropped_reason_category', 8, (_value, row) => reasonCategoryValue(row)), 'amber');
       renderBars('cg-bars', groupCounts(rows, 'cg_involvement'), 'blue');
       renderBars('network-bars', groupCounts(rows, 'previous_ad_network'), 'rose');
       document.getElementById('service-count').textContent = `${{groupCounts(rows, 'service_level', 50).length}} segments`;
-      document.getElementById('reason-count').textContent = `${{groupCounts(rows, 'dropped_reason_category', 50, (_value, row) => reasonValue(row)).length}} categories`;
+      document.getElementById('reason-count').textContent = `${{groupCounts(rows, 'dropped_reason_category', 50, (_value, row) => reasonCategoryValue(row)).length}} categories`;
       document.getElementById('cg-count').textContent = `${{groupCounts(rows, 'cg_involvement', 50).length}} groups`;
       document.getElementById('network-count').textContent = `${{groupCounts(rows, 'previous_ad_network', 50).length}} networks`;
       renderTable(rows);
