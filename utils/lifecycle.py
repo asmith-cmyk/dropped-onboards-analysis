@@ -34,6 +34,7 @@ MASTER_COLUMNS = [
     "install_date",
     "days_to_return",
     "cancellation_reason",
+    "dropped_reason_category",
     "raw_description",
     "normalized_reason",
     "reason_confidence_score",
@@ -111,6 +112,36 @@ def _is_present(value: object) -> bool:
     if value is None or pd.isna(value):
         return False
     return clean_blank(value) != ""
+
+
+def _setup_cancellation_mask(*series: pd.Series) -> pd.Series:
+    if not series:
+        return pd.Series(dtype=bool)
+    combined = pd.Series("", index=series[0].index)
+    for item in series:
+        combined = combined + " " + item.fillna("").astype(str)
+    normalized = combined.str.lower().str.replace(r"[^a-z0-9]", "", regex=True)
+    return normalized.str.contains("setupcancellation", regex=False, na=False) | normalized.str.contains(
+        "setupcancelled", regex=False, na=False
+    )
+
+
+def _snowflake_reason_category(df: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
+    category = _series_or_default(df, "dropped_reason_category").fillna("").astype(str).map(clean_blank)
+    description = _series_or_default(df, "raw_description").fillna("").astype(str)
+    reason = _series_or_default(df, "dropped_reason").fillna("").astype(str)
+    setup_mask = _setup_cancellation_mask(category, description, reason)
+
+    derived = pd.Series("", index=df.index)
+    derived.loc[setup_mask] = "Set-up cancellation"
+
+    category_present = category.map(_is_present)
+    out = category.where(category_present, derived)
+
+    method = pd.Series("", index=df.index)
+    method.loc[category_present] = "snowflake_category"
+    method.loc[~category_present & derived.map(_is_present)] = "description_pattern"
+    return out, method
 
 
 def _coerce_bool(value: object) -> bool:
@@ -313,6 +344,7 @@ def _dedupe_snowflake_returned(returned: pd.DataFrame) -> pd.DataFrame:
         "previous_ad_network",
         "onboarding_owner",
         "monthly_pageviews",
+        "dropped_reason_category",
     ):
         if column not in out.columns:
             out[column] = ""
@@ -357,6 +389,7 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     d.loc[d["_drop_key"].eq(""), "_drop_key"] = fallback_key
     d = d.sort_values(["_drop_key", "_actual_close_at"]).drop_duplicates(subset=["_drop_key"], keep="last")
 
+    reason_category, reason_category_method = _snowflake_reason_category(d)
     r = _dedupe_snowflake_returned(returned)
     d["returning_status"] = ""
     d["returned_expected_install_date"] = ""
@@ -509,10 +542,11 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     lifecycle["install_date"] = ""
     lifecycle["days_to_return"] = _format_days((expected_install - dropped_date).dt.days)
     lifecycle["cancellation_reason"] = d.get("dropped_reason", "")
+    lifecycle["dropped_reason_category"] = reason_category
     lifecycle["raw_description"] = d.get("raw_description", "")
-    lifecycle["normalized_reason"] = "Unknown"
+    lifecycle["normalized_reason"] = reason_category.where(reason_category.map(_is_present), "Unknown")
     lifecycle["reason_confidence_score"] = ""
-    lifecycle["reason_classification_method"] = ""
+    lifecycle["reason_classification_method"] = reason_category_method
     lifecycle["macro_cadence"] = "None"
     lifecycle["zendesk_ticket_count"] = 0
     lifecycle["ticket_reopened"] = False
@@ -613,6 +647,18 @@ def build_master_creator_lifecycle(
 
     install_completed = install_date.notna()
     reengaged = _bool_or_default(enriched, "reengaged")
+    dropped_reason_category = _series_or_default(enriched, "dropped_reason_category").fillna("").astype(str).map(clean_blank)
+    setup_category = pd.Series("", index=enriched.index)
+    setup_category.loc[
+        _setup_cancellation_mask(
+            dropped_reason_category,
+            _series_or_default(enriched, "description").fillna("").astype(str),
+            _series_or_default(enriched, "cancelled_reason").fillna("").astype(str),
+        )
+    ] = "Set-up cancellation"
+    dropped_reason_category = dropped_reason_category.where(
+        dropped_reason_category.map(_is_present), setup_category
+    )
 
     lifecycle = pd.DataFrame(index=enriched.index)
     lifecycle["lifecycle_creator_id"] = (
@@ -644,8 +690,12 @@ def build_master_creator_lifecycle(
     lifecycle["install_date"] = format_date_for_output(install_date)
     lifecycle["days_to_return"] = _format_days(days_to_return)
     lifecycle["cancellation_reason"] = _series_or_default(enriched, "cancelled_reason")
+    lifecycle["dropped_reason_category"] = dropped_reason_category
     lifecycle["raw_description"] = _series_or_default(enriched, "description")
-    lifecycle["normalized_reason"] = _series_or_default(enriched, "normalized_category").replace("", "Unknown")
+    lifecycle["normalized_reason"] = dropped_reason_category.where(
+        dropped_reason_category.map(_is_present),
+        _series_or_default(enriched, "normalized_category").replace("", "Unknown"),
+    )
     lifecycle["reason_confidence_score"] = _series_or_default(enriched, "confidence_score")
     lifecycle["reason_classification_method"] = _series_or_default(enriched, "classification_method")
     lifecycle["macro_cadence"] = _series_or_default(enriched, "macro_cadence", "None").replace({"": "None", "Unknown": "None"})
