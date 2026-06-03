@@ -172,6 +172,36 @@ def _dropped_reason_series(
     return out
 
 
+def _reason_key(value: object) -> str:
+    return re.sub(r"[^a-z0-9]", "", clean_blank(value).lower())
+
+
+def _left_raptive_reason(value: object) -> str:
+    clean = re.sub(r"\s+", " ", clean_blank(value)).strip()
+    if clean.lower().startswith("left raptive"):
+        return clean
+    key = _reason_key(clean)
+    if key in {"", "noreasonvague", "noreasoncaptured", "nodroppedreasoncaptured", "offboarded"}:
+        clean = "No reason/vague"
+    else:
+        clean = re.sub(r"\s*/\s*", "/", clean)
+    return f"Left Raptive – {clean}"
+
+
+def _format_offboarding_dropped_reasons(lifecycle: pd.DataFrame) -> pd.DataFrame:
+    if lifecycle.empty:
+        return lifecycle
+
+    out = lifecycle.copy()
+    status = _series_or_default(out, "dropped_status").fillna("").astype(str).str.lower()
+    category_key = _series_or_default(out, "dropped_reason_category").map(_reason_key)
+    offboarded_switched_networks = status.eq("offboarded") & category_key.eq("switchedadnetworks")
+    out.loc[offboarded_switched_networks, "dropped_reason"] = out.loc[
+        offboarded_switched_networks, "dropped_reason"
+    ].map(_left_raptive_reason)
+    return out
+
+
 def _coerce_bool(value: object) -> bool:
     return clean_blank(value).lower() in {"1", "true", "yes", "y", "booked", "installed", "converted"}
 
@@ -814,6 +844,7 @@ def build_master_creator_lifecycle(
     lifecycle.loc[missing_reason, "cancellation_reason"] = "No reason captured"
     missing_dropped_reason = lifecycle["dropped_reason"].str.lower().isin(generic_reasons)
     lifecycle.loc[missing_dropped_reason, "dropped_reason"] = "No dropped reason captured"
+    lifecycle = _format_offboarding_dropped_reasons(lifecycle)
     lifecycle["cg_involvement"] = _cg_involvement_label(lifecycle["cg_involvement"])
     lifecycle["outcome"] = _outcome_series(lifecycle)
     return lifecycle.sort_values(["dropped_date", "creator_project_name"], na_position="last")

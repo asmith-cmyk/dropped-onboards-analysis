@@ -229,7 +229,7 @@ site_offboarding_records AS (
     FROM ANALYTICS.ADTHRIVE.SITE_OFFBOARDING
 ),
 
-site_offboarding_events AS (
+site_offboarding_events_raw AS (
     SELECT
         offboarding_record,
         COALESCE(
@@ -241,6 +241,17 @@ site_offboarding_events AS (
             NULLIF(GET_IGNORE_CASE(offboarding_record, 'offboarding_id')::STRING, ''),
             NULLIF(GET_IGNORE_CASE(offboarding_record, 'id')::STRING, '')
         ) AS offboarding_id,
+        COALESCE(
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'dropped_reason_id')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'offboarding_reason_id')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'reason_id')::STRING, '')
+        ) AS dropped_reason_id,
+        COALESCE(
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'dropped_reason_category_id')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'offboarding_reason_category_id')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'reason_category_id')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'category_id')::STRING, '')
+        ) AS dropped_reason_category_id,
         COALESCE(
             TRY_TO_TIMESTAMP_NTZ(GET_IGNORE_CASE(offboarding_record, 'offboarded_at')::STRING),
             TRY_TO_TIMESTAMP_NTZ(GET_IGNORE_CASE(offboarding_record, 'offboarded_date')::STRING),
@@ -255,16 +266,14 @@ site_offboarding_events AS (
             NULLIF(GET_IGNORE_CASE(offboarding_record, 'offboarding_reason')::STRING, ''),
             NULLIF(GET_IGNORE_CASE(offboarding_record, 'reason')::STRING, ''),
             NULLIF(GET_IGNORE_CASE(offboarding_record, 'reason_text')::STRING, ''),
-            NULLIF(GET_IGNORE_CASE(offboarding_record, 'status_reason')::STRING, ''),
-            'Offboarded'
-        ) AS offboarding_reason,
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'status_reason')::STRING, '')
+        ) AS offboarding_reason_raw,
         COALESCE(
             NULLIF(GET_IGNORE_CASE(offboarding_record, 'dropped_reason_category')::STRING, ''),
             NULLIF(GET_IGNORE_CASE(offboarding_record, 'offboarding_reason_category')::STRING, ''),
             NULLIF(GET_IGNORE_CASE(offboarding_record, 'reason_category')::STRING, ''),
-            NULLIF(GET_IGNORE_CASE(offboarding_record, 'category')::STRING, ''),
-            'Offboarding'
-        ) AS offboarding_reason_category,
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'category')::STRING, '')
+        ) AS offboarding_reason_category_raw,
         COALESCE(
             NULLIF(GET_IGNORE_CASE(offboarding_record, 'reason_details')::STRING, ''),
             NULLIF(GET_IGNORE_CASE(offboarding_record, 'details')::STRING, ''),
@@ -275,6 +284,30 @@ site_offboarding_events AS (
             TO_JSON(offboarding_record)
         ) AS offboarding_description
     FROM site_offboarding_records
+),
+
+site_offboarding_events AS (
+    SELECT
+        raw.offboarding_record,
+        raw.site_id,
+        raw.offboarding_id,
+        raw.offboarded_at,
+        COALESCE(
+            raw.offboarding_reason_raw,
+            NULLIF(odr.text, ''),
+            'Offboarded'
+        ) AS offboarding_reason,
+        COALESCE(
+            raw.offboarding_reason_category_raw,
+            NULLIF(odrc.text, ''),
+            'Offboarding'
+        ) AS offboarding_reason_category,
+        raw.offboarding_description
+    FROM site_offboarding_events_raw raw
+    LEFT JOIN ANALYTICS.ADTHRIVE.DROPPED_REASON odr
+        ON raw.dropped_reason_id = odr.id
+    LEFT JOIN ANALYTICS.ADTHRIVE.DROPPED_REASON_CATEGORY odrc
+        ON COALESCE(raw.dropped_reason_category_id, odr.dropped_reason_category_id) = odrc.id
 ),
 
 prior_site_offboardings AS (
