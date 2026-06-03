@@ -50,6 +50,7 @@ REPORT_FIELDS = [
     "returned_date",
     "days_to_return",
     "cancellation_reason",
+    "dropped_reason_category",
     "macro_cadence",
     "cg_involvement",
     "cg_escalation_status",
@@ -193,7 +194,7 @@ def collapse_returned_attempts(records: list[dict[str, object]]) -> list[dict[st
         for row in ordered:
             date = clean_text(row.get("dropped_date", ""))
             owner = clean_text(row.get("onboarding_owner", ""))
-            reason = clean_text(row.get("cancellation_reason", ""))
+            reason = clean_text(row.get("dropped_reason_category", "")) or clean_text(row.get("cancellation_reason", ""))
             cg = clean_text(row.get("cg_involvement", ""))
             details = " | ".join(part for part in (owner, reason, cg) if part)
             history_parts.append(f"{date}: {details}" if details else date)
@@ -599,7 +600,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <label class="cadence-option"><input type="checkbox" name="cadence-day" value="7">7 day</label>
         </div>
       </div>
-      <label>Dropped Reason
+      <label>Dropped Reason Category
         <select id="reason"></select>
       </label>
     </section>
@@ -612,7 +613,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         <div class="bars" id="service-bars"></div>
       </div>
       <div class="panel">
-        <div class="panel-header"><h2>Cancellation Reasons</h2><span id="reason-count"></span></div>
+        <div class="panel-header"><h2>Dropped Reason Categories</h2><span id="reason-count"></span></div>
         <div class="bars" id="reason-bars"></div>
       </div>
       <div class="panel">
@@ -642,7 +643,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
               <th><button class="sort-button" type="button" data-sort="previous_ad_network">Network <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="onboarding_owner">Owner <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="dropped_date">Dropped <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="reason">Reason <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="reason">Reason Category <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="macro_cadence">Cadence <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="cg_involvement">CG Involvement <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="returned_date">Returned <span class="sort-indicator"></span></button></th>
@@ -724,6 +725,10 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function reasonValue(row) {{
+      const category = text(row.dropped_reason_category).trim();
+      if (category && !['Dropped', 'Canceled', 'Cancelled', 'Prior site dropped status'].includes(category)) {{
+        return category;
+      }}
       const reason = text(row.cancellation_reason).trim();
       return reason && !['Dropped', 'Canceled', 'Cancelled', 'Prior site dropped status'].includes(reason)
         ? reason
@@ -835,6 +840,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           row.company_name,
           row.site_id,
           row.onboarding_owner,
+          row.dropped_reason_category,
           row.cancellation_reason,
           row.drop_history,
           row.dropped_status,
@@ -957,11 +963,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       const rows = sortRows(filtered());
       renderKpis(rows);
       renderBars('service-bars', groupCounts(rows, 'service_level'), '');
-      renderBars('reason-bars', groupCounts(rows, 'cancellation_reason', 8, (_value, row) => reasonValue(row)), 'amber');
+      renderBars('reason-bars', groupCounts(rows, 'dropped_reason_category', 8, (_value, row) => reasonValue(row)), 'amber');
       renderBars('cg-bars', groupCounts(rows, 'cg_involvement'), 'blue');
       renderBars('network-bars', groupCounts(rows, 'previous_ad_network'), 'rose');
       document.getElementById('service-count').textContent = `${{groupCounts(rows, 'service_level', 50).length}} segments`;
-      document.getElementById('reason-count').textContent = `${{groupCounts(rows, 'cancellation_reason', 50, (_value, row) => reasonValue(row)).length}} reasons`;
+      document.getElementById('reason-count').textContent = `${{groupCounts(rows, 'dropped_reason_category', 50, (_value, row) => reasonValue(row)).length}} categories`;
       document.getElementById('cg-count').textContent = `${{groupCounts(rows, 'cg_involvement', 50).length}} groups`;
       document.getElementById('network-count').textContent = `${{groupCounts(rows, 'previous_ad_network', 50).length}} networks`;
       renderTable(rows);
