@@ -273,6 +273,7 @@ STARTER_FIELDS = [
 def prepare_starter_records(starts: pd.DataFrame) -> list[dict[str, object]]:
     if starts.empty:
         return []
+    starts = starts.rename(columns=lambda column: str(column).strip().lower())
     available_fields = [field for field in STARTER_FIELDS if field in starts.columns]
     records = starts[available_fields].fillna("").to_dict(orient="records")
     for record in records:
