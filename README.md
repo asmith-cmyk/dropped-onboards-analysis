@@ -53,6 +53,7 @@ Snowflake:
 - `snowflake_returned_onboards.csv` captures dropped onboarding projects when the same site later appears in `Setup`, `Install`, `Checkup`, or `Active`. `Setup` rows are included when they have an expected install date in the current calendar year.
 - Snowflake enrichment supplies service level, vertical, previous ad network, onboarding owner, monthly pageviews, CG involvement, dropped/canceled reason, and dropped reason category where available.
 - Dropped reason category is joined through `DROPPED_REASON_CATEGORY`. The setup cancellation value is stored as `Set-up cancellation`, so matching should be punctuation-insensitive.
+- Salesforce onboarding projects with `cancelled_reason__c = 'Cancelled Pre-onboarding'` are included when the project description contains `setup cancellation`, because those rows represent setup-cancellation drops rather than generic pre-onboarding exclusions.
 
 Zendesk:
 

@@ -749,13 +749,6 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return isUsefulReason(category) ? category : NO_REASON_CATEGORY;
     }}
 
-    function reasonDetailValue(row) {{
-      const reason = text(row.cancellation_reason).trim();
-      const category = reasonCategoryValue(row);
-      if (!isUsefulReason(reason) || reason === 'No reason captured' || reason === category) return '';
-      return reason;
-    }}
-
     function reasonValue(row) {{
       return reasonCategoryValue(row);
     }}
@@ -978,10 +971,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <td>${{escapeHtml(row.previous_ad_network || 'Unknown')}}</td>
           <td>${{escapeHtml(row.onboarding_owner || 'Unknown')}}</td>
           <td title="${{escapeAttr(row.drop_history || row.dropped_date)}}">${{escapeHtml(row.dropped_date)}}</td>
-          <td>
-            ${{escapeHtml(reasonCategoryValue(row))}}
-            ${{reasonDetailValue(row) ? `<div class="cell-note">${{escapeHtml(reasonDetailValue(row))}}</div>` : ''}}
-          </td>
+          <td>${{escapeHtml(reasonCategoryValue(row))}}</td>
           <td title="${{escapeAttr(cadenceDetail(row))}}">${{escapeHtml(cadenceValue(row.macro_cadence))}}</td>
           <td>${{escapeHtml(row.cg_involvement || 'Not Assisted')}}</td>
           <td>${{escapeHtml(row.returned_date)}}</td>
