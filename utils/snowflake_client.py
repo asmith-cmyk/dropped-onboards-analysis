@@ -38,8 +38,13 @@ WITH qualifying_dropped_onboards AS (
         CASE
             WHEN p.cancelled_reason__c = 'Blogger missed deadline' THEN 'Non-responsive'
             WHEN p.cancelled_reason__c = 'Blogger refused ads' THEN 'Refused ad layout'
-            ELSE COALESCE(NULLIF(p.cancelled_reason__c, ''), 'No reason captured')
+            ELSE COALESCE(NULLIF(p.cancelled_reason__c, ''), NULLIF(hdr.text, ''), NULLIF(dr.text, ''), 'No reason captured')
         END AS dropped_reason,
+        COALESCE(
+            NULLIF(p.dropped_reason_category__c, ''),
+            NULLIF(hdrc.text, ''),
+            NULLIF(drc.text, '')
+        ) AS dropped_reason_category,
         p.mpm4_base__description__c AS raw_description
     FROM ANALYTICS.SALESFORCE.MPM4_BASE__MILESTONE1_PROJECT__C p
     LEFT JOIN ANALYTICS.SALESFORCE.LEAD l
@@ -52,6 +57,17 @@ WITH qualifying_dropped_onboards AS (
         ON a.site_id = se.site_id
     LEFT JOIN ANALYTICS.ADTHRIVE.DROPPED_REASON dr
         ON se.dropped_reason_id = dr.id
+    LEFT JOIN ANALYTICS.ADTHRIVE.DROPPED_REASON_CATEGORY drc
+        ON dr.dropped_reason_category_id = drc.id
+    LEFT JOIN ANALYTICS.ADTHRIVE.SITE_HISTORY h
+        ON a.site_id = h.id
+       AND h.status IN ('Dropped', 'Canceled', 'Cancelled')
+       AND TO_TIMESTAMP_NTZ(h.updated_at) >= DATEADD(day, -30, TO_TIMESTAMP_NTZ(p.project_cancelled_date))
+       AND TO_TIMESTAMP_NTZ(h.updated_at) <= DATEADD(day, 7, TO_TIMESTAMP_NTZ(p.project_cancelled_date))
+    LEFT JOIN ANALYTICS.ADTHRIVE.DROPPED_REASON hdr
+        ON h.dropped_reason_id = hdr.id
+    LEFT JOIN ANALYTICS.ADTHRIVE.DROPPED_REASON_CATEGORY hdrc
+        ON hdr.dropped_reason_category_id = hdrc.id
     WHERE COALESCE(p.isdeleted, FALSE) = FALSE
       AND p.record_type_name__c = 'Onboarding'
       AND p.mpm4_base__status__c = 'Cancelled'
@@ -67,6 +83,13 @@ WITH qualifying_dropped_onboards AS (
           LOWER(COALESCE(dr.text, se.non_standard_reason, '')),
           '(cancelled pre[-[:space:]0]?onboarding|pre[-[:space:]0]?onboarding|never engaged|duplicate|merged|new owner did not want to stay with adthrive|retiring site|left raptive|offboarding)'
       )
+    QUALIFY ROW_NUMBER() OVER (
+        PARTITION BY p.id
+        ORDER BY
+            CASE WHEN h.id IS NULL THEN 1 ELSE 0 END,
+            ABS(DATEDIFF('second', TO_TIMESTAMP_NTZ(h.updated_at), TO_TIMESTAMP_NTZ(p.project_cancelled_date))),
+            TO_TIMESTAMP_NTZ(h.updated_at) DESC
+    ) = 1
 ),
 
 current_return_projects AS (
@@ -216,6 +239,11 @@ supplemental_returning_site_drops AS (
             'No dropped reason captured'
         ) AS dropped_reason,
         COALESCE(
+            IFF(REGEXP_LIKE(LOWER(COALESCE(pcop.prior_dropped_reason_category, '')), '(pre[-[:space:]0]?onboarding|never engaged)'), NULL, pcop.prior_dropped_reason_category),
+            NULLIF(hdrc.text, ''),
+            NULLIF(drc.text, '')
+        ) AS dropped_reason_category,
+        COALESCE(
             NULLIF(pcop.prior_raw_description, ''),
             'Supplemental return signal from current Salesforce onboarding project ' || rp.return_project_id
         ) AS raw_description,
@@ -228,12 +256,16 @@ supplemental_returning_site_drops AS (
         ON rp.site_id = h.id
     LEFT JOIN ANALYTICS.ADTHRIVE.DROPPED_REASON hdr
         ON h.dropped_reason_id = hdr.id
+    LEFT JOIN ANALYTICS.ADTHRIVE.DROPPED_REASON_CATEGORY hdrc
+        ON hdr.dropped_reason_category_id = hdrc.id
     LEFT JOIN qualifying_dropped_onboards q
         ON rp.site_id = q.site_id
     LEFT JOIN ANALYTICS.ADTHRIVE.SITE_EXTENDED se
         ON rp.site_id = se.site_id
     LEFT JOIN ANALYTICS.ADTHRIVE.DROPPED_REASON dr
         ON se.dropped_reason_id = dr.id
+    LEFT JOIN ANALYTICS.ADTHRIVE.DROPPED_REASON_CATEGORY drc
+        ON dr.dropped_reason_category_id = drc.id
     LEFT JOIN prior_cancelled_onboarding_projects pcop
         ON rp.return_project_id = pcop.return_project_id
        AND pcop.prior_project_row_num = 1
@@ -280,6 +312,7 @@ SELECT
     cg_involvement,
     cg_effort,
     dropped_reason,
+    dropped_reason_category,
     raw_description
 FROM qualifying_dropped_onboards
 
@@ -304,6 +337,7 @@ SELECT
     cg_involvement,
     cg_effort,
     dropped_reason,
+    dropped_reason_category,
     raw_description
 FROM supplemental_returning_site_drops
 WHERE prior_drop_row_num = 1

@@ -244,9 +244,14 @@ def build_cancellation_reason_analysis(
     if master.empty or "normalized_reason" not in master.columns:
         return pd.DataFrame()
     master["normalized_reason"] = master["normalized_reason"].replace("", "Unknown").fillna("Unknown")
+    if "dropped_reason_category" in master.columns:
+        reason_category = master["dropped_reason_category"].replace("", pd.NA)
+        master["_reason_analysis_category"] = reason_category.fillna(master["normalized_reason"]).fillna("Unknown")
+    else:
+        master["_reason_analysis_category"] = master["normalized_reason"]
     rows = []
     total_all = len(master)
-    for category, group in master.groupby("normalized_reason", dropna=False):
+    for category, group in master.groupby("_reason_analysis_category", dropna=False):
         total = len(group)
         reengaged = int(bool_series(group["reengaged"]).sum())
         installed = int(bool_series(group["install_completed"]).sum())

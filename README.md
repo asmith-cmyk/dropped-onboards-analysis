@@ -46,10 +46,13 @@ Snowflake:
 - `ANALYTICS.SALESFORCE.USER`
 - `ANALYTICS.ADTHRIVE.SITE_HISTORY`
 - `ANALYTICS.ADTHRIVE.SITE_EXTENDED`
+- `ANALYTICS.ADTHRIVE.DROPPED_REASON`
+- `ANALYTICS.ADTHRIVE.DROPPED_REASON_CATEGORY`
 - `snowflake_dropped_onboards.csv` captures cancelled Salesforce Onboarding projects across available years for `Rise`, `Insider`, `Platinum`, `Platinum Elite`, `Luminary`, and `Mid Market Enterprise`.
 - The Snowflake dropped cohort excludes pre-onboarding/non-engagement and non-onboarding lifecycle reasons such as duplicate, merged, new-owner churn, retiring site, left-Raptive, and offboarding records.
 - `snowflake_returned_onboards.csv` captures dropped onboarding projects when the same site later appears in `Setup`, `Install`, `Checkup`, or `Active`. `Setup` rows are included when they have an expected install date in the current calendar year.
-- Snowflake enrichment supplies service level, vertical, previous ad network, onboarding owner, monthly pageviews, CG involvement, and dropped/canceled reason where available.
+- Snowflake enrichment supplies service level, vertical, previous ad network, onboarding owner, monthly pageviews, CG involvement, dropped/canceled reason, and dropped reason category where available.
+- Dropped reason category is joined through `DROPPED_REASON_CATEGORY`. The setup cancellation value is stored as `Set-up cancellation`, so matching should be punctuation-insensitive.
 
 Zendesk:
 
@@ -184,7 +187,7 @@ Core field groups:
 - Identity: `lifecycle_creator_id`, `creator_project_name`, `lead_contact`, `company_name`, `domain`, `site_id`, `salesforce_project_id`, `salesforce_account_id`, `salesforce_lead_id`, `creator_key`, `lead_key`
 - Creator attributes: `vertical`, `service_level`, `previous_ad_network`, `onboarding_owner`, `monthly_pageviews`, `dropped_status`
 - Lifecycle dates: `dropped_date`, `returned_date`, `scheduled_install_date`, `install_date`, `days_to_return`
-- Cancellation intelligence: `cancellation_reason`, `raw_description`, `normalized_reason`, `reason_confidence_score`, `reason_classification_method`
+- Cancellation intelligence: `cancellation_reason`, `dropped_reason_category`, `raw_description`, `normalized_reason`, `reason_confidence_score`, `reason_classification_method`
 - Zendesk cadence: `macro_cadence`, `zendesk_ticket_count`, `ticket_reopened`
 - Creator Growth: `cg_involvement`, `cg_effort`, `cg_escalation_status`, `cg_escalation_timing`, `cg_first_touch_at`, `cg_days_from_drop`
 - Human-touch indicators: `onboarding_call_offered`, `salesloft_meeting_detected`, `first_salesloft_meeting_at`, `slack_intervention_detected`, `slack_intervention_count`, `rescue_intervention_detected`
