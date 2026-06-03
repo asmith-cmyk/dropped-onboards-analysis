@@ -517,7 +517,6 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
             "service_level": "returning_service_level",
             "vertical": "returning_vertical",
             "previous_ad_network": "returning_previous_ad_network",
-            "onboarding_owner": "returning_onboarding_owner",
             "monthly_pageviews": "returning_monthly_pageviews",
         }
         for target, source in return_metadata.items():
@@ -588,7 +587,7 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     lifecycle["returning_project_name"] = d["creator_name"].where(reengaged, "")
     lifecycle["returning_lead_contact"] = ""
     lifecycle["returning_previous_ad_network"] = ""
-    lifecycle["returning_owner"] = ""
+    lifecycle["returning_owner"] = _series_or_default(d, "returning_onboarding_owner").where(reengaged, "")
     lifecycle["returning_status"] = returning_status.where(reengaged, "")
     lifecycle["match_method"] = "snowflake_site_id"
     lifecycle["match_score"] = 100

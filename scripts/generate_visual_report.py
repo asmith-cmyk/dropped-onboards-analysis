@@ -44,6 +44,7 @@ REPORT_FIELDS = [
     "service_level",
     "previous_ad_network",
     "onboarding_owner",
+    "returning_owner",
     "monthly_pageviews",
     "dropped_status",
     "dropped_date",
@@ -97,6 +98,15 @@ def first_present(rows: list[dict[str, object]], column: str) -> str:
         if value:
             return value
     return ""
+
+
+def combined_present(rows: list[dict[str, object]], column: str) -> str:
+    values = []
+    for row in rows:
+        value = clean_text(row.get(column, ""))
+        if value and value not in values:
+            values.append(value)
+    return "; ".join(values)
 
 
 def bool_any(rows: list[dict[str, object]], column: str) -> bool:
@@ -192,6 +202,8 @@ def collapse_returned_attempts(records: list[dict[str, object]]) -> list[dict[st
         latest["outcome"] = max((clean_text(row.get("outcome", "")) for row in ordered), key=outcome_priority, default=clean_text(latest.get("outcome", "")))
         latest["lead_contact"] = first_present(list(reversed(ordered)), "lead_contact")
         latest["creator_project_name"] = first_present(list(reversed(ordered)), "creator_project_name")
+        latest["onboarding_owner"] = combined_present(ordered, "onboarding_owner")
+        latest["returning_owner"] = first_present(list(reversed(ordered)), "returning_owner")
 
         history_parts = []
         for row in ordered:
@@ -719,6 +731,33 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return targetDays.some(day => days.has(day));
     }}
 
+    function splitList(value) {{
+      return text(value).split(';').map(item => item.trim()).filter(Boolean);
+    }}
+
+    function uniqueList(values) {{
+      return [...new Set(values.filter(Boolean))];
+    }}
+
+    function ownerParts(row) {{
+      return uniqueList([...splitList(row.onboarding_owner), ...splitList(row.returning_owner)]);
+    }}
+
+    function ownerValue(row) {{
+      const owners = ownerParts(row);
+      return owners.length ? owners.join('; ') : 'Unknown';
+    }}
+
+    function ownerDetail(row) {{
+      const dropped = splitList(row.onboarding_owner).join('; ');
+      const returning = splitList(row.returning_owner).join('; ');
+      const details = [
+        dropped ? `Dropped owner: ${{dropped}}` : '',
+        returning ? `Returning owner: ${{returning}}` : ''
+      ].filter(Boolean);
+      return details.length ? details.join('\\n') : ownerValue(row);
+    }}
+
     function yearValue(value) {{
       const clean = text(value).trim();
       if (!clean) return '';
@@ -758,6 +797,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       if (key === 'reason') return reasonValue(row);
       if (key === 'macro_cadence') return cadenceValue(row.macro_cadence);
       if (key === 'cg_involvement') return text(row.cg_involvement || 'Not Assisted');
+      if (key === 'onboarding_owner') return ownerValue(row);
       return text(row[key]);
     }}
 
@@ -829,6 +869,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       fields.reason.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
     }}
 
+    function populateOwnerSelect() {{
+      const values = uniqueList(RECORDS.flatMap(row => ownerParts(row))).sort((a, b) => a.localeCompare(b));
+      fields.owner.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
+    }}
+
     function selectedCadenceDays() {{
       return [...document.querySelectorAll('input[name="cadence-day"]:checked')].map(input => input.value);
     }}
@@ -847,7 +892,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         if (fields.year.value && !dateInYear(row.returned_date, fields.year.value)) return false;
         if (fields.service.value && optionValue(row.service_level) !== fields.service.value) return false;
         if (fields.vertical.value && optionValue(row.vertical) !== fields.vertical.value) return false;
-        if (fields.owner.value && optionValue(row.onboarding_owner) !== fields.owner.value) return false;
+        if (fields.owner.value && !ownerParts(row).includes(fields.owner.value)) return false;
         const cadenceDays = selectedCadenceDays();
         if (cadenceDays.length && !cadenceHasAnyDays(row.macro_cadence, cadenceDays)) return false;
         if (fields.reason.value && reasonCategoryValue(row) !== fields.reason.value) return false;
@@ -858,6 +903,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           row.company_name,
           row.site_id,
           row.onboarding_owner,
+          row.returning_owner,
           row.dropped_reason_category,
           row.cancellation_reason,
           row.zendesk_ticket_ids,
@@ -969,7 +1015,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <td>${{escapeHtml(row.service_level || 'Unknown')}}</td>
           <td>${{escapeHtml(row.vertical || 'Unknown')}}</td>
           <td>${{escapeHtml(row.previous_ad_network || 'Unknown')}}</td>
-          <td>${{escapeHtml(row.onboarding_owner || 'Unknown')}}</td>
+          <td title="${{escapeAttr(ownerDetail(row))}}">${{escapeHtml(ownerValue(row))}}</td>
           <td title="${{escapeAttr(row.drop_history || row.dropped_date)}}">${{escapeHtml(row.dropped_date)}}</td>
           <td>${{escapeHtml(reasonCategoryValue(row))}}</td>
           <td title="${{escapeAttr(cadenceDetail(row))}}">${{escapeHtml(cadenceValue(row.macro_cadence))}}</td>
@@ -998,7 +1044,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     populateYearSelect();
     populateSelect('service', 'service_level');
     populateSelect('vertical', 'vertical');
-    populateSelect('owner', 'onboarding_owner');
+    populateOwnerSelect();
     populateReasonSelect();
     Object.values(fields).forEach(control => control.addEventListener('input', render));
     Object.values(fields).forEach(control => control.addEventListener('change', render));
