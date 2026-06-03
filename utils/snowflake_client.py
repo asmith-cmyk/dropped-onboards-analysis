@@ -38,7 +38,21 @@ WITH qualifying_dropped_onboards AS (
         CASE
             WHEN p.cancelled_reason__c = 'Blogger missed deadline' THEN 'Non-responsive'
             WHEN p.cancelled_reason__c = 'Blogger refused ads' THEN 'Refused ad layout'
-            ELSE COALESCE(NULLIF(p.cancelled_reason__c, ''), NULLIF(hdr.text, ''), NULLIF(dr.text, ''), 'No reason captured')
+            ELSE COALESCE(NULLIF(p.cancelled_reason__c, ''), 'No reason captured')
+        END AS cancelled_reason,
+        CASE
+            WHEN p.mpm4_base__description__c ILIKE 'SETUP CANCELLATION NOTE%' THEN 'Cancelled Pre-onboarding'
+            ELSE COALESCE(
+                NULLIF(hdr.text, ''),
+                NULLIF(dr.text, ''),
+                NULLIF(p.dropped_reason__c, ''),
+                CASE
+                    WHEN p.cancelled_reason__c = 'Blogger missed deadline' THEN 'Non-responsive'
+                    WHEN p.cancelled_reason__c = 'Blogger refused ads' THEN 'Refused ad layout'
+                    ELSE NULLIF(p.cancelled_reason__c, '')
+                END,
+                'No dropped reason captured'
+            )
         END AS dropped_reason,
         COALESCE(
             NULLIF(p.dropped_reason_category__c, ''),
@@ -228,7 +242,13 @@ supplemental_returning_site_drops AS (
         rp.monthly_pageviews,
         rp.cg_involvement,
         rp.cg_effort,
+        COALESCE(pcop.prior_cancelled_reason, 'No reason captured') AS cancelled_reason,
         COALESCE(
+            IFF(
+                REGEXP_LIKE(LOWER(COALESCE(pcop.prior_raw_description, '')), '^setup[[:space:]]+cancellation[[:space:]]+note'),
+                'Cancelled Pre-onboarding',
+                NULL
+            ),
             IFF(
                 LOWER(pcop.setup_cancellation_reason) IN ('note', 'notes', 'dropped')
                 OR REGEXP_LIKE(LOWER(COALESCE(pcop.setup_cancellation_reason, '')), '(pre[-[:space:]0]?onboarding|never engaged)'),
@@ -318,6 +338,7 @@ SELECT
     monthly_pageviews,
     cg_involvement,
     cg_effort,
+    cancelled_reason,
     dropped_reason,
     dropped_reason_category,
     raw_description
@@ -343,6 +364,7 @@ SELECT
     monthly_pageviews,
     cg_involvement,
     cg_effort,
+    cancelled_reason,
     dropped_reason,
     dropped_reason_category,
     raw_description
