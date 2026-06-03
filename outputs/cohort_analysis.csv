@@ -14,7 +14,7 @@ Vertical,Food,281,207,0.7367,198,0.7046,198,0.7046,349.0
 Vertical,Gaming,37,7,0.1892,6,0.1622,6,0.1622,246.0
 Vertical,Gardening,7,2,0.2857,1,0.1429,1,0.1429,81.0
 Vertical,Green Living,2,1,0.5,1,0.5,1,0.5,120.0
-Vertical,Health and Wellness,18,2,0.1111,1,0.0556,1,0.0556,427.5
+Vertical,Health and Wellness,18,3,0.1667,1,0.0556,1,0.0556,41.0
 Vertical,Hobbies & Interests,5,2,0.4,2,0.4,2,0.4,572.5
 Vertical,Home Decor and Design,21,3,0.1429,2,0.0952,2,0.0952,355.0
 Vertical,"Law, Gov't & Politics",1,0,0.0,0,0.0,0,0.0,
@@ -35,12 +35,12 @@ Vertical,Tech,31,10,0.3226,10,0.3226,10,0.3226,136.5
 Vertical,Travel,65,18,0.2769,15,0.2308,15,0.2308,314.0
 Vertical,Wedding,2,1,0.5,1,0.5,1,0.5,161.0
 Vertical,Womens Style,6,1,0.1667,0,0.0,0,0.0,542.0
-Service Level,Insider,604,249,0.4123,228,0.3775,228,0.3775,316.0
+Service Level,Insider,583,247,0.4237,225,0.3859,225,0.3859,322.0
 Service Level,Luminary,36,26,0.7222,26,0.7222,26,0.7222,376.0
 Service Level,Platinum,73,51,0.6986,49,0.6712,49,0.6712,285.0
 Service Level,Platinum Elite,62,27,0.4355,25,0.4032,25,0.4032,342.0
-Service Level,Rise,3,0,0.0,0,0.0,0,0.0,
-Previous Ad Network,AdSense,86,16,0.186,15,0.1744,15,0.1744,190.0
+Service Level,Rise,24,3,0.125,3,0.125,3,0.125,63.0
+Previous Ad Network,AdSense,86,17,0.1977,15,0.1744,15,0.1744,147.0
 Previous Ad Network,AdSense;Other,1,0,0.0,0,0.0,0,0.0,
 Previous Ad Network,AdVally,1,1,1.0,1,1.0,1,1.0,146.0
 Previous Ad Network,Ezoic,42,8,0.1905,8,0.1905,8,0.1905,97.5
@@ -53,17 +53,17 @@ Previous Ad Network,No ads,130,34,0.2615,32,0.2462,32,0.2462,139.0
 Previous Ad Network,Other,95,34,0.3579,30,0.3158,30,0.3158,299.0
 Previous Ad Network,Playwire,1,1,1.0,1,1.0,1,1.0,284.0
 Previous Ad Network,SHE Media,5,0,0.0,0,0.0,0,0.0,
-Creator Growth,Assisted,344,205,0.5959,187,0.5436,187,0.5436,363.0
+Creator Growth,Assisted,344,206,0.5988,187,0.5436,187,0.5436,362.0
 Creator Growth,Not Assisted,434,148,0.341,141,0.3249,141,0.3249,235.5
 Macro Cadence,3 and 7 day follow up,25,1,0.04,1,0.04,1,0.04,73.0
 Macro Cadence,3 day follow up,33,4,0.1212,4,0.1212,4,0.1212,69.5
 Macro Cadence,5 day follow up,1,0,0.0,0,0.0,0,0.0,
 Macro Cadence,7 day follow up,12,1,0.0833,0,0.0,0,0.0,217.0
-Macro Cadence,None,707,347,0.4908,323,0.4569,323,0.4569,335.0
+Macro Cadence,None,707,348,0.4922,323,0.4569,323,0.4569,335.0
 Onboarding Owner,Adam Giacopuzzi,1,0,0.0,0,0.0,0,0.0,
 Onboarding Owner,Amy Burgess,147,71,0.483,70,0.4762,70,0.4762,285.0
 Onboarding Owner,Angelina Ryan,1,0,0.0,0,0.0,0,0.0,
-Onboarding Owner,Antoinette Smith,206,94,0.4563,86,0.4175,86,0.4175,350.0
+Onboarding Owner,Antoinette Smith,206,95,0.4612,86,0.4175,86,0.4175,350.0
 Onboarding Owner,Brad Milligan,1,0,0.0,0,0.0,0,0.0,
 Onboarding Owner,Brianna Eaddy,11,3,0.2727,3,0.2727,3,0.2727,456.0
 Onboarding Owner,Jade Carpenter,30,10,0.3333,9,0.3,9,0.3,354.0

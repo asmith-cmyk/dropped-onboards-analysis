@@ -1,4 +1,28 @@
-creator_project_name,returned_date,scheduled_install_date,install_date,reengaged,install_completed,converted,onboarding_call_offered,salesloft_meeting_detected,first_salesloft_meeting_at,slack_intervention_detected,slack_intervention_count,source_salesforce_returning,returning_owner,match_method,match_score,dropped_status,dropped_reason,dropped_reason_category,manual_note
-Super Age,2026-02-24,2026-02-24,,true,false,false,true,true,2025-08-11T09:31:30-0400,true,1,true,,manual_override,100,,,,Salesloft meeting with Antonio Minuta detected in #salesloft-meetings on 2025-08-11; scheduled install date provided by user.
-Visa Traveler,,,,,,,,,,,,,Whitney Harrist,,,,,,Returning project owner confirmed by user; dropped project owner remains Kate Fitzpatrick.
-Muy Bueno,,,,,,,,,,,,,,,,Offboarded,NO REASON / VAGUE,SWITCHED AD NETWORKS,Offboarding values confirmed from SITE_OFFBOARDING by user; local raw Snowflake CSV had no offboarding extract yet.
+creator_project_name,returned_date,scheduled_install_date,install_date,reengaged,install_completed,converted,onboarding_call_offered,salesloft_meeting_detected,first_salesloft_meeting_at,slack_intervention_detected,slack_intervention_count,source_salesforce_returning,returning_owner,match_method,match_score,dropped_status,dropped_reason,dropped_reason_category,service_level,manual_note
+Super Age,2026-02-24,2026-02-24,,true,false,false,true,true,2025-08-11T09:31:30-0400,true,1,true,,manual_override,100,,,,,Salesloft meeting with Antonio Minuta detected in #salesloft-meetings on 2025-08-11; scheduled install date provided by user.
+Visa Traveler,,,,,,,,,,,,,Whitney Harrist,,,,,,,Returning project owner confirmed by user; dropped project owner remains Kate Fitzpatrick.
+Muy Bueno,,,,,,,,,,,,,,,,Offboarded,NO REASON / VAGUE,SWITCHED AD NETWORKS,,Offboarding values confirmed from SITE_OFFBOARDING by user; local raw Snowflake CSV had no offboarding extract yet.
+Fisheries,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+Growing Dawn,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+The Carpenters Daughter,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+Jonathan Zaragoza,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+Aussievision,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+Maple and Mango,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+Posh in Progress,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+The Food in my Beard,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+HealthyGreenSavvy,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+footyscores,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+Gabriela Eats,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+Ellie and Co,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+Pint Sized Baker,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+foodgawker,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+On The Water,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+My Name Is Snickerdoodle,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+Cheap Recipe Blog,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+Sally Sees,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+My Goodness Kitchen,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+Whats Good at Trader Joes,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+PJIP,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+Gretas Travels,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+PNW HOME,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.
+Somewhere In Arkansas,,,,,,,,,,,,,,,,,,,Rise,Service level confirmed by user on 2026-06-03.

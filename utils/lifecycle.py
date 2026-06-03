@@ -312,16 +312,16 @@ def apply_manual_overrides(lifecycle: pd.DataFrame, overrides: pd.DataFrame) -> 
         matches = out.index[out["creator_key"] == creator_key]
         if matches.empty:
             continue
-        idx = matches[0]
-        for column, value in override.items():
-            if column in skip_columns or column not in out.columns or not _is_present(value):
-                continue
-            if column in bool_columns:
-                out.at[idx, column] = _coerce_bool(value)
-            elif column in numeric_columns:
-                out.at[idx, column] = pd.to_numeric(value, errors="coerce")
-            else:
-                out.at[idx, column] = value
+        for idx in matches:
+            for column, value in override.items():
+                if column in skip_columns or column not in out.columns or not _is_present(value):
+                    continue
+                if column in bool_columns:
+                    out.at[idx, column] = _coerce_bool(value)
+                elif column in numeric_columns:
+                    out.at[idx, column] = pd.to_numeric(value, errors="coerce")
+                else:
+                    out.at[idx, column] = value
 
     out["macro_cadence"] = _series_or_default(out, "macro_cadence", "None").replace({"": "None", "Unknown": "None"})
     out = _recalculate_lifecycle_flags(out)
