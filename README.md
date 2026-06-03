@@ -126,6 +126,17 @@ python scripts/pull_salesforce_reports.py \
 python scripts/generate_outputs.py
 ```
 
+To import the denominator data for the dashboard drop-off rate widget:
+
+1. Run `queries/onboarding_starts_denominator.sql` in Snowflake.
+2. Export the results as a CSV.
+3. Import the CSV and regenerate outputs:
+
+```bash
+python scripts/pull_snowflake_data.py --input-starts-csv path/to/onboarding_starts_denominator.csv
+python scripts/generate_outputs.py
+```
+
 To refresh from APIs:
 
 ```bash
