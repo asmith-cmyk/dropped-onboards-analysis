@@ -663,6 +663,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
               <th><button class="sort-button" type="button" data-sort="previous_ad_network">Network <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="onboarding_owner">Owner <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="dropped_date">Dropped <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="reason_category">Dropped Reason Category <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="reason">Dropped Reason <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="macro_cadence">Cadence <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="cg_involvement">CG Involvement <span class="sort-indicator"></span></button></th>
@@ -809,6 +810,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 
     function displayValue(row, key) {{
       if (key === 'lead') return text(row.lead_contact || row.company_name);
+      if (key === 'reason_category') return reasonCategoryValue(row);
       if (key === 'reason') return reasonValue(row);
       if (key === 'macro_cadence') return cadenceValue(row.macro_cadence);
       if (key === 'cg_involvement') return text(row.cg_involvement || 'Not Assisted');
@@ -1033,6 +1035,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <td>${{escapeHtml(row.previous_ad_network || 'Unknown')}}</td>
           <td title="${{escapeAttr(ownerDetail(row))}}">${{escapeHtml(ownerValue(row))}}</td>
           <td title="${{escapeAttr(row.drop_history || row.dropped_date)}}">${{escapeHtml(row.dropped_date)}}</td>
+          <td>${{escapeHtml(reasonCategoryValue(row))}}</td>
           <td title="${{escapeAttr(reasonDetail(row))}}">${{escapeHtml(reasonValue(row))}}</td>
           <td title="${{escapeAttr(cadenceDetail(row))}}">${{escapeHtml(cadenceValue(row.macro_cadence))}}</td>
           <td>${{escapeHtml(row.cg_involvement || 'Not Assisted')}}</td>
