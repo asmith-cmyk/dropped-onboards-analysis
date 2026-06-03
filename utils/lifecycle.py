@@ -40,6 +40,9 @@ MASTER_COLUMNS = [
     "reason_confidence_score",
     "reason_classification_method",
     "macro_cadence",
+    "zendesk_ticket_ids",
+    "zendesk_ticket_created_dates",
+    "zendesk_ticket_solved_dates",
     "zendesk_ticket_count",
     "ticket_reopened",
     "cg_involvement",
@@ -126,21 +129,30 @@ def _setup_cancellation_mask(*series: pd.Series) -> pd.Series:
     )
 
 
+def _setup_cancellation_note_mask(series: pd.Series) -> pd.Series:
+    text = series.fillna("").astype(str).str.strip()
+    return text.str.match(r"^setup\s+cancellation\s+note\b", case=False, na=False)
+
+
 def _snowflake_reason_category(df: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
     category = _series_or_default(df, "dropped_reason_category").fillna("").astype(str).map(clean_blank)
     description = _series_or_default(df, "raw_description").fillna("").astype(str)
     reason = _series_or_default(df, "dropped_reason").fillna("").astype(str)
+    setup_note_mask = _setup_cancellation_note_mask(description)
     setup_mask = _setup_cancellation_mask(category, description, reason)
 
     derived = pd.Series("", index=df.index)
     derived.loc[setup_mask] = "Set-up cancellation"
+    derived.loc[setup_note_mask] = "Cancelled Pre-onboarding"
 
     category_present = category.map(_is_present)
     out = category.where(category_present, derived)
+    out.loc[setup_note_mask] = "Cancelled Pre-onboarding"
 
     method = pd.Series("", index=df.index)
     method.loc[category_present] = "snowflake_category"
     method.loc[~category_present & derived.map(_is_present)] = "description_pattern"
+    method.loc[setup_note_mask] = "description_pattern"
     return out, method
 
 
@@ -390,6 +402,8 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     d = d.sort_values(["_drop_key", "_actual_close_at"]).drop_duplicates(subset=["_drop_key"], keep="last")
 
     reason_category, reason_category_method = _snowflake_reason_category(d)
+    d["_derived_dropped_reason_category"] = reason_category.to_numpy()
+    d["_derived_reason_category_method"] = reason_category_method.to_numpy()
     r = _dedupe_snowflake_returned(returned)
     d["returning_status"] = ""
     d["returned_expected_install_date"] = ""
@@ -503,7 +517,6 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
             "service_level": "returning_service_level",
             "vertical": "returning_vertical",
             "previous_ad_network": "returning_previous_ad_network",
-            "onboarding_owner": "returning_onboarding_owner",
             "monthly_pageviews": "returning_monthly_pageviews",
         }
         for target, source in return_metadata.items():
@@ -542,12 +555,17 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     lifecycle["install_date"] = ""
     lifecycle["days_to_return"] = _format_days((expected_install - dropped_date).dt.days)
     lifecycle["cancellation_reason"] = d.get("dropped_reason", "")
-    lifecycle["dropped_reason_category"] = reason_category
+    lifecycle["dropped_reason_category"] = d["_derived_dropped_reason_category"]
     lifecycle["raw_description"] = d.get("raw_description", "")
-    lifecycle["normalized_reason"] = reason_category.where(reason_category.map(_is_present), "Unknown")
+    lifecycle["normalized_reason"] = lifecycle["dropped_reason_category"].where(
+        lifecycle["dropped_reason_category"].map(_is_present), "Unknown"
+    )
     lifecycle["reason_confidence_score"] = ""
-    lifecycle["reason_classification_method"] = reason_category_method
+    lifecycle["reason_classification_method"] = d["_derived_reason_category_method"]
     lifecycle["macro_cadence"] = "None"
+    lifecycle["zendesk_ticket_ids"] = ""
+    lifecycle["zendesk_ticket_created_dates"] = ""
+    lifecycle["zendesk_ticket_solved_dates"] = ""
     lifecycle["zendesk_ticket_count"] = 0
     lifecycle["ticket_reopened"] = False
     lifecycle["cg_involvement"] = _cg_involvement_label(d.get("cg_involvement", pd.Series("", index=d.index)))
@@ -569,7 +587,7 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     lifecycle["returning_project_name"] = d["creator_name"].where(reengaged, "")
     lifecycle["returning_lead_contact"] = ""
     lifecycle["returning_previous_ad_network"] = ""
-    lifecycle["returning_owner"] = ""
+    lifecycle["returning_owner"] = _series_or_default(d, "returning_onboarding_owner").where(reengaged, "")
     lifecycle["returning_status"] = returning_status.where(reengaged, "")
     lifecycle["match_method"] = "snowflake_site_id"
     lifecycle["match_score"] = 100
@@ -649,16 +667,19 @@ def build_master_creator_lifecycle(
     reengaged = _bool_or_default(enriched, "reengaged")
     dropped_reason_category = _series_or_default(enriched, "dropped_reason_category").fillna("").astype(str).map(clean_blank)
     setup_category = pd.Series("", index=enriched.index)
+    description = _series_or_default(enriched, "description").fillna("").astype(str)
     setup_category.loc[
         _setup_cancellation_mask(
             dropped_reason_category,
-            _series_or_default(enriched, "description").fillna("").astype(str),
+            description,
             _series_or_default(enriched, "cancelled_reason").fillna("").astype(str),
         )
     ] = "Set-up cancellation"
+    setup_category.loc[_setup_cancellation_note_mask(description)] = "Cancelled Pre-onboarding"
     dropped_reason_category = dropped_reason_category.where(
         dropped_reason_category.map(_is_present), setup_category
     )
+    dropped_reason_category.loc[_setup_cancellation_note_mask(description)] = "Cancelled Pre-onboarding"
 
     lifecycle = pd.DataFrame(index=enriched.index)
     lifecycle["lifecycle_creator_id"] = (
@@ -699,6 +720,9 @@ def build_master_creator_lifecycle(
     lifecycle["reason_confidence_score"] = _series_or_default(enriched, "confidence_score")
     lifecycle["reason_classification_method"] = _series_or_default(enriched, "classification_method")
     lifecycle["macro_cadence"] = _series_or_default(enriched, "macro_cadence", "None").replace({"": "None", "Unknown": "None"})
+    lifecycle["zendesk_ticket_ids"] = _series_or_default(enriched, "zendesk_ticket_ids")
+    lifecycle["zendesk_ticket_created_dates"] = _series_or_default(enriched, "zendesk_ticket_created_dates")
+    lifecycle["zendesk_ticket_solved_dates"] = _series_or_default(enriched, "zendesk_ticket_solved_dates")
     lifecycle["zendesk_ticket_count"] = _numeric_or_default(enriched, "zendesk_ticket_count").astype(int)
     lifecycle["ticket_reopened"] = _bool_or_default(enriched, "ticket_reopened")
     lifecycle["cg_involvement"] = _cg_involvement_label(_series_or_default(enriched, "cg_involvement"))

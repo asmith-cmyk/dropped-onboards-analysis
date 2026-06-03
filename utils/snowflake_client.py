@@ -78,10 +78,17 @@ WITH qualifying_dropped_onboards AS (
           NULLIF(se.service, ''),
           NULLIF(se.tier, '')
       ) IN ('Rise', 'Insider', 'Platinum', 'Platinum Elite', 'Luminary', 'Mid Market Enterprise')
-      AND COALESCE(p.cancelled_reason__c, '') NOT IN ('Cancelled Pre-onboarding', 'Never Engaged')
-      AND NOT REGEXP_LIKE(
-          LOWER(COALESCE(dr.text, se.non_standard_reason, '')),
-          '(cancelled pre[-[:space:]0]?onboarding|pre[-[:space:]0]?onboarding|never engaged|duplicate|merged|new owner did not want to stay with adthrive|retiring site|left raptive|offboarding)'
+      AND COALESCE(p.cancelled_reason__c, '') != 'Never Engaged'
+      AND (
+          COALESCE(p.cancelled_reason__c, '') != 'Cancelled Pre-onboarding'
+          OR p.mpm4_base__description__c ILIKE '%setup cancellation%'
+      )
+      AND (
+          p.mpm4_base__description__c ILIKE '%setup cancellation%'
+          OR NOT REGEXP_LIKE(
+              LOWER(COALESCE(dr.text, se.non_standard_reason, '')),
+              '(cancelled pre[-[:space:]0]?onboarding|pre[-[:space:]0]?onboarding|never engaged|duplicate|merged|new owner did not want to stay with adthrive|retiring site|left raptive|offboarding)'
+          )
       )
     QUALIFY ROW_NUMBER() OVER (
         PARTITION BY p.id
@@ -373,10 +380,17 @@ WITH qualifying_dropped_onboards AS (
           NULLIF(se.service, ''),
           NULLIF(se.tier, '')
       ) IN ('Rise', 'Insider', 'Platinum', 'Platinum Elite', 'Luminary', 'Mid Market Enterprise')
-      AND COALESCE(p.cancelled_reason__c, '') NOT IN ('Cancelled Pre-onboarding', 'Never Engaged')
-      AND NOT REGEXP_LIKE(
-          LOWER(COALESCE(dr.text, se.non_standard_reason, '')),
-          '(cancelled pre[-[:space:]0]?onboarding|pre[-[:space:]0]?onboarding|never engaged|duplicate|merged|new owner did not want to stay with adthrive|retiring site|left raptive|offboarding)'
+      AND COALESCE(p.cancelled_reason__c, '') != 'Never Engaged'
+      AND (
+          COALESCE(p.cancelled_reason__c, '') != 'Cancelled Pre-onboarding'
+          OR p.mpm4_base__description__c ILIKE '%setup cancellation%'
+      )
+      AND (
+          p.mpm4_base__description__c ILIKE '%setup cancellation%'
+          OR NOT REGEXP_LIKE(
+              LOWER(COALESCE(dr.text, se.non_standard_reason, '')),
+              '(cancelled pre[-[:space:]0]?onboarding|pre[-[:space:]0]?onboarding|never engaged|duplicate|merged|new owner did not want to stay with adthrive|retiring site|left raptive|offboarding)'
+          )
       )
 ),
 

@@ -53,12 +53,13 @@ Snowflake:
 - `snowflake_returned_onboards.csv` captures dropped onboarding projects when the same site later appears in `Setup`, `Install`, `Checkup`, or `Active`. `Setup` rows are included when they have an expected install date in the current calendar year.
 - Snowflake enrichment supplies service level, vertical, previous ad network, onboarding owner, monthly pageviews, CG involvement, dropped/canceled reason, and dropped reason category where available.
 - Dropped reason category is joined through `DROPPED_REASON_CATEGORY`. The setup cancellation value is stored as `Set-up cancellation`, so matching should be punctuation-insensitive.
+- Salesforce onboarding projects with `cancelled_reason__c = 'Cancelled Pre-onboarding'` are included when the project description contains `setup cancellation`, because those rows represent setup-cancellation drops rather than generic pre-onboarding exclusions.
 
 Zendesk:
 
 - Primary Explore dashboard tracks onboarding tickets that received 3, 5, 7, and/or 10 day follow-up tags.
 - The production script uses Zendesk Support API ticket search and tag normalization. A dashboard CSV export can also be supplied with `ZENDESK_EXPORT_CSV`.
-- Zendesk Explore exports with `Ticket ID`, `Requester name`, `Ticket subject`, `Ticket tags`, and `Ticket created - Date` are supported, including semicolon-delimited CSVs. The cadence column is derived from `Ticket tags` values such as `3_day_follow_up`, `5_day_follow_up`, and `7_day_follow_up`, then displayed as labels like `3 day follow up` or `3 and 7 day follow up`.
+- Zendesk Explore exports with `Ticket ID`, `Requester name`, `Ticket subject`, `Ticket tags`, `Ticket created - Date`, and `Ticket solved - Date` are supported, including semicolon-delimited CSVs. The cadence column is derived from `Ticket tags` values such as `3_day_follow_up`, `5_day_follow_up`, and `7_day_follow_up`, then attached to a dropped lifecycle row only when the ticket created-to-solved window overlaps the dropped date.
 
 Slack:
 

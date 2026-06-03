@@ -44,13 +44,18 @@ REPORT_FIELDS = [
     "service_level",
     "previous_ad_network",
     "onboarding_owner",
+    "returning_owner",
     "monthly_pageviews",
     "dropped_status",
     "dropped_date",
     "returned_date",
     "days_to_return",
     "cancellation_reason",
+    "dropped_reason_category",
     "macro_cadence",
+    "zendesk_ticket_ids",
+    "zendesk_ticket_created_dates",
+    "zendesk_ticket_solved_dates",
     "cg_involvement",
     "cg_escalation_status",
     "install_completed",
@@ -93,6 +98,15 @@ def first_present(rows: list[dict[str, object]], column: str) -> str:
         if value:
             return value
     return ""
+
+
+def combined_present(rows: list[dict[str, object]], column: str) -> str:
+    values = []
+    for row in rows:
+        value = clean_text(row.get(column, ""))
+        if value and value not in values:
+            values.append(value)
+    return "; ".join(values)
 
 
 def bool_any(rows: list[dict[str, object]], column: str) -> bool:
@@ -188,12 +202,14 @@ def collapse_returned_attempts(records: list[dict[str, object]]) -> list[dict[st
         latest["outcome"] = max((clean_text(row.get("outcome", "")) for row in ordered), key=outcome_priority, default=clean_text(latest.get("outcome", "")))
         latest["lead_contact"] = first_present(list(reversed(ordered)), "lead_contact")
         latest["creator_project_name"] = first_present(list(reversed(ordered)), "creator_project_name")
+        latest["onboarding_owner"] = combined_present(ordered, "onboarding_owner")
+        latest["returning_owner"] = first_present(list(reversed(ordered)), "returning_owner")
 
         history_parts = []
         for row in ordered:
             date = clean_text(row.get("dropped_date", ""))
             owner = clean_text(row.get("onboarding_owner", ""))
-            reason = clean_text(row.get("cancellation_reason", ""))
+            reason = clean_text(row.get("dropped_reason_category", "")) or clean_text(row.get("cancellation_reason", ""))
             cg = clean_text(row.get("cg_involvement", ""))
             details = " | ".join(part for part in (owner, reason, cg) if part)
             history_parts.append(f"{date}: {details}" if details else date)
@@ -599,7 +615,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <label class="cadence-option"><input type="checkbox" name="cadence-day" value="7">7 day</label>
         </div>
       </div>
-      <label>Dropped Reason
+      <label>Dropped Reason Category
         <select id="reason"></select>
       </label>
     </section>
@@ -612,7 +628,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         <div class="bars" id="service-bars"></div>
       </div>
       <div class="panel">
-        <div class="panel-header"><h2>Cancellation Reasons</h2><span id="reason-count"></span></div>
+        <div class="panel-header"><h2>Dropped Reason Categories</h2><span id="reason-count"></span></div>
         <div class="bars" id="reason-bars"></div>
       </div>
       <div class="panel">
@@ -642,7 +658,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
               <th><button class="sort-button" type="button" data-sort="previous_ad_network">Network <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="onboarding_owner">Owner <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="dropped_date">Dropped <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="reason">Reason <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="reason">Reason Category <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="macro_cadence">Cadence <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="cg_involvement">CG Involvement <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="returned_date">Returned <span class="sort-indicator"></span></button></th>
@@ -696,6 +712,15 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return clean && clean !== 'Unknown' ? clean : 'None';
     }}
 
+    function cadenceDetail(row) {{
+      const details = [
+        row.zendesk_ticket_ids ? `Tickets: ${{row.zendesk_ticket_ids}}` : '',
+        row.zendesk_ticket_created_dates ? `Created: ${{row.zendesk_ticket_created_dates}}` : '',
+        row.zendesk_ticket_solved_dates ? `Solved: ${{row.zendesk_ticket_solved_dates}}` : ''
+      ].filter(Boolean);
+      return details.length ? details.join('\\n') : cadenceValue(row.macro_cadence);
+    }}
+
     function cadenceHasDays(value, requiredDays) {{
       const days = new Set((text(value).match(/\\b(?:3|5|7|10)\\b/g) || []));
       return requiredDays.every(day => days.has(day));
@@ -704,6 +729,33 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function cadenceHasAnyDays(value, targetDays) {{
       const days = new Set((text(value).match(/\\b(?:3|5|7|10)\\b/g) || []));
       return targetDays.some(day => days.has(day));
+    }}
+
+    function splitList(value) {{
+      return text(value).split(';').map(item => item.trim()).filter(Boolean);
+    }}
+
+    function uniqueList(values) {{
+      return [...new Set(values.filter(Boolean))];
+    }}
+
+    function ownerParts(row) {{
+      return uniqueList([...splitList(row.onboarding_owner), ...splitList(row.returning_owner)]);
+    }}
+
+    function ownerValue(row) {{
+      const owners = ownerParts(row);
+      return owners.length ? owners.join('; ') : 'Unknown';
+    }}
+
+    function ownerDetail(row) {{
+      const dropped = splitList(row.onboarding_owner).join('; ');
+      const returning = splitList(row.returning_owner).join('; ');
+      const details = [
+        dropped ? `Dropped owner: ${{dropped}}` : '',
+        returning ? `Returning owner: ${{returning}}` : ''
+      ].filter(Boolean);
+      return details.length ? details.join('\\n') : ownerValue(row);
     }}
 
     function yearValue(value) {{
@@ -723,11 +775,21 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return parsed.getTime() >= start && parsed.getTime() < end;
     }}
 
+    const GENERIC_REASON_VALUES = new Set(['Dropped', 'Canceled', 'Cancelled', 'Prior site dropped status']);
+    const NO_REASON_CATEGORY = 'No dropped reason category captured';
+
+    function isUsefulReason(value) {{
+      const clean = text(value).trim();
+      return clean && !GENERIC_REASON_VALUES.has(clean);
+    }}
+
+    function reasonCategoryValue(row) {{
+      const category = text(row.dropped_reason_category).trim();
+      return isUsefulReason(category) ? category : NO_REASON_CATEGORY;
+    }}
+
     function reasonValue(row) {{
-      const reason = text(row.cancellation_reason).trim();
-      return reason && !['Dropped', 'Canceled', 'Cancelled', 'Prior site dropped status'].includes(reason)
-        ? reason
-        : 'No reason captured';
+      return reasonCategoryValue(row);
     }}
 
     function displayValue(row, key) {{
@@ -735,6 +797,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       if (key === 'reason') return reasonValue(row);
       if (key === 'macro_cadence') return cadenceValue(row.macro_cadence);
       if (key === 'cg_involvement') return text(row.cg_involvement || 'Not Assisted');
+      if (key === 'onboarding_owner') return ownerValue(row);
       return text(row[key]);
     }}
 
@@ -756,7 +819,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       if (key === 'dropped_date') return !text(row.dropped_sort_date || row.latest_dropped_date || row.dropped_date).trim();
       if (key === 'returned_date') return !text(row[key]).trim();
       const value = displayValue(row, key).trim();
-      return !value || value === 'Unknown' || value === 'No reason captured';
+      return !value || value === 'Unknown' || value === NO_REASON_CATEGORY;
     }}
 
     function sortRows(rows) {{
@@ -802,8 +865,13 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function populateReasonSelect() {{
-      const values = [...new Set(RECORDS.map(row => reasonValue(row)))].sort((a, b) => a.localeCompare(b));
+      const values = [...new Set(RECORDS.map(row => reasonCategoryValue(row)))].sort((a, b) => a.localeCompare(b));
       fields.reason.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
+    }}
+
+    function populateOwnerSelect() {{
+      const values = uniqueList(RECORDS.flatMap(row => ownerParts(row))).sort((a, b) => a.localeCompare(b));
+      fields.owner.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
     }}
 
     function selectedCadenceDays() {{
@@ -824,10 +892,10 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         if (fields.year.value && !dateInYear(row.returned_date, fields.year.value)) return false;
         if (fields.service.value && optionValue(row.service_level) !== fields.service.value) return false;
         if (fields.vertical.value && optionValue(row.vertical) !== fields.vertical.value) return false;
-        if (fields.owner.value && optionValue(row.onboarding_owner) !== fields.owner.value) return false;
+        if (fields.owner.value && !ownerParts(row).includes(fields.owner.value)) return false;
         const cadenceDays = selectedCadenceDays();
         if (cadenceDays.length && !cadenceHasAnyDays(row.macro_cadence, cadenceDays)) return false;
-        if (fields.reason.value && reasonValue(row) !== fields.reason.value) return false;
+        if (fields.reason.value && reasonCategoryValue(row) !== fields.reason.value) return false;
         if (!query) return true;
         const haystack = [
           row.creator_project_name,
@@ -835,7 +903,12 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           row.company_name,
           row.site_id,
           row.onboarding_owner,
+          row.returning_owner,
+          row.dropped_reason_category,
           row.cancellation_reason,
+          row.zendesk_ticket_ids,
+          row.zendesk_ticket_created_dates,
+          row.zendesk_ticket_solved_dates,
           row.drop_history,
           row.dropped_status,
           row.dropped_date,
@@ -942,10 +1015,10 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <td>${{escapeHtml(row.service_level || 'Unknown')}}</td>
           <td>${{escapeHtml(row.vertical || 'Unknown')}}</td>
           <td>${{escapeHtml(row.previous_ad_network || 'Unknown')}}</td>
-          <td>${{escapeHtml(row.onboarding_owner || 'Unknown')}}</td>
+          <td title="${{escapeAttr(ownerDetail(row))}}">${{escapeHtml(ownerValue(row))}}</td>
           <td title="${{escapeAttr(row.drop_history || row.dropped_date)}}">${{escapeHtml(row.dropped_date)}}</td>
-          <td>${{escapeHtml(reasonValue(row))}}</td>
-          <td>${{escapeHtml(cadenceValue(row.macro_cadence))}}</td>
+          <td>${{escapeHtml(reasonCategoryValue(row))}}</td>
+          <td title="${{escapeAttr(cadenceDetail(row))}}">${{escapeHtml(cadenceValue(row.macro_cadence))}}</td>
           <td>${{escapeHtml(row.cg_involvement || 'Not Assisted')}}</td>
           <td>${{escapeHtml(row.returned_date)}}</td>
           <td>${{outcome(row)}}</td>
@@ -957,11 +1030,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       const rows = sortRows(filtered());
       renderKpis(rows);
       renderBars('service-bars', groupCounts(rows, 'service_level'), '');
-      renderBars('reason-bars', groupCounts(rows, 'cancellation_reason', 8, (_value, row) => reasonValue(row)), 'amber');
+      renderBars('reason-bars', groupCounts(rows, 'dropped_reason_category', 8, (_value, row) => reasonCategoryValue(row)), 'amber');
       renderBars('cg-bars', groupCounts(rows, 'cg_involvement'), 'blue');
       renderBars('network-bars', groupCounts(rows, 'previous_ad_network'), 'rose');
       document.getElementById('service-count').textContent = `${{groupCounts(rows, 'service_level', 50).length}} segments`;
-      document.getElementById('reason-count').textContent = `${{groupCounts(rows, 'cancellation_reason', 50, (_value, row) => reasonValue(row)).length}} reasons`;
+      document.getElementById('reason-count').textContent = `${{groupCounts(rows, 'dropped_reason_category', 50, (_value, row) => reasonCategoryValue(row)).length}} categories`;
       document.getElementById('cg-count').textContent = `${{groupCounts(rows, 'cg_involvement', 50).length}} groups`;
       document.getElementById('network-count').textContent = `${{groupCounts(rows, 'previous_ad_network', 50).length}} networks`;
       renderTable(rows);
@@ -971,7 +1044,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     populateYearSelect();
     populateSelect('service', 'service_level');
     populateSelect('vertical', 'vertical');
-    populateSelect('owner', 'onboarding_owner');
+    populateOwnerSelect();
     populateReasonSelect();
     Object.values(fields).forEach(control => control.addEventListener('input', render));
     Object.values(fields).forEach(control => control.addEventListener('change', render));

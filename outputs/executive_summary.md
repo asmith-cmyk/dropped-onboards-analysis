@@ -7,7 +7,7 @@ Generated from the master lifecycle dataset with 778 dropped onboarding creators
 - Re-engagement rate: 45.4%
 - Install/conversion rate among dropped creators: 42.2%
 - Median days to return: 334.0
-- Returned after 3, 5, or 7 day follow up cadence: 32/778
+- Returned after 3, 5, or 7 day follow up cadence: 6/778
 
 ## Strongest Cohorts
 
@@ -16,9 +16,9 @@ Generated from the master lifecycle dataset with 778 dropped onboarding creators
 - Vertical = Professional Finance: 100.0% re-engagement (1/1).
 - Previous Ad Network = AdVally: 100.0% re-engagement (1/1).
 - Previous Ad Network = Playwire: 100.0% re-engagement (1/1).
-- Macro Cadence = 3 and 5 day follow up: 100.0% re-engagement (1/1).
-- Macro Cadence = 3, 5 and 7 day follow up: 100.0% re-engagement (1/1).
 - Vertical = Arts & Creativity: 80.0% re-engagement (4/5).
+- Vertical = Clean Eating: 75.0% re-engagement (3/4).
+- Vertical = Food: 73.7% re-engagement (207/281).
 
 ## Creator Growth
 
@@ -38,5 +38,6 @@ Generated from the master lifecycle dataset with 778 dropped onboarding creators
 - `master_creator_lifecycle.csv` is the single source of truth for downstream lifecycle analysis.
 - Salesforce dropped records and Snowflake Salesforce Onboarding project records define the table grain: one row per dropped onboarding creator/site.
 - Returning Salesforce, Snowflake returned-site cohorts, Zendesk, Slack, Creator Growth, and Salesloft signals enrich that lifecycle row.
+- Zendesk follow-up cadence is matched by creator/lead plus ticket created-to-solved date overlap with the dropped date.
 - Cancellation reason categories use OpenAI when `OPENAI_API_KEY` is present, with a deterministic rules fallback.
 - Conversion is treated as install completion unless a dedicated conversion date/status is supplied.
