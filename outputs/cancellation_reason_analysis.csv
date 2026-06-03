@@ -1,5 +1,6 @@
 normalized_category,count,pct_of_dropped,reengaged_count,reengagement_rate,installed_count,install_rate,avg_confidence_score
 Set-up cancellation,493,0.6337,162,0.3286,151,0.3063,0.72
-Unknown,234,0.3008,158,0.6752,148,0.6325,
+Unknown,233,0.2995,157,0.6738,147,0.6309,
 Cancelled Pre-onboarding,50,0.0643,33,0.66,29,0.58,
+SWITCHED AD NETWORKS,1,0.0013,1,1.0,1,1.0,
 Timing / Busy,1,0.0013,0,0.0,0,0.0,0.72
