@@ -223,6 +223,81 @@ prior_cancelled_onboarding_projects AS (
       AND TO_TIMESTAMP_NTZ(p.createddate) < rp.project_created_at
 ),
 
+site_offboarding_records AS (
+    SELECT
+        OBJECT_CONSTRUCT_KEEP_NULL(*) AS offboarding_record
+    FROM ANALYTICS.ADTHRIVE.SITE_OFFBOARDING
+),
+
+site_offboarding_events AS (
+    SELECT
+        offboarding_record,
+        COALESCE(
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'site_id')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'siteid')::STRING, '')
+        ) AS site_id,
+        COALESCE(
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'site_offboarding_id')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'offboarding_id')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'id')::STRING, '')
+        ) AS offboarding_id,
+        COALESCE(
+            TRY_TO_TIMESTAMP_NTZ(GET_IGNORE_CASE(offboarding_record, 'offboarded_at')::STRING),
+            TRY_TO_TIMESTAMP_NTZ(GET_IGNORE_CASE(offboarding_record, 'offboarded_date')::STRING),
+            TRY_TO_TIMESTAMP_NTZ(GET_IGNORE_CASE(offboarding_record, 'offboarding_date')::STRING),
+            TRY_TO_TIMESTAMP_NTZ(GET_IGNORE_CASE(offboarding_record, 'completed_at')::STRING),
+            TRY_TO_TIMESTAMP_NTZ(GET_IGNORE_CASE(offboarding_record, 'effective_date')::STRING),
+            TRY_TO_TIMESTAMP_NTZ(GET_IGNORE_CASE(offboarding_record, 'updated_at')::STRING),
+            TRY_TO_TIMESTAMP_NTZ(GET_IGNORE_CASE(offboarding_record, 'created_at')::STRING)
+        ) AS offboarded_at,
+        COALESCE(
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'dropped_reason')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'offboarding_reason')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'reason')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'reason_text')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'status_reason')::STRING, ''),
+            'Offboarded'
+        ) AS offboarding_reason,
+        COALESCE(
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'dropped_reason_category')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'offboarding_reason_category')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'reason_category')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'category')::STRING, ''),
+            'Offboarding'
+        ) AS offboarding_reason_category,
+        COALESCE(
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'reason_details')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'details')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'description')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'notes')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'note')::STRING, ''),
+            NULLIF(GET_IGNORE_CASE(offboarding_record, 'comments')::STRING, ''),
+            TO_JSON(offboarding_record)
+        ) AS offboarding_description
+    FROM site_offboarding_records
+),
+
+prior_site_offboardings AS (
+    SELECT
+        rp.return_project_id,
+        so.site_id,
+        so.offboarding_id,
+        so.offboarded_at,
+        so.offboarding_reason,
+        so.offboarding_reason_category,
+        so.offboarding_description,
+        ROW_NUMBER() OVER (
+            PARTITION BY rp.return_project_id
+            ORDER BY so.offboarded_at DESC, so.offboarding_id DESC
+        ) AS prior_offboarding_row_num
+    FROM current_return_projects rp
+    INNER JOIN site_offboarding_events so
+        ON rp.site_id = so.site_id
+    WHERE rp.project_row_num = 1
+      AND so.offboarded_at IS NOT NULL
+      AND so.offboarded_at < rp.project_created_at
+),
+
 supplemental_returning_site_drops AS (
     SELECT
         '' AS project_id,
@@ -233,8 +308,8 @@ supplemental_returning_site_drops AS (
         rp.domain,
         rp.salesforce_account_id,
         rp.salesforce_lead_id,
-        'Dropped' AS status,
-        TO_VARCHAR(TO_TIMESTAMP_NTZ(h.updated_at), 'YYYY-MM-DD') AS actual_close_date,
+        IFF(pso.site_id IS NOT NULL, 'Offboarded', 'Dropped') AS status,
+        TO_VARCHAR(COALESCE(pso.offboarded_at, TO_TIMESTAMP_NTZ(h.updated_at)), 'YYYY-MM-DD') AS actual_close_date,
         rp.service_level,
         rp.vertical,
         rp.previous_ad_network,
@@ -242,8 +317,9 @@ supplemental_returning_site_drops AS (
         rp.monthly_pageviews,
         rp.cg_involvement,
         rp.cg_effort,
-        COALESCE(pcop.prior_cancelled_reason, 'No reason captured') AS cancelled_reason,
+        COALESCE(pso.offboarding_reason, pcop.prior_cancelled_reason, 'No reason captured') AS cancelled_reason,
         COALESCE(
+            pso.offboarding_reason,
             IFF(
                 REGEXP_LIKE(LOWER(COALESCE(pcop.prior_raw_description, '')), '^setup[[:space:]]+cancellation[[:space:]]+note'),
                 'Cancelled Pre-onboarding',
@@ -266,21 +342,28 @@ supplemental_returning_site_drops AS (
             'No dropped reason captured'
         ) AS dropped_reason,
         COALESCE(
+            pso.offboarding_reason_category,
             IFF(REGEXP_LIKE(LOWER(COALESCE(pcop.prior_dropped_reason_category, '')), '(pre[-[:space:]0]?onboarding|never engaged)'), NULL, pcop.prior_dropped_reason_category),
             NULLIF(hdrc.text, ''),
-            NULLIF(drc.text, '')
+            NULLIF(drc.text, ''),
+            IFF(pso.site_id IS NOT NULL, 'Offboarding', NULL)
         ) AS dropped_reason_category,
         COALESCE(
+            NULLIF(pso.offboarding_description, ''),
             NULLIF(pcop.prior_raw_description, ''),
             'Supplemental return signal from current Salesforce onboarding project ' || rp.return_project_id
         ) AS raw_description,
         ROW_NUMBER() OVER (
             PARTITION BY rp.site_id, rp.return_project_id
-            ORDER BY TO_TIMESTAMP_NTZ(h.updated_at) DESC
+            ORDER BY
+                CASE WHEN pso.site_id IS NULL THEN 1 ELSE 0 END,
+                COALESCE(pso.offboarded_at, TO_TIMESTAMP_NTZ(h.updated_at)) DESC
         ) AS prior_drop_row_num
     FROM current_return_projects rp
-    INNER JOIN ANALYTICS.ADTHRIVE.SITE_HISTORY h
+    LEFT JOIN ANALYTICS.ADTHRIVE.SITE_HISTORY h
         ON rp.site_id = h.id
+       AND h.status IN ('Dropped', 'Canceled', 'Cancelled')
+       AND TO_TIMESTAMP_NTZ(h.updated_at) < rp.project_created_at
     LEFT JOIN ANALYTICS.ADTHRIVE.DROPPED_REASON hdr
         ON h.dropped_reason_id = hdr.id
     LEFT JOIN ANALYTICS.ADTHRIVE.DROPPED_REASON_CATEGORY hdrc
@@ -296,11 +379,15 @@ supplemental_returning_site_drops AS (
     LEFT JOIN prior_cancelled_onboarding_projects pcop
         ON rp.return_project_id = pcop.return_project_id
        AND pcop.prior_project_row_num = 1
+    LEFT JOIN prior_site_offboardings pso
+        ON rp.return_project_id = pso.return_project_id
+       AND pso.prior_offboarding_row_num = 1
     WHERE rp.project_row_num = 1
       AND q.site_id IS NULL
-      AND h.status IN ('Dropped', 'Canceled', 'Cancelled')
-      AND TO_TIMESTAMP_NTZ(h.updated_at) < rp.project_created_at
-      AND NOT REGEXP_LIKE(
+      AND (pso.site_id IS NOT NULL OR h.id IS NOT NULL)
+      AND (
+        pso.site_id IS NOT NULL
+        OR NOT REGEXP_LIKE(
           LOWER(
               COALESCE(
                   pcop.setup_cancellation_reason,
@@ -317,6 +404,7 @@ supplemental_returning_site_drops AS (
               )
           ),
           '(cancelled pre[-[:space:]0]?onboarding|pre[-[:space:]0]?onboarding|never engaged|duplicate|merged|new owner did not want to stay with adthrive|retiring site|left raptive|offboarding)'
+        )
       )
 )
 
