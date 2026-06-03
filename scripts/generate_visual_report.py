@@ -15,7 +15,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from utils.config import ensure_project_dirs, load_settings
-from utils.io import read_csv
+from utils.io import read_csv, read_csv_if_exists
 from utils.zendesk_client import format_macro_cadence
 
 
@@ -47,6 +47,7 @@ REPORT_FIELDS = [
     "returning_owner",
     "monthly_pageviews",
     "dropped_status",
+    "onboarding_started_date",
     "dropped_date",
     "returned_date",
     "days_to_return",
@@ -168,6 +169,8 @@ def collapse_returned_attempts(records: list[dict[str, object]]) -> list[dict[st
         if len(rows) == 1:
             row = rows[0].copy()
             row["drop_count"] = 1
+            row["onboarding_started_dates"] = clean_text(row.get("onboarding_started_date", ""))
+            row["onboarding_started_sort_date"] = clean_text(row.get("onboarding_started_date", ""))
             row["dropped_dates"] = clean_text(row.get("dropped_date", ""))
             row["dropped_sort_date"] = clean_text(row.get("dropped_date", ""))
             row["first_dropped_date"] = clean_text(row.get("dropped_date", ""))
@@ -185,10 +188,15 @@ def collapse_returned_attempts(records: list[dict[str, object]]) -> list[dict[st
         )
         latest = ordered[-1].copy()
         date_list = display_date_list([row.get("dropped_date", "") for row in ordered])
+        start_date_list = display_date_list([row.get("onboarding_started_date", "") for row in ordered])
         latest_drop = clean_text(ordered[-1].get("dropped_date", ""))
+        latest_start = clean_text(ordered[-1].get("onboarding_started_date", ""))
         first_drop = clean_text(ordered[0].get("dropped_date", ""))
 
         latest["drop_count"] = len({clean_text(row.get("dropped_date", "")) for row in ordered if clean_text(row.get("dropped_date", ""))})
+        latest["onboarding_started_dates"] = start_date_list
+        latest["onboarding_started_date"] = start_date_list or latest_start
+        latest["onboarding_started_sort_date"] = latest_start
         latest["dropped_dates"] = date_list
         latest["dropped_date"] = date_list or latest_drop
         latest["dropped_sort_date"] = latest_drop
@@ -224,6 +232,8 @@ def collapse_returned_attempts(records: list[dict[str, object]]) -> list[dict[st
     for row in passthrough:
         row = row.copy()
         row["drop_count"] = 1
+        row["onboarding_started_dates"] = clean_text(row.get("onboarding_started_date", ""))
+        row["onboarding_started_sort_date"] = clean_text(row.get("onboarding_started_date", ""))
         row["dropped_dates"] = clean_text(row.get("dropped_date", ""))
         row["dropped_sort_date"] = clean_text(row.get("dropped_date", ""))
         row["first_dropped_date"] = clean_text(row.get("dropped_date", ""))
@@ -247,8 +257,33 @@ def prepare_records(master: pd.DataFrame) -> list[dict[str, object]]:
     return collapse_returned_attempts(records)
 
 
-def render_html(records: list[dict[str, object]], generated_at: str) -> str:
+STARTER_FIELDS = [
+    "onboarding_start_id",
+    "site_id",
+    "onboarding_started_date",
+    "onboarding_started_year",
+    "service_level",
+    "vertical",
+    "previous_ad_network",
+    "current_site_status",
+    "install_date",
+]
+
+
+def prepare_starter_records(starts: pd.DataFrame) -> list[dict[str, object]]:
+    if starts.empty:
+        return []
+    available_fields = [field for field in STARTER_FIELDS if field in starts.columns]
+    records = starts[available_fields].fillna("").to_dict(orient="records")
+    for record in records:
+        for key, value in list(record.items()):
+            record[key] = "" if value is None else str(value)
+    return records
+
+
+def render_html(records: list[dict[str, object]], starter_records: list[dict[str, object]], generated_at: str) -> str:
     data_json = json.dumps(records, ensure_ascii=False)
+    starter_data_json = json.dumps(starter_records, ensure_ascii=False)
     generated = html.escape(generated_at)
     total = len(records)
     return f"""<!doctype html>
@@ -311,7 +346,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
     .controls {{
       display: grid;
-      grid-template-columns: minmax(220px, 2fr) repeat(6, minmax(130px, 1fr));
+      grid-template-columns: minmax(220px, 2fr) repeat(7, minmax(120px, 1fr));
       gap: 10px;
       align-items: end;
       margin-bottom: 16px;
@@ -375,7 +410,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
     .kpis {{
       display: grid;
-      grid-template-columns: repeat(4, minmax(130px, 1fr));
+      grid-template-columns: repeat(5, minmax(130px, 1fr));
       gap: 10px;
       margin-bottom: 16px;
     }}
@@ -600,6 +635,9 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       <label>Search
         <input id="search" type="search" placeholder="Creator, lead, owner, reason">
       </label>
+      <label>Onboard Year
+        <select id="onboard-year"></select>
+      </label>
       <label>Returned Year
         <select id="year"></select>
       </label>
@@ -679,10 +717,12 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 
   <script>
     const RECORDS = {data_json};
+    const START_RECORDS = {starter_data_json};
     const sortState = {{ key: 'dropped_date', direction: 'asc' }};
 
     const fields = {{
       search: document.getElementById('search'),
+      onboardYear: document.getElementById('onboard-year'),
       year: document.getElementById('year'),
       service: document.getElementById('service'),
       vertical: document.getElementById('vertical'),
@@ -779,6 +819,35 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       const start = Date.UTC(Number(year), 0, 1);
       const end = Date.UTC(Number(year) + 1, 0, 1);
       return parsed.getTime() >= start && parsed.getTime() < end;
+    }}
+
+    function dateYears(value) {{
+      const years = new Set();
+      text(value).split(/[;,\\n]+/).forEach(part => {{
+        const clean = part.trim();
+        if (!clean) return;
+        const parsed = new Date(clean);
+        if (!Number.isNaN(parsed.getTime())) {{
+          years.add(String(parsed.getUTCFullYear()));
+          return;
+        }}
+        const match = clean.match(/\\b(19\\d{{2}}|20\\d{{2}})\\b/);
+        if (match) years.add(match[1]);
+      }});
+      return [...years];
+    }}
+
+    function rowOnboardYears(row) {{
+      const startedYears = dateYears(row.onboarding_started_dates || row.onboarding_started_date);
+      return startedYears.length ? startedYears : dateYears(row.dropped_dates || row.dropped_date);
+    }}
+
+    function rowMatchesOnboardYear(row, year) {{
+      return !year || rowOnboardYears(row).includes(year);
+    }}
+
+    function startRecordYear(row) {{
+      return text(row.onboarding_started_year).trim() || dateYears(row.onboarding_started_date)[0] || '';
     }}
 
     const GENERIC_REASON_VALUES = new Set(['Dropped', 'Canceled', 'Cancelled', 'Prior site dropped status']);
@@ -881,6 +950,14 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       select.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
     }}
 
+    function populateOnboardYearSelect() {{
+      const values = [...new Set([
+        ...RECORDS.flatMap(row => rowOnboardYears(row)),
+        ...START_RECORDS.map(row => startRecordYear(row)).filter(Boolean)
+      ])].sort((a, b) => b.localeCompare(a));
+      fields.onboardYear.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
+    }}
+
     function populateReasonSelect() {{
       const values = [...new Set(RECORDS.map(row => reasonValue(row)))].sort((a, b) => a.localeCompare(b));
       fields.reason.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
@@ -903,10 +980,12 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return escapeHtml(value).replace(/`/g, '&#096;');
     }}
 
-    function filtered() {{
+    function filtered(options = {{}}) {{
+      const includeReturnedYear = options.includeReturnedYear !== false;
       const query = fields.search.value.trim().toLowerCase();
       return RECORDS.filter(row => {{
-        if (fields.year.value && !dateInYear(row.returned_date, fields.year.value)) return false;
+        if (fields.onboardYear.value && !rowMatchesOnboardYear(row, fields.onboardYear.value)) return false;
+        if (includeReturnedYear && fields.year.value && !dateInYear(row.returned_date, fields.year.value)) return false;
         if (fields.service.value && optionValue(row.service_level) !== fields.service.value) return false;
         if (fields.vertical.value && optionValue(row.vertical) !== fields.vertical.value) return false;
         if (fields.owner.value && !ownerParts(row).includes(fields.owner.value)) return false;
@@ -940,6 +1019,61 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       }});
     }}
 
+    function startRecordKey(row) {{
+      return text(row.onboarding_start_id).trim()
+        || [text(row.site_id).trim(), text(row.onboarding_started_date).trim()].filter(Boolean).join('|');
+    }}
+
+    function dropRowKey(row) {{
+      return text(row.site_id).trim()
+        || text(row.salesforce_project_id).trim()
+        || text(row.lifecycle_creator_id).trim()
+        || text(row.creator_project_name).trim();
+    }}
+
+    function uniqueCount(rows, keyFn) {{
+      return new Set(rows.map(keyFn).filter(Boolean)).size;
+    }}
+
+    function filteredStarterRecords() {{
+      return START_RECORDS.filter(row => {{
+        if (fields.onboardYear.value && startRecordYear(row) !== fields.onboardYear.value) return false;
+        if (fields.service.value && optionValue(row.service_level) !== fields.service.value) return false;
+        if (fields.vertical.value && optionValue(row.vertical) !== fields.vertical.value) return false;
+        return true;
+      }});
+    }}
+
+    function dropoffRateSummary() {{
+      const rateRows = filtered({{ includeReturnedYear: false }});
+      const dropped = uniqueCount(rateRows, dropRowKey);
+      if (!START_RECORDS.length) {{
+        return {{
+          available: false,
+          dropped,
+          started: 0,
+          value: 'N/A',
+          note: 'Needs starter data',
+          tooltip: 'Run the Snowflake pull so data/raw/snowflake_onboarding_starts.csv can supply all onboarding starts from SITE_HISTORY.'
+        }};
+      }}
+
+      const started = uniqueCount(filteredStarterRecords(), startRecordKey);
+      const cadenceDays = selectedCadenceDays();
+      const caveats = [];
+      if (cadenceDays.length) caveats.push('The cadence filter currently narrows dropped rows only, because completed/non-dropped macro recipients are not yet in the denominator.');
+      if (fields.year.value) caveats.push('Returned Year is not used for the drop-off denominator; use Onboard Year for the rate period.');
+      if (fields.owner.value || fields.reason.value || fields.search.value.trim()) caveats.push('The denominator is filtered by Onboard Year, Service Level, and Vertical only.');
+      return {{
+        available: true,
+        dropped,
+        started,
+        value: started ? pct(dropped, started) : 'N/A',
+        note: started ? `${{dropped}} of ${{started}} starts` : 'No matching starts',
+        tooltip: `Drop-off Rate = dropped onboard creators divided by SITE_HISTORY onboarding starts. ${{caveats.join(' ')}}`.trim()
+      }};
+    }}
+
     function summarize(rows) {{
       const total = rows.length;
       const reengaged = rows.filter(row => truthy(row.reengaged)).length;
@@ -950,8 +1084,10 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 
     function renderKpis(rows) {{
       const s = summarize(rows);
+      const dropoff = dropoffRateSummary();
       const tiles = [
         {{ label: 'Dropped onboards', value: s.total, note: 'Filtered rows' }},
+        {{ label: 'Drop-off rate', value: dropoff.value, note: dropoff.note, tooltip: dropoff.tooltip }},
         {{ label: 'Returned', value: s.reengaged, note: pct(s.reengaged, s.total) }},
         {{
           label: 'Re-engaged & Installed',
@@ -1060,6 +1196,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       updateSortIndicators();
     }}
 
+    populateOnboardYearSelect();
     populateYearSelect();
     populateSelect('service', 'service_level');
     populateSelect('vertical', 'vertical');
@@ -1093,8 +1230,10 @@ def run() -> Path:
     if not master_path.exists():
         raise RuntimeError("master_creator_lifecycle.csv is missing. Run generate_outputs.py first.")
     master = read_csv(master_path)
+    starts = read_csv_if_exists(settings.raw_data_dir / "snowflake_onboarding_starts.csv")
     records = prepare_records(master)
-    html_output = render_html(records, datetime.now().strftime("%Y-%m-%d %H:%M"))
+    starter_records = prepare_starter_records(starts)
+    html_output = render_html(records, starter_records, datetime.now().strftime("%Y-%m-%d %H:%M"))
 
     output_path = settings.output_dir / "lifecycle_dashboard.html"
     output_path.write_text(html_output, encoding="utf-8")

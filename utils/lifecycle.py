@@ -28,6 +28,7 @@ MASTER_COLUMNS = [
     "onboarding_owner",
     "monthly_pageviews",
     "dropped_status",
+    "onboarding_started_date",
     "dropped_date",
     "returned_date",
     "scheduled_install_date",
@@ -595,6 +596,9 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     lifecycle["onboarding_owner"] = d.get("onboarding_owner", "")
     lifecycle["monthly_pageviews"] = d.get("monthly_pageviews", "")
     lifecycle["dropped_status"] = d["status"]
+    lifecycle["onboarding_started_date"] = format_date_for_output(
+        pd.to_datetime(_series_or_default(d, "onboarding_started_date"), errors="coerce")
+    )
     lifecycle["dropped_date"] = format_date_for_output(dropped_date)
     lifecycle["returned_date"] = format_date_for_output(expected_install)
     lifecycle["scheduled_install_date"] = format_date_for_output(expected_install)
@@ -755,6 +759,9 @@ def build_master_creator_lifecycle(
     lifecycle["onboarding_owner"] = _series_or_default(enriched, "owner")
     lifecycle["monthly_pageviews"] = _series_or_default(enriched, "monthly_pageview_estimate")
     lifecycle["dropped_status"] = _series_or_default(enriched, "status")
+    lifecycle["onboarding_started_date"] = format_date_for_output(
+        pd.to_datetime(_series_or_default(enriched, "onboarding_started_date"), errors="coerce")
+    )
     lifecycle["dropped_date"] = format_date_for_output(dropped_date)
     lifecycle["returned_date"] = format_date_for_output(returned_date)
     lifecycle["scheduled_install_date"] = format_date_for_output(scheduled_install_date)

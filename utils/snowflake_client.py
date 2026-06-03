@@ -110,6 +110,7 @@ qualifying_dropped_onboards AS (
         l.id AS salesforce_lead_id,
         IFF(qso.site_id IS NOT NULL, 'Offboarded', p.mpm4_base__status__c) AS status,
         TO_VARCHAR(COALESCE(qso.offboarded_at, TO_TIMESTAMP_NTZ(p.project_cancelled_date)), 'YYYY-MM-DD') AS actual_close_date,
+        TO_VARCHAR(start_event.onboarding_started_at, 'YYYY-MM-DD') AS onboarding_started_date,
         COALESCE(
             NULLIF(l.forecasted_service_level__c, ''),
             NULLIF(se.service_level, ''),
@@ -176,6 +177,15 @@ qualifying_dropped_onboards AS (
         ON hdr.dropped_reason_category_id = hdrc.id
     LEFT JOIN site_offboarding_events qso
         ON a.site_id = qso.site_id
+    LEFT JOIN LATERAL (
+        SELECT TO_TIMESTAMP_NTZ(hs.updated_at) AS onboarding_started_at
+        FROM ANALYTICS.ADTHRIVE.SITE_HISTORY hs
+        WHERE hs.id = a.site_id
+          AND hs.status = 'Setup'
+          AND TO_TIMESTAMP_NTZ(hs.updated_at) <= COALESCE(qso.offboarded_at, TO_TIMESTAMP_NTZ(p.project_cancelled_date))
+        ORDER BY TO_TIMESTAMP_NTZ(hs.updated_at) DESC
+        LIMIT 1
+    ) start_event ON TRUE
     WHERE COALESCE(p.isdeleted, FALSE) = FALSE
       AND p.record_type_name__c = 'Onboarding'
       AND p.mpm4_base__status__c = 'Cancelled'
@@ -355,6 +365,7 @@ supplemental_returning_site_drops AS (
         rp.salesforce_lead_id,
         IFF(pso.site_id IS NOT NULL, 'Offboarded', 'Dropped') AS status,
         TO_VARCHAR(COALESCE(pso.offboarded_at, TO_TIMESTAMP_NTZ(h.updated_at)), 'YYYY-MM-DD') AS actual_close_date,
+        TO_VARCHAR(start_event.onboarding_started_at, 'YYYY-MM-DD') AS onboarding_started_date,
         rp.service_level,
         rp.vertical,
         rp.previous_ad_network,
@@ -427,6 +438,15 @@ supplemental_returning_site_drops AS (
     LEFT JOIN prior_site_offboardings pso
         ON rp.return_project_id = pso.return_project_id
        AND pso.prior_offboarding_row_num = 1
+    LEFT JOIN LATERAL (
+        SELECT TO_TIMESTAMP_NTZ(hs.updated_at) AS onboarding_started_at
+        FROM ANALYTICS.ADTHRIVE.SITE_HISTORY hs
+        WHERE hs.id = rp.site_id
+          AND hs.status = 'Setup'
+          AND TO_TIMESTAMP_NTZ(hs.updated_at) <= COALESCE(pso.offboarded_at, TO_TIMESTAMP_NTZ(h.updated_at))
+        ORDER BY TO_TIMESTAMP_NTZ(hs.updated_at) DESC
+        LIMIT 1
+    ) start_event ON TRUE
     WHERE rp.project_row_num = 1
       AND q.site_id IS NULL
       AND (pso.site_id IS NOT NULL OR h.id IS NOT NULL)
@@ -464,6 +484,7 @@ SELECT
     salesforce_lead_id,
     status,
     actual_close_date,
+    onboarding_started_date,
     service_level,
     vertical,
     previous_ad_network,
@@ -490,6 +511,7 @@ SELECT
     salesforce_lead_id,
     status,
     actual_close_date,
+    onboarding_started_date,
     service_level,
     vertical,
     previous_ad_network,
@@ -781,6 +803,69 @@ SELECT
 FROM returned_onboards
 WHERE row_num = 1
 ORDER BY expected_install_date DESC, creator_name, current_status
+"""
+
+
+ONBOARDING_STARTS_QUERY = """
+WITH ordered_site_history AS (
+    SELECT
+        h.id AS site_id,
+        h.status,
+        TO_TIMESTAMP_NTZ(h.updated_at) AS status_updated_at,
+        TO_DATE(h.install_date) AS install_date,
+        LAG(h.status) OVER (
+            PARTITION BY h.id
+            ORDER BY TO_TIMESTAMP_NTZ(h.updated_at), h.status
+        ) AS previous_status
+    FROM ANALYTICS.ADTHRIVE.SITE_HISTORY h
+    WHERE h.id IS NOT NULL
+      AND h.updated_at IS NOT NULL
+),
+
+onboarding_start_events AS (
+    SELECT
+        h.site_id,
+        h.status_updated_at AS onboarding_started_at,
+        h.install_date,
+        COALESCE(
+            NULLIF(se.service_level, ''),
+            NULLIF(se.service, ''),
+            NULLIF(se.tier, '')
+        ) AS service_level,
+        NULLIF(se.primary_vertical, '') AS vertical,
+        NULLIF(se.previous_ad_network, '') AS previous_ad_network,
+        s.status AS current_site_status,
+        ROW_NUMBER() OVER (
+            PARTITION BY h.site_id, TO_DATE(h.status_updated_at)
+            ORDER BY h.status_updated_at
+        ) AS daily_start_row_num
+    FROM ordered_site_history h
+    LEFT JOIN ANALYTICS.ADTHRIVE.SITE_EXTENDED se
+        ON h.site_id = se.site_id
+    LEFT JOIN ANALYTICS.ADTHRIVE.SITE s
+        ON h.site_id = s.id
+    WHERE h.status = 'Setup'
+      AND COALESCE(h.previous_status, '') != 'Setup'
+      AND COALESCE(
+          NULLIF(se.service_level, ''),
+          NULLIF(se.service, ''),
+          NULLIF(se.tier, '')
+      ) IN ('Rise', 'Insider', 'Platinum', 'Platinum Elite', 'Luminary', 'Mid Market Enterprise')
+)
+
+SELECT
+    site_id || '|' || TO_VARCHAR(onboarding_started_at, 'YYYY-MM-DD') AS onboarding_start_id,
+    site_id,
+    TO_VARCHAR(onboarding_started_at, 'YYYY-MM-DD') AS onboarding_started_date,
+    YEAR(TO_DATE(onboarding_started_at)) AS onboarding_started_year,
+    service_level,
+    vertical,
+    previous_ad_network,
+    current_site_status,
+    TO_VARCHAR(install_date, 'YYYY-MM-DD') AS install_date
+FROM onboarding_start_events
+WHERE daily_start_row_num = 1
+ORDER BY onboarding_started_date DESC, site_id
 """
 
 

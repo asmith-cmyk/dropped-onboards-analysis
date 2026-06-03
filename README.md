@@ -52,6 +52,7 @@ Snowflake:
 - `snowflake_dropped_onboards.csv` captures cancelled Salesforce Onboarding projects across available years for `Rise`, `Insider`, `Platinum`, `Platinum Elite`, `Luminary`, and `Mid Market Enterprise`.
 - The Snowflake dropped cohort excludes pre-onboarding/non-engagement and unrelated lifecycle reasons such as duplicate, merged, new-owner churn, and retiring site records. For returned creators that were previously active with Raptive, prior `SITE_OFFBOARDING` rows are used as the drop/offboarding event before falling back to Salesforce onboarding cancellation notes.
 - `snowflake_returned_onboards.csv` captures dropped onboarding projects when the same site later appears in `Setup`, `Install`, `Checkup`, or `Active`. `Setup` rows are included when they have an expected install date in the current calendar year.
+- `snowflake_onboarding_starts.csv` captures all eligible onboarding starts from `SITE_HISTORY` when a site enters `Setup`. This feeds the dashboard drop-off rate denominator.
 - Snowflake enrichment supplies service level, vertical, previous ad network, onboarding owner, monthly pageviews, CG involvement, dropped/canceled reason, and dropped reason category where available.
 - Dropped reason category is joined through `DROPPED_REASON_CATEGORY`. The setup cancellation value is stored as `Set-up cancellation`, so matching should be punctuation-insensitive.
 - Salesforce onboarding projects with `cancelled_reason__c = 'Cancelled Pre-onboarding'` are included when the project description contains `setup cancellation`, because those rows represent setup-cancellation drops rather than generic pre-onboarding exclusions.
@@ -188,7 +189,7 @@ Core field groups:
 
 - Identity: `lifecycle_creator_id`, `creator_project_name`, `lead_contact`, `company_name`, `domain`, `site_id`, `salesforce_project_id`, `salesforce_account_id`, `salesforce_lead_id`, `creator_key`, `lead_key`
 - Creator attributes: `vertical`, `service_level`, `previous_ad_network`, `onboarding_owner`, `monthly_pageviews`, `dropped_status`
-- Lifecycle dates: `dropped_date`, `returned_date`, `scheduled_install_date`, `install_date`, `days_to_return`
+- Lifecycle dates: `onboarding_started_date`, `dropped_date`, `returned_date`, `scheduled_install_date`, `install_date`, `days_to_return`
 - Cancellation intelligence: `cancellation_reason`, `dropped_reason_category`, `raw_description`, `normalized_reason`, `reason_confidence_score`, `reason_classification_method`
 - Zendesk cadence: `macro_cadence`, `zendesk_ticket_count`, `ticket_reopened`
 - Creator Growth: `cg_involvement`, `cg_effort`, `cg_escalation_status`, `cg_escalation_timing`, `cg_first_touch_at`, `cg_days_from_drop`
