@@ -51,6 +51,7 @@ REPORT_FIELDS = [
     "returned_date",
     "days_to_return",
     "cancellation_reason",
+    "dropped_reason",
     "dropped_reason_category",
     "macro_cadence",
     "zendesk_ticket_ids",
@@ -209,7 +210,11 @@ def collapse_returned_attempts(records: list[dict[str, object]]) -> list[dict[st
         for row in ordered:
             date = clean_text(row.get("dropped_date", ""))
             owner = clean_text(row.get("onboarding_owner", ""))
-            reason = clean_text(row.get("dropped_reason_category", "")) or clean_text(row.get("cancellation_reason", ""))
+            reason = (
+                clean_text(row.get("dropped_reason", ""))
+                or clean_text(row.get("dropped_reason_category", ""))
+                or clean_text(row.get("cancellation_reason", ""))
+            )
             cg = clean_text(row.get("cg_involvement", ""))
             details = " | ".join(part for part in (owner, reason, cg) if part)
             history_parts.append(f"{date}: {details}" if details else date)
@@ -658,7 +663,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
               <th><button class="sort-button" type="button" data-sort="previous_ad_network">Network <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="onboarding_owner">Owner <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="dropped_date">Dropped <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="reason">Reason Category <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="reason">Dropped Reason <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="macro_cadence">Cadence <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="cg_involvement">CG Involvement <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="returned_date">Returned <span class="sort-indicator"></span></button></th>
@@ -776,6 +781,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     const GENERIC_REASON_VALUES = new Set(['Dropped', 'Canceled', 'Cancelled', 'Prior site dropped status']);
+    const NO_DROPPED_REASON = 'No dropped reason captured';
     const NO_REASON_CATEGORY = 'No dropped reason category captured';
 
     function isUsefulReason(value) {{
@@ -789,7 +795,16 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function reasonValue(row) {{
-      return reasonCategoryValue(row);
+      const reason = text(row.dropped_reason).trim();
+      return isUsefulReason(reason) ? reason : NO_DROPPED_REASON;
+    }}
+
+    function reasonDetail(row) {{
+      const details = [
+        isUsefulReason(row.dropped_reason_category) ? `Dropped reason category: ${{text(row.dropped_reason_category)}}` : '',
+        isUsefulReason(row.cancellation_reason) ? `Cancellation reason: ${{text(row.cancellation_reason)}}` : ''
+      ].filter(Boolean);
+      return details.length ? details.join('\\n') : reasonValue(row);
     }}
 
     function displayValue(row, key) {{
@@ -819,7 +834,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       if (key === 'dropped_date') return !text(row.dropped_sort_date || row.latest_dropped_date || row.dropped_date).trim();
       if (key === 'returned_date') return !text(row[key]).trim();
       const value = displayValue(row, key).trim();
-      return !value || value === 'Unknown' || value === NO_REASON_CATEGORY;
+      return !value || value === 'Unknown' || value === NO_DROPPED_REASON || value === NO_REASON_CATEGORY;
     }}
 
     function sortRows(rows) {{
@@ -904,6 +919,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           row.site_id,
           row.onboarding_owner,
           row.returning_owner,
+          row.dropped_reason,
           row.dropped_reason_category,
           row.cancellation_reason,
           row.zendesk_ticket_ids,
@@ -1017,7 +1033,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <td>${{escapeHtml(row.previous_ad_network || 'Unknown')}}</td>
           <td title="${{escapeAttr(ownerDetail(row))}}">${{escapeHtml(ownerValue(row))}}</td>
           <td title="${{escapeAttr(row.drop_history || row.dropped_date)}}">${{escapeHtml(row.dropped_date)}}</td>
-          <td>${{escapeHtml(reasonCategoryValue(row))}}</td>
+          <td title="${{escapeAttr(reasonDetail(row))}}">${{escapeHtml(reasonValue(row))}}</td>
           <td title="${{escapeAttr(cadenceDetail(row))}}">${{escapeHtml(cadenceValue(row.macro_cadence))}}</td>
           <td>${{escapeHtml(row.cg_involvement || 'Not Assisted')}}</td>
           <td>${{escapeHtml(row.returned_date)}}</td>

@@ -34,6 +34,7 @@ MASTER_COLUMNS = [
     "install_date",
     "days_to_return",
     "cancellation_reason",
+    "dropped_reason",
     "dropped_reason_category",
     "raw_description",
     "normalized_reason",
@@ -154,6 +155,21 @@ def _snowflake_reason_category(df: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
     method.loc[~category_present & derived.map(_is_present)] = "description_pattern"
     method.loc[setup_note_mask] = "description_pattern"
     return out, method
+
+
+def _dropped_reason_series(
+    df: pd.DataFrame,
+    reason_column: str = "dropped_reason",
+    fallback_column: str = "cancelled_reason",
+    description_column: str = "raw_description",
+) -> pd.Series:
+    reason = _series_or_default(df, reason_column).fillna("").astype(str).map(clean_blank)
+    fallback = _series_or_default(df, fallback_column).fillna("").astype(str).map(clean_blank)
+    out = reason.where(reason.map(_is_present), fallback)
+    out.loc[_setup_cancellation_note_mask(_series_or_default(df, description_column).fillna("").astype(str))] = (
+        "Cancelled Pre-onboarding"
+    )
+    return out
 
 
 def _coerce_bool(value: object) -> bool:
@@ -554,7 +570,11 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     lifecycle["scheduled_install_date"] = format_date_for_output(expected_install)
     lifecycle["install_date"] = ""
     lifecycle["days_to_return"] = _format_days((expected_install - dropped_date).dt.days)
-    lifecycle["cancellation_reason"] = d.get("dropped_reason", "")
+    cancellation_reason = _series_or_default(d, "cancelled_reason")
+    lifecycle["cancellation_reason"] = cancellation_reason.where(
+        cancellation_reason.map(_is_present), _series_or_default(d, "dropped_reason")
+    )
+    lifecycle["dropped_reason"] = _dropped_reason_series(d)
     lifecycle["dropped_reason_category"] = d["_derived_dropped_reason_category"]
     lifecycle["raw_description"] = d.get("raw_description", "")
     lifecycle["normalized_reason"] = lifecycle["dropped_reason_category"].where(
@@ -711,6 +731,7 @@ def build_master_creator_lifecycle(
     lifecycle["install_date"] = format_date_for_output(install_date)
     lifecycle["days_to_return"] = _format_days(days_to_return)
     lifecycle["cancellation_reason"] = _series_or_default(enriched, "cancelled_reason")
+    lifecycle["dropped_reason"] = _dropped_reason_series(enriched, description_column="description")
     lifecycle["dropped_reason_category"] = dropped_reason_category
     lifecycle["raw_description"] = _series_or_default(enriched, "description")
     lifecycle["normalized_reason"] = dropped_reason_category.where(
@@ -788,10 +809,11 @@ def build_master_creator_lifecycle(
         lifecycle[column] = lifecycle[column].map(clean_blank)
         lifecycle[column] = lifecycle[column].str.replace(r"\s+", " ", regex=True).str.strip()
     lifecycle["macro_cadence"] = lifecycle["macro_cadence"].replace("", "None")
-    missing_reason = lifecycle["cancellation_reason"].str.lower().isin(
-        {"", "dropped", "canceled", "cancelled", "prior site dropped status"}
-    )
+    generic_reasons = {"", "dropped", "canceled", "cancelled", "prior site dropped status"}
+    missing_reason = lifecycle["cancellation_reason"].str.lower().isin(generic_reasons)
     lifecycle.loc[missing_reason, "cancellation_reason"] = "No reason captured"
+    missing_dropped_reason = lifecycle["dropped_reason"].str.lower().isin(generic_reasons)
+    lifecycle.loc[missing_dropped_reason, "dropped_reason"] = "No dropped reason captured"
     lifecycle["cg_involvement"] = _cg_involvement_label(lifecycle["cg_involvement"])
     lifecycle["outcome"] = _outcome_series(lifecycle)
     return lifecycle.sort_values(["dropped_date", "creator_project_name"], na_position="last")
