@@ -11,6 +11,11 @@ from utils.text import normalize_creator_name, normalize_text
 from utils.zendesk_client import infer_macro_cadence
 
 
+TICKET_DROP_START_BUFFER_DAYS = 14
+TICKET_DROP_END_BUFFER_DAYS = 14
+TICKET_OPEN_WINDOW_DAYS = 120
+
+
 def as_bool(series: pd.Series) -> pd.Series:
     if series.empty:
         return pd.Series(dtype=bool)
@@ -62,10 +67,49 @@ def derive_cg_timing(row: pd.Series) -> str:
     return "No CG involvement"
 
 
+def _ticket_dates(df: pd.DataFrame, column: str) -> pd.Series:
+    if column not in df.columns:
+        return pd.Series(pd.NaT, index=df.index)
+    return pd.to_datetime(df[column].map(clean_blank), errors="coerce")
+
+
+def _join_unique(values: pd.Series) -> str:
+    items: list[str] = []
+    for value in values:
+        cleaned = clean_blank(value)
+        if cleaned and cleaned not in items:
+            items.append(cleaned)
+    return "; ".join(items)
+
+
+def _filter_zendesk_to_drop_window(related: pd.DataFrame, dropped_date: object) -> pd.DataFrame:
+    dropped_at = pd.to_datetime(clean_blank(dropped_date), errors="coerce")
+    if pd.isna(dropped_at):
+        return related
+
+    created = _ticket_dates(related, "created_at")
+    solved = _ticket_dates(related, "solved_at")
+    has_ticket_dates = created.notna() | solved.notna()
+    if not has_ticket_dates.any():
+        return related
+
+    start = created.fillna(solved - pd.Timedelta(days=TICKET_OPEN_WINDOW_DAYS))
+    end = solved.fillna(created + pd.Timedelta(days=TICKET_OPEN_WINDOW_DAYS))
+    in_window = (
+        has_ticket_dates
+        & (start - pd.Timedelta(days=TICKET_DROP_START_BUFFER_DAYS) <= dropped_at)
+        & (dropped_at <= end + pd.Timedelta(days=TICKET_DROP_END_BUFFER_DAYS))
+    )
+    return related.loc[in_window].copy()
+
+
 def link_zendesk(matches: pd.DataFrame, zendesk: pd.DataFrame) -> pd.DataFrame:
     out = matches.copy()
     for column, default in (
         ("macro_cadence", "None"),
+        ("zendesk_ticket_ids", ""),
+        ("zendesk_ticket_created_dates", ""),
+        ("zendesk_ticket_solved_dates", ""),
         ("meeting_offered_zendesk", False),
         ("ticket_reopened", False),
         ("zendesk_ticket_count", 0),
@@ -85,9 +129,13 @@ def link_zendesk(matches: pd.DataFrame, zendesk: pd.DataFrame) -> pd.DataFrame:
         related = z[(z["creator_key"] == creator_key) & (z["creator_key"] != "")]
         if related.empty and lead_key:
             related = z[(z["lead_key"] == lead_key) & (z["lead_key"] != "")]
+        related = _filter_zendesk_to_drop_window(related, row.get("dropped_date", ""))
         if related.empty:
             continue
         out.at[idx, "zendesk_ticket_count"] = len(related)
+        out.at[idx, "zendesk_ticket_ids"] = _join_unique(related.get("ticket_id", pd.Series(dtype=str)))
+        out.at[idx, "zendesk_ticket_created_dates"] = _join_unique(format_date_for_output(_ticket_dates(related, "created_at")))
+        out.at[idx, "zendesk_ticket_solved_dates"] = _join_unique(format_date_for_output(_ticket_dates(related, "solved_at")))
         macro_flags = {
             column: bool(as_bool(related[column]).any()) if column in related.columns else False
             for column in ("macro_day_3", "macro_day_5", "macro_day_7", "macro_day_10")
@@ -405,6 +453,7 @@ def write_executive_summary(
             "- `master_creator_lifecycle.csv` is the single source of truth for downstream lifecycle analysis.",
             "- Salesforce dropped records and Snowflake Salesforce Onboarding project records define the table grain: one row per dropped onboarding creator/site.",
             "- Returning Salesforce, Snowflake returned-site cohorts, Zendesk, Slack, Creator Growth, and Salesloft signals enrich that lifecycle row.",
+            "- Zendesk follow-up cadence is matched by creator/lead plus ticket created-to-solved date overlap with the dropped date.",
             "- Cancellation reason categories use OpenAI when `OPENAI_API_KEY` is present, with a deterministic rules fallback.",
             "- Conversion is treated as install completion unless a dedicated conversion date/status is supplied.",
         ]

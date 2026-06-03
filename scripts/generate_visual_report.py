@@ -52,6 +52,9 @@ REPORT_FIELDS = [
     "cancellation_reason",
     "dropped_reason_category",
     "macro_cadence",
+    "zendesk_ticket_ids",
+    "zendesk_ticket_created_dates",
+    "zendesk_ticket_solved_dates",
     "cg_involvement",
     "cg_escalation_status",
     "install_completed",
@@ -697,6 +700,15 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return clean && clean !== 'Unknown' ? clean : 'None';
     }}
 
+    function cadenceDetail(row) {{
+      const details = [
+        row.zendesk_ticket_ids ? `Tickets: ${{row.zendesk_ticket_ids}}` : '',
+        row.zendesk_ticket_created_dates ? `Created: ${{row.zendesk_ticket_created_dates}}` : '',
+        row.zendesk_ticket_solved_dates ? `Solved: ${{row.zendesk_ticket_solved_dates}}` : ''
+      ].filter(Boolean);
+      return details.length ? details.join('\\n') : cadenceValue(row.macro_cadence);
+    }}
+
     function cadenceHasDays(value, requiredDays) {{
       const days = new Set((text(value).match(/\\b(?:3|5|7|10)\\b/g) || []));
       return requiredDays.every(day => days.has(day));
@@ -842,6 +854,9 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           row.onboarding_owner,
           row.dropped_reason_category,
           row.cancellation_reason,
+          row.zendesk_ticket_ids,
+          row.zendesk_ticket_created_dates,
+          row.zendesk_ticket_solved_dates,
           row.drop_history,
           row.dropped_status,
           row.dropped_date,
@@ -951,7 +966,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <td>${{escapeHtml(row.onboarding_owner || 'Unknown')}}</td>
           <td title="${{escapeAttr(row.drop_history || row.dropped_date)}}">${{escapeHtml(row.dropped_date)}}</td>
           <td>${{escapeHtml(reasonValue(row))}}</td>
-          <td>${{escapeHtml(cadenceValue(row.macro_cadence))}}</td>
+          <td title="${{escapeAttr(cadenceDetail(row))}}">${{escapeHtml(cadenceValue(row.macro_cadence))}}</td>
           <td>${{escapeHtml(row.cg_involvement || 'Not Assisted')}}</td>
           <td>${{escapeHtml(row.returned_date)}}</td>
           <td>${{outcome(row)}}</td>

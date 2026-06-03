@@ -58,7 +58,7 @@ Zendesk:
 
 - Primary Explore dashboard tracks onboarding tickets that received 3, 5, 7, and/or 10 day follow-up tags.
 - The production script uses Zendesk Support API ticket search and tag normalization. A dashboard CSV export can also be supplied with `ZENDESK_EXPORT_CSV`.
-- Zendesk Explore exports with `Ticket ID`, `Requester name`, `Ticket subject`, `Ticket tags`, and `Ticket created - Date` are supported, including semicolon-delimited CSVs. The cadence column is derived from `Ticket tags` values such as `3_day_follow_up`, `5_day_follow_up`, and `7_day_follow_up`, then displayed as labels like `3 day follow up` or `3 and 7 day follow up`.
+- Zendesk Explore exports with `Ticket ID`, `Requester name`, `Ticket subject`, `Ticket tags`, `Ticket created - Date`, and `Ticket solved - Date` are supported, including semicolon-delimited CSVs. The cadence column is derived from `Ticket tags` values such as `3_day_follow_up`, `5_day_follow_up`, and `7_day_follow_up`, then attached to a dropped lifecycle row only when the ticket created-to-solved window overlaps the dropped date.
 
 Slack:
 

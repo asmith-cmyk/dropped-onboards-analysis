@@ -123,6 +123,7 @@ def normalize_zendesk_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         "Updated at": "updated_at",
         "Solved": "solved_at",
         "Solved at": "solved_at",
+        "Ticket solved - Date": "solved_at",
         "Tags": "tags",
         "Ticket tags": "tags",
         "Project Name": "creator",

@@ -40,6 +40,9 @@ MASTER_COLUMNS = [
     "reason_confidence_score",
     "reason_classification_method",
     "macro_cadence",
+    "zendesk_ticket_ids",
+    "zendesk_ticket_created_dates",
+    "zendesk_ticket_solved_dates",
     "zendesk_ticket_count",
     "ticket_reopened",
     "cg_involvement",
@@ -548,6 +551,9 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     lifecycle["reason_confidence_score"] = ""
     lifecycle["reason_classification_method"] = reason_category_method
     lifecycle["macro_cadence"] = "None"
+    lifecycle["zendesk_ticket_ids"] = ""
+    lifecycle["zendesk_ticket_created_dates"] = ""
+    lifecycle["zendesk_ticket_solved_dates"] = ""
     lifecycle["zendesk_ticket_count"] = 0
     lifecycle["ticket_reopened"] = False
     lifecycle["cg_involvement"] = _cg_involvement_label(d.get("cg_involvement", pd.Series("", index=d.index)))
@@ -699,6 +705,9 @@ def build_master_creator_lifecycle(
     lifecycle["reason_confidence_score"] = _series_or_default(enriched, "confidence_score")
     lifecycle["reason_classification_method"] = _series_or_default(enriched, "classification_method")
     lifecycle["macro_cadence"] = _series_or_default(enriched, "macro_cadence", "None").replace({"": "None", "Unknown": "None"})
+    lifecycle["zendesk_ticket_ids"] = _series_or_default(enriched, "zendesk_ticket_ids")
+    lifecycle["zendesk_ticket_created_dates"] = _series_or_default(enriched, "zendesk_ticket_created_dates")
+    lifecycle["zendesk_ticket_solved_dates"] = _series_or_default(enriched, "zendesk_ticket_solved_dates")
     lifecycle["zendesk_ticket_count"] = _numeric_or_default(enriched, "zendesk_ticket_count").astype(int)
     lifecycle["ticket_reopened"] = _bool_or_default(enriched, "ticket_reopened")
     lifecycle["cg_involvement"] = _cg_involvement_label(_series_or_default(enriched, "cg_involvement"))
