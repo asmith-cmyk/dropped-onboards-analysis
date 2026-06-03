@@ -620,7 +620,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <label class="cadence-option"><input type="checkbox" name="cadence-day" value="7">7 day</label>
         </div>
       </div>
-      <label>Dropped Reason Category
+      <label>Dropped Reason
         <select id="reason"></select>
       </label>
     </section>
@@ -633,7 +633,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         <div class="bars" id="service-bars"></div>
       </div>
       <div class="panel">
-        <div class="panel-header"><h2>Dropped Reason Categories</h2><span id="reason-count"></span></div>
+        <div class="panel-header"><h2>Dropped Reasons</h2><span id="reason-count"></span></div>
         <div class="bars" id="reason-bars"></div>
       </div>
       <div class="panel">
@@ -880,7 +880,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function populateReasonSelect() {{
-      const values = [...new Set(RECORDS.map(row => reasonCategoryValue(row)))].sort((a, b) => a.localeCompare(b));
+      const values = [...new Set(RECORDS.map(row => reasonValue(row)))].sort((a, b) => a.localeCompare(b));
       fields.reason.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
     }}
 
@@ -910,7 +910,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         if (fields.owner.value && !ownerParts(row).includes(fields.owner.value)) return false;
         const cadenceDays = selectedCadenceDays();
         if (cadenceDays.length && !cadenceHasAnyDays(row.macro_cadence, cadenceDays)) return false;
-        if (fields.reason.value && reasonCategoryValue(row) !== fields.reason.value) return false;
+        if (fields.reason.value && reasonValue(row) !== fields.reason.value) return false;
         if (!query) return true;
         const haystack = [
           row.creator_project_name,
@@ -1046,11 +1046,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       const rows = sortRows(filtered());
       renderKpis(rows);
       renderBars('service-bars', groupCounts(rows, 'service_level'), '');
-      renderBars('reason-bars', groupCounts(rows, 'dropped_reason_category', 8, (_value, row) => reasonCategoryValue(row)), 'amber');
+      renderBars('reason-bars', groupCounts(rows, 'dropped_reason', 8, (_value, row) => reasonValue(row)), 'amber');
       renderBars('cg-bars', groupCounts(rows, 'cg_involvement'), 'blue');
       renderBars('network-bars', groupCounts(rows, 'previous_ad_network'), 'rose');
       document.getElementById('service-count').textContent = `${{groupCounts(rows, 'service_level', 50).length}} segments`;
-      document.getElementById('reason-count').textContent = `${{groupCounts(rows, 'dropped_reason_category', 50, (_value, row) => reasonCategoryValue(row)).length}} categories`;
+      document.getElementById('reason-count').textContent = `${{groupCounts(rows, 'dropped_reason', 50, (_value, row) => reasonValue(row)).length}} reasons`;
       document.getElementById('cg-count').textContent = `${{groupCounts(rows, 'cg_involvement', 50).length}} groups`;
       document.getElementById('network-count').textContent = `${{groupCounts(rows, 'previous_ad_network', 50).length}} networks`;
       renderTable(rows);
