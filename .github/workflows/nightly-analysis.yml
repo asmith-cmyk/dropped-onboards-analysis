@@ -24,17 +24,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Pull Salesforce reports
-        env:
-          SALESFORCE_USERNAME: ${{ secrets.SALESFORCE_USERNAME }}
-          SALESFORCE_PASSWORD: ${{ secrets.SALESFORCE_PASSWORD }}
-          SALESFORCE_SECURITY_TOKEN: ${{ secrets.SALESFORCE_SECURITY_TOKEN }}
-          SALESFORCE_DOMAIN: ${{ secrets.SALESFORCE_DOMAIN }}
-          SALESFORCE_API_VERSION: ${{ vars.SALESFORCE_API_VERSION }}
-          SALESFORCE_DROPPED_REPORT_ID: ${{ vars.SALESFORCE_DROPPED_REPORT_ID }}
-          SALESFORCE_RETURNING_REPORT_ID: ${{ vars.SALESFORCE_RETURNING_REPORT_ID }}
-        run: python scripts/pull_salesforce_reports.py --force-api
-
       - name: Pull Snowflake cohorts
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
