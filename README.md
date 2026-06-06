@@ -1,183 +1,108 @@
-# Onboarding Lifecycle Re-engagement Analysis
+# Onboarding Lifecycle Dashboard
 
-Python analytics pipeline for Raptive/CafeMedia dropped onboarding creators. It pulls dropped and returning Salesforce reports, Snowflake Salesforce Onboarding project cohorts, normalizes creator identity, enriches each creator with Zendesk and Slack signals, classifies cancellation reasons, and builds one master lifecycle dataset that serves as the source of truth for downstream views and summaries.
+Python analytics pipeline for the Raptive onboarding lifecycle dashboard. The rebuilt dashboard uses one full Snowflake site-history dataset as the source of truth, then derives lifecycle outcome, return date, returned year, cadence flags, dropped-reason buckets, widgets, and the static HTML dashboard from that dataset.
 
 The central output is:
 
 - `outputs/master_creator_lifecycle.csv`
 
-All cohort, cadence, Creator Growth, Rise, re-engagement, and executive summary outputs are derived from that master table.
+The dashboard is generated to:
 
-## Source Reports
+- `outputs/lifecycle_dashboard.html`
+- `docs/index.html`
 
-Salesforce:
+## Source Of Truth
 
-- Dropped onboards report: `00OQQ000007tl772AA`
-- Returning / YoYo creators report: `00OQQ000007tlAL2AY`
+The pipeline expects one raw source file:
 
-Confirmed dropped report fields:
+- `data/raw/snowflake_site_history.csv`
 
-- `Project: Project Name`
-- `Lead: Contact`
-- `Lead: CG Involvement`
-- `Lead: Current Ad Network`
-- `Project: Owner Name`
-- `Description`
-- `Lead: Monthly Pageview Estimate`
-- `Service Level`
-- `Lead: Vertical`
-- `Lead: CG Effort`
-- `Cancelled Reason`
+That CSV should come from `queries/full_site_history_lifecycle.sql`. Paste the approved SQL into that file before running a forced Snowflake pull.
 
-Confirmed returning report fields:
+Expected query output columns include:
 
-- `Onboarding Project Link: Project Name`
-- `Lead`
-- `Previous Ad Network`
-- `Onboarding Project Link: Owner Name`
-- `Onboarding Project Link: Scheduled Install Date`
-- `Install Date`
+- `SITE_ID`
+- `SITE_NAME`
+- `SITE_OWNER_NAME`
+- `INSTALL_DATE`
+- `DROPPED_DATE`
+- `SITE_STATUS`
+- `SERVICE_LEVEL`
+- `VERTICAL`
+- `ONBOARD_OWNER_NAME`
+- `PREVIOUS_AD_NETWORK`
+- `HAS_3_DAY_FOLLOWUP`
+- `HAS_5_DAY_FOLLOWUP`
+- `HAS_7_DAY_FOLLOWUP`
+- `CG_ASSISTED`
+- `CG_INVOLVEMENT`
+- `DROPPED_REASON` or `CANCELLED_REASON`
 
-Snowflake:
+Optional columns such as `COMPANY_NAME`, `DOMAIN`, `URL`, `MONTHLY_PAGEVIEWS`, and `RAW_DESCRIPTION` are carried through when present.
 
-- `ANALYTICS.SALESFORCE.MPM4_BASE__MILESTONE1_PROJECT__C`
-- `ANALYTICS.SALESFORCE.LEAD`
-- `ANALYTICS.SALESFORCE.ACCOUNT`
-- `ANALYTICS.SALESFORCE.USER`
-- `ANALYTICS.ADTHRIVE.SITE_HISTORY`
-- `ANALYTICS.ADTHRIVE.SITE_OFFBOARDING`
-- `ANALYTICS.ADTHRIVE.SITE_EXTENDED`
-- `ANALYTICS.ADTHRIVE.DROPPED_REASON`
-- `ANALYTICS.ADTHRIVE.DROPPED_REASON_CATEGORY`
-- `snowflake_dropped_onboards.csv` captures cancelled Salesforce Onboarding projects across available years for `Rise`, `Insider`, `Platinum`, `Platinum Elite`, `Luminary`, and `Mid Market Enterprise`.
-- The Snowflake dropped cohort excludes pre-onboarding/non-engagement and unrelated lifecycle reasons such as duplicate, merged, new-owner churn, and retiring site records. For returned creators that were previously active with Raptive, prior `SITE_OFFBOARDING` rows are used as the drop/offboarding event before falling back to Salesforce onboarding cancellation notes.
-- `queries/search_mpm4_missing_dropped_reasons.sql` can be run in Snowflake to inspect Salesforce MPM4 fields for dashboard rows still showing `No dropped reason captured` or `No reason captured`.
-- `snowflake_returned_onboards.csv` captures dropped onboarding projects when the same site later appears in `Setup`, `Install`, `Checkup`, or `Active`. `Setup` rows are included when they have an expected install date in the current calendar year.
-- `snowflake_onboarding_starts.csv` captures all eligible onboarding starts from `SITE_HISTORY` when a site enters `Setup`. This feeds the dashboard drop-off rate denominator.
-- Snowflake enrichment supplies service level, vertical, previous ad network, onboarding owner, monthly pageviews, CG involvement, dropped/canceled reason, and dropped reason category where available.
-- Dropped reason category is joined through `DROPPED_REASON_CATEGORY`. The setup cancellation value is stored as `Set-up cancellation`, so matching should be punctuation-insensitive.
-- Salesforce onboarding projects with `cancelled_reason__c = 'Cancelled Pre-onboarding'` are included when the project description contains `setup cancellation`, because those rows represent setup-cancellation drops rather than generic pre-onboarding exclusions.
+## Lifecycle Logic
 
-Zendesk:
+The master table is site-grain: one row per site.
 
-- Primary Explore dashboard tracks onboarding tickets that received 3, 5, 7, and/or 10 day follow-up tags.
-- The production script uses Zendesk Support API ticket search and tag normalization. A dashboard CSV export can also be supplied with `ZENDESK_EXPORT_CSV`.
-- Zendesk Explore exports with `Ticket ID`, `Requester name`, `Ticket subject`, `Ticket tags`, `Ticket created - Date`, and `Ticket solved - Date` are supported, including semicolon-delimited CSVs. The cadence column is derived from `Ticket tags` values such as `3_day_follow_up`, `5_day_follow_up`, and `7_day_follow_up`, then attached to a dropped lifecycle row only when the ticket created-to-solved window overlaps the dropped date.
+Returned:
 
-Slack:
+- The site has a historical dropped/cancelled event.
+- The site has an `INSTALL_DATE` after the latest dropped/cancelled date.
+- The current lifecycle status is one of `Pending`, `Active`, `Setup`, `Install`, or `Checkup`.
 
-- `#onboarding-creatorgrowth`
-- `#salesloft-meetings`
+Dropped:
 
-Slack messages are parsed into intervention events such as Creator Growth escalation, Salesloft meeting, onboarding call offer, and rescue intervention.
+- The site has a historical dropped/cancelled event.
+- The site has no `INSTALL_DATE` after the latest dropped/cancelled date.
+- The current lifecycle status is not one of `Pending`, `Active`, `Setup`, `Install`, or `Checkup`.
 
-## Setup
+Sites without a prior dropped/cancelled event are retained as `Active` or `Inactive` so the dashboard can show full site history, not only dropped/returned rows.
 
-```bash
-cd dropped-onboards-analysis
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-```
+## Filter Logic
 
-Fill in `.env` or export the relevant environment variables.
+- Onboard Year: year from `INSTALL_DATE`
+- Returned Year: year from the latest `INSTALL_DATE` after the latest dropped/cancelled date
+- Service Level: `SERVICE_LEVEL`
+- Vertical: `PRIMARY_VERTICAL`, falling back to `VERTICALS`
+- Onboarding Owner: `ONBOARD_OWNER_NAME`
+- Cadence: `HAS_3_DAY_FOLLOWUP`, `HAS_5_DAY_FOLLOWUP`, `HAS_7_DAY_FOLLOWUP`
+- Previous Ad Network widget: `PREVIOUS_AD_NETWORK`
 
-## Authentication
+## Dropped Reason Buckets
 
-Salesforce supports either:
+The dropped reason dropdown uses a controlled list, plus `Everything Else`. Long freeform reasons remain visible in the table as raw text, but the filter and widget use the normalized bucket.
 
-- `SALESFORCE_USERNAME`, `SALESFORCE_PASSWORD`, `SALESFORCE_SECURITY_TOKEN`, optional `SALESFORCE_DOMAIN`
-- `SALESFORCE_SESSION_ID` and `SALESFORCE_INSTANCE_URL`
+Approved buckets live in `utils/reasons.py`.
 
-Zendesk requires:
-
-- `ZENDESK_SUBDOMAIN`
-- `ZENDESK_EMAIL`
-- `ZENDESK_API_TOKEN`
-
-Slack requires:
-
-- `SLACK_BOT_TOKEN`
-- bot access to `#onboarding-creatorgrowth` and `#salesloft-meetings`
-
-Snowflake requires:
-
-- `SNOWFLAKE_ACCOUNT`
-- `SNOWFLAKE_USER`
-- `SNOWFLAKE_PASSWORD` for password auth, or `SNOWFLAKE_AUTHENTICATOR` for SSO/external auth
-- optional `SNOWFLAKE_WAREHOUSE`, `SNOWFLAKE_DATABASE`, `SNOWFLAKE_SCHEMA`, `SNOWFLAKE_ROLE`
-
-OpenAI is optional:
-
-- `OPENAI_API_KEY`
-- `OPENAI_MODEL`
-
-If no OpenAI key is present, cancellation reason classification falls back to deterministic rules.
+If a raw reason is blank for a site with a dropped/cancelled event, it is bucketed as `No reason / Vague`. If a raw reason does not match an approved bucket or known legacy spelling, it is bucketed as `Everything Else`.
 
 ## Running Locally
 
-To use existing local CSV exports:
+Import an exported full-history CSV:
 
 ```bash
-python scripts/pull_salesforce_reports.py \
-  --input-dropped-csv data/raw/salesforce_dropped_onboards.csv \
-  --input-returning-csv data/raw/salesforce_returning_yoyo.csv
+python scripts/pull_snowflake_data.py --input-site-history-csv path/to/full_site_history.csv
 python scripts/generate_outputs.py
 ```
 
-To import the denominator data for the dashboard drop-off rate widget:
-
-1. Run `queries/onboarding_starts_denominator.sql` in Snowflake.
-2. Export the results as a CSV.
-3. Import the CSV and regenerate outputs:
+Pull directly from Snowflake:
 
 ```bash
-python scripts/pull_snowflake_data.py --input-starts-csv path/to/onboarding_starts_denominator.csv
-python scripts/generate_outputs.py
-```
-
-To refresh from APIs:
-
-```bash
-python scripts/pull_salesforce_reports.py --force-api
 python scripts/pull_snowflake_data.py --force-api
-python scripts/pull_zendesk_data.py
-python scripts/pull_slack_data.py
 python scripts/generate_outputs.py
 ```
 
-Or run the full source pull and analysis:
+Or run the pull and build together:
 
 ```bash
-python scripts/generate_outputs.py --run-pulls --force-salesforce-api --force-snowflake-api
+python scripts/generate_outputs.py --run-pulls --force-snowflake-api
 ```
 
-## Pipeline Stages
+Generate only the static dashboard after outputs exist:
 
-1. `pull_salesforce_reports.py` fetches the dropped and returning Salesforce reports.
-2. `pull_snowflake_data.py` fetches all available cancelled Salesforce Onboarding projects and returned-site cohorts.
-3. `pull_zendesk_data.py` pulls Zendesk onboarding ticket/tag data or normalizes an exported CSV.
-4. `pull_slack_data.py` pulls intervention messages from Slack.
-5. `normalize_creators.py` canonicalizes creator, lead, network, owner, vertical, service level, and date fields.
-6. `match_reengagements.py` matches dropped creators to returning creators.
-7. `classify_cancellation_reasons.py` normalizes cancellation descriptions into business categories.
-8. `build_master_lifecycle.py` creates `master_creator_lifecycle.csv`, the consolidated creator lifecycle table.
-9. `generate_outputs.py` derives all CSV and markdown outputs from the master lifecycle table.
-
-`build_creator_timelines.py` is retained as a compatibility alias and now delegates to `build_master_lifecycle.py`.
-
-## Matching Logic
-
-The creator matching system uses this priority order:
-
-1. Salesforce project/account IDs when present
-2. Normalized project/site name
-3. Normalized lead contact name
-4. Site/domain extracted from available text
-5. Fuzzy project-name matching with RapidFuzz
-
-Normalization lowercases text, strips punctuation/accents, collapses whitespace, removes common company suffixes, and extracts domains from descriptions where available.
+```bash
+python scripts/generate_visual_report.py
+```
 
 ## Outputs
 
@@ -193,120 +118,26 @@ Generated files:
 - `outputs/executive_summary.md`
 - `outputs/lifecycle_dashboard.html`
 
-## Master Lifecycle Schema
+## GitHub Actions
 
-`master_creator_lifecycle.csv` is the canonical analytical model. Salesforce dropped records and Snowflake Salesforce Onboarding project records define the table grain: one row per dropped onboarding creator/site. Returning Salesforce, Snowflake returned-site cohorts, Zendesk, Slack, Creator Growth, and Salesloft signals enrich that row.
-
-Core field groups:
-
-- Identity: `lifecycle_creator_id`, `creator_project_name`, `lead_contact`, `company_name`, `domain`, `site_id`, `salesforce_project_id`, `salesforce_account_id`, `salesforce_lead_id`, `creator_key`, `lead_key`
-- Creator attributes: `vertical`, `service_level`, `previous_ad_network`, `onboarding_owner`, `monthly_pageviews`, `dropped_status`
-- Lifecycle dates: `onboarding_started_date`, `dropped_date`, `returned_date`, `scheduled_install_date`, `install_date`, `days_to_return`
-- Cancellation intelligence: `cancellation_reason`, `dropped_reason_category`, `raw_description`, `normalized_reason`, `reason_confidence_score`, `reason_classification_method`
-- Zendesk cadence: `macro_cadence`, `zendesk_ticket_count`, `ticket_reopened`
-- Creator Growth: `cg_involvement`, `cg_effort`, `cg_escalation_status`, `cg_escalation_timing`, `cg_first_touch_at`, `cg_days_from_drop`
-- Human-touch indicators: `onboarding_call_offered`, `salesloft_meeting_detected`, `first_salesloft_meeting_at`, `slack_intervention_detected`, `slack_intervention_count`, `rescue_intervention_detected`
-- Outcomes: `install_completed`, `converted`, `reengaged`, `outcome`
-- Match diagnostics: `returning_project_name`, `returning_lead_contact`, `returning_previous_ad_network`, `returning_owner`, `returning_status`, `match_method`, `match_score`
-- Source coverage: `source_salesforce_dropped`, `source_salesforce_returning`, `source_snowflake`
-
-`reengaged_creators.csv` is now a leadership-friendly view derived from the master table. It includes:
-
-- Creator
-- Vertical
-- Service Level
-- Previous Ad Network
-- Dropped Date
-- Returned Date
-- Days_to_Return
-- CG Involvement
-- Macro Cadence
-- Meeting Offered
-- Re-engaged
-- Installed
-- Converted
-
-Additional fields include owner, lead contact, Creator Growth timing, and match details.
-
-## Visual Dashboard
-
-Generate the static HTML dashboard with:
-
-```bash
-python scripts/generate_visual_report.py
-```
-
-The dashboard is written to `outputs/lifecycle_dashboard.html`. It is self-contained and can be opened directly in Chrome. The regular `generate_outputs.py` pipeline also regenerates it automatically. The `Returned Year` filter is based on the `returned_date` column, so selecting a year shows creators whose return/install date falls within that calendar year.
-
-For GitHub Pages, the same dashboard is also written to `docs/index.html`.
-
-To publish it with branch-based GitHub Pages:
-
-1. Push this project to GitHub.
-2. Go to repository Settings -> Pages.
-3. Set Source to `Deploy from a branch`.
-4. Choose the branch you use for the project and `/docs` as the folder.
-5. Save.
-
-After each nightly run, the workflow commits refreshed outputs plus `docs/index.html`, so Pages will serve the latest dashboard.
-
-## GitHub Actions Automation
-
-`.github/workflows/nightly-analysis.yml` runs every night at 08:00 UTC and can also be triggered manually.
+`.github/workflows/nightly-analysis.yml` runs nightly and can also be triggered manually.
 
 The workflow:
 
 1. Installs Python dependencies.
-2. Pulls Salesforce reports from the Analytics Report API.
-3. Pulls optional Zendesk and Slack enrichment data.
-4. Regenerates outputs.
-5. Commits changed files in `outputs/`.
+2. Pulls the full site-history dataset from Snowflake.
+3. Regenerates outputs and `docs/index.html`.
+4. Commits refreshed outputs.
 
-Required GitHub secrets:
+Snowflake requires:
 
-- `SALESFORCE_USERNAME`
-- `SALESFORCE_PASSWORD`
-- `SALESFORCE_SECURITY_TOKEN`
 - `SNOWFLAKE_ACCOUNT`
 - `SNOWFLAKE_USER`
-- `SNOWFLAKE_PASSWORD`
-- `ZENDESK_SUBDOMAIN`
-- `ZENDESK_EMAIL`
-- `ZENDESK_API_TOKEN`
-- `SLACK_BOT_TOKEN`
-- `OPENAI_API_KEY`
+- `SNOWFLAKE_PASSWORD` for password auth, or `SNOWFLAKE_AUTHENTICATOR` for SSO/external auth
+- optional `SNOWFLAKE_WAREHOUSE`, `SNOWFLAKE_DATABASE`, `SNOWFLAKE_SCHEMA`, `SNOWFLAKE_ROLE`
 
-Recommended GitHub variables:
+## Notes
 
-- `SALESFORCE_API_VERSION`
-- `SALESFORCE_DROPPED_REPORT_ID`
-- `SALESFORCE_RETURNING_REPORT_ID`
-- `SNOWFLAKE_AUTHENTICATOR`
-- `SNOWFLAKE_WAREHOUSE`
-- `SNOWFLAKE_DATABASE`
-- `SNOWFLAKE_SCHEMA`
-- `SNOWFLAKE_ROLE`
-- `ZENDESK_SEARCH_QUERY`
-- `SLACK_CHANNEL_NAMES`
-- `SLACK_START_DATE`
-- `OPENAI_MODEL`
-- `USE_OPENAI_CLASSIFICATION`
-
-## Notes And Assumptions
-
-- `master_creator_lifecycle.csv` is the source of truth for lifecycle analysis and downstream reporting.
-- Salesforce and Snowflake are the source of truth for dropped and returning creator/site records.
-- Dropped date is read from a date column when present. If the report has no dropped-date column, the pipeline infers a date from cancellation/drop language in the description as a fallback.
-- Returned date is install date when present, otherwise scheduled install date.
-- Converted currently means install completed unless a dedicated conversion status/date is added later.
-- Zendesk and Slack enrichments are optional and resilient to missing data.
 - Raw source exports are ignored by Git because they can contain sensitive operational data.
-
-## Future Extensions
-
-- Add a dedicated Salesforce field for dropped/cancelled date to reduce description-date inference.
-- Add explicit onboarding call offer fields to Salesforce or Zendesk tags for cleaner Rise creator testing.
-- Add controlled experiment IDs for old vs. new cadence comparisons.
-- Add ticket audit ingestion for exact macro execution timestamps.
-- Add Slack permalink hydration for reviewable intervention timelines.
-- Publish outputs to a warehouse or BI tool after the CSV contract stabilizes.
+- The old Salesforce dropped/returning report scripts remain for reference, but the rebuilt dashboard pipeline does not use them.
+- `queries/full_site_history_lifecycle.sql` currently contains a placeholder until the approved SQL is pasted in.

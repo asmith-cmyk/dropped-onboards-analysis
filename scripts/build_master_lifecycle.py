@@ -9,47 +9,20 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from utils.config import ensure_project_dirs, load_settings
-from utils.io import read_csv, read_csv_if_exists, write_csv
-from utils.lifecycle import build_master_creator_lifecycle
-
-
-def read_first_existing(paths: list[Path]):
-    for path in paths:
-        if path.exists():
-            return read_csv(path)
-    return read_csv_if_exists(paths[0])
+from utils.io import read_csv, write_csv
+from utils.site_history_lifecycle import build_master_from_site_history
 
 
 def run() -> Path:
     settings = load_settings(ROOT)
     ensure_project_dirs(settings)
-    matches = read_csv(settings.processed_data_dir / "reengagement_matches.csv")
-    classifications = read_csv_if_exists(settings.processed_data_dir / "cancellation_reasons.csv")
-    zendesk = read_csv_if_exists(settings.raw_data_dir / "zendesk_onboarding_followups.csv")
-    slack = read_csv_if_exists(settings.raw_data_dir / "slack_interventions.csv")
-    manual_overrides = read_csv_if_exists(settings.data_dir / "manual_lifecycle_overrides.csv")
-    snowflake_dropped = read_first_existing(
-        [
-            settings.raw_data_dir / "snowflake_dropped_onboards.csv",
-            settings.raw_data_dir / "snowflake_dropped_2025.csv",
-        ]
-    )
-    snowflake_returned = read_first_existing(
-        [
-            settings.raw_data_dir / "snowflake_returned_onboards.csv",
-            settings.raw_data_dir / "snowflake_returned_2026.csv",
-        ]
-    )
+    site_history_path = settings.raw_data_dir / "snowflake_site_history.csv"
+    if not site_history_path.exists():
+        raise RuntimeError(
+            "Full site-history source is missing. Import or pull data/raw/snowflake_site_history.csv first."
+        )
 
-    master = build_master_creator_lifecycle(
-        matches,
-        classifications,
-        zendesk,
-        slack,
-        manual_overrides,
-        snowflake_dropped,
-        snowflake_returned,
-    )
+    master = build_master_from_site_history(read_csv(site_history_path))
     processed_path = settings.processed_data_dir / "master_creator_lifecycle.csv"
     output_path = settings.output_dir / "master_creator_lifecycle.csv"
     write_csv(master, processed_path)

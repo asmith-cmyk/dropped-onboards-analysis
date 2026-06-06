@@ -258,6 +258,7 @@ def cohort_summary(df: pd.DataFrame, cohort_type: str, column: str) -> pd.DataFr
             {
                 "cohort_type": cohort_type,
                 "cohort_value": value or fallback,
+                "total_sites": total,
                 "total_dropped": total,
                 "reengaged_count": reengaged,
                 "reengagement_rate": round(reengaged / total, 4) if total else 0,
@@ -403,12 +404,12 @@ def write_executive_summary(
     lines = [
         "# Onboarding Lifecycle Executive Summary",
         "",
-        f"Generated from the master lifecycle dataset with {total} dropped onboarding creators/sites and {reengaged} returned creators/sites.",
+        f"Generated from the master lifecycle dataset with {total} lifecycle sites and {reengaged} returned sites.",
         "",
         "## Headline Metrics",
         "",
         f"- Re-engagement rate: {rate:.1%}",
-        f"- Install/conversion rate among dropped creators: {install_rate:.1%}",
+        f"- Install/conversion rate across filtered lifecycle sites: {install_rate:.1%}",
         f"- Median days to return: {median_days:.1f}" if pd.notna(median_days) else "- Median days to return: unavailable",
         f"- Returned after 3, 5, or 7 day follow up cadence: {returned_with_cadence}/{total}",
         "",
@@ -451,11 +452,11 @@ def write_executive_summary(
             "## Data Notes",
             "",
             "- `master_creator_lifecycle.csv` is the single source of truth for downstream lifecycle analysis.",
-            "- Salesforce dropped records and Snowflake Salesforce Onboarding project records define the table grain: one row per dropped onboarding creator/site.",
-            "- Returning Salesforce, Snowflake returned-site cohorts, Zendesk, Slack, Creator Growth, and Salesloft signals enrich that lifecycle row.",
-            "- Zendesk follow-up cadence is matched by creator/lead plus ticket created-to-solved date overlap with the dropped date.",
-            "- Cancellation reason categories use OpenAI when `OPENAI_API_KEY` is present, with a deterministic rules fallback.",
-            "- Conversion is treated as install completion unless a dedicated conversion date/status is supplied.",
+            "- The table grain is one row per site from the full Snowflake site-history dataset.",
+            "- Returned date is the latest `INSTALL_DATE` after the most recent dropped/cancelled date.",
+            "- Cadence filters use `HAS_3_DAY_FOLLOWUP`, `HAS_5_DAY_FOLLOWUP`, and `HAS_7_DAY_FOLLOWUP` from the source dataset.",
+            "- Dropped reasons are normalized into the approved dashboard buckets, with unmatched freeform text grouped under `Everything Else`.",
+            "- Missing dashboard values are displayed as `N/A`.",
         ]
     )
     output_path.parent.mkdir(parents=True, exist_ok=True)

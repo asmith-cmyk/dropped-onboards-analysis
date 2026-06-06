@@ -336,16 +336,15 @@
     <div class="title-row">
       <div>
         <h1>Onboarding Lifecycle Dashboard</h1>
-        <div class="subtitle">754 dropped onboarding creators · Generated 2026-06-03 18:10</div>
+        <div class="subtitle">754 dropped sites · Generated 2026-06-03 18:10</div>
       </div>
-      <div class="subtitle">Source: outputs/master_creator_lifecycle.csv</div>
     </div>
   </header>
 
   <main>
     <section class="controls" aria-label="Filters">
       <label>Search
-        <input id="search" type="search" placeholder="Creator, lead, owner, reason">
+        <input id="search" type="search" placeholder="Site Name, Site Owner Name, Onboarding Owner, Dropped Reason">
       </label>
       <label>Onboard Year
         <select id="onboard-year"></select>
@@ -398,7 +397,7 @@
 
     <section class="panel table-panel">
       <div class="table-header">
-        <h2>Dropped Onboard Sites</h2>
+        <h2>Dropped Sites</h2>
         <span class="subtitle" id="row-count"></span>
       </div>
       <div class="table-wrap">
@@ -406,18 +405,18 @@
           <thead>
             <tr>
               <th class="number-col">#</th>
-              <th><button class="sort-button" type="button" data-sort="creator_project_name">Creator <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="lead">Lead <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="service_level">Service <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="creator_project_name">Site Name <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="lead">Creator Name <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="service_level">Service Level <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="vertical">Vertical <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="previous_ad_network">Network <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="onboarding_owner">Owner <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="dropped_date">Dropped <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="dropped_date">Dropped Date <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="reason_category">Dropped Reason Category <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="reason">Dropped Reason <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="macro_cadence">Cadence <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="macro_cadence">Follow-up Cadence <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="cg_involvement">CG Involvement <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="returned_date">Returned <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="returned_date">Returned Date <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="outcome">Outcome <span class="sort-indicator"></span></button></th>
             </tr>
           </thead>
@@ -565,15 +564,108 @@
     const GENERIC_REASON_VALUES = new Set(['Dropped', 'Canceled', 'Cancelled', 'Prior site dropped status']);
     const NO_DROPPED_REASON = 'No dropped reason captured';
     const NO_REASON_CATEGORY = 'No dropped reason category captured';
+    const EVERYTHING_ELSE_REASON = 'Everything Else';
+    const APPROVED_REASON_OPTIONS = [
+      'Account manager',
+      'Ad content/controls',
+      'AI Content',
+      'Brand safety',
+      'Cancelled pre-onboarding',
+      'Chose another provider',
+      'Core Web Vitals',
+      'Dashboard/More data',
+      'Design concerns',
+      'Disappointed in RPM Guarantee',
+      'Expanded Solutions related',
+      'Failed verification',
+      'Failure to complete MCM IDV',
+      'Fraud traffic',
+      'Fraudulent traffic detected',
+      'Google Terminated MCM Account',
+      'Identity Concerns',
+      'Loyalty Bonus',
+      'Low RPM/CPM',
+      'Making changes / Vague',
+      'Never engaged',
+      'New owner did not want to stay with AdThrive',
+      'No Longer Eligible For Transfer',
+      'No reason / Vague',
+      'Non-responsive',
+      'Other',
+      'Other revenue sources',
+      'Ownership/MCM',
+      'Personal Reasons',
+      'Poor user experience',
+      'Refused ad layout',
+      'Refused to share ad performance',
+      'Rejected by MCM',
+      'Retiring site',
+      'Revenue Share',
+      'RPM too high',
+      'RPM/CPM comparison',
+      'SEO/Pageviews down',
+      'Single page application',
+      'Site performance',
+      'Staying with Current ad provider',
+      'Stolen content',
+      'Stuck in long-term contract',
+      'Testing competitor',
+      EVERYTHING_ELSE_REASON
+    ];
+
+    function reasonKey(value) {
+      return text(value).trim().toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '');
+    }
+
+    const REASON_ALIASES = new Map(
+      APPROVED_REASON_OPTIONS
+        .filter(value => value !== EVERYTHING_ELSE_REASON)
+        .map(value => [reasonKey(value), value])
+    );
+
+    [
+      ['Set-up cancellation', 'Cancelled pre-onboarding'],
+      ['Setup cancellation', 'Cancelled pre-onboarding'],
+      ['Setup cancelled', 'Cancelled pre-onboarding'],
+      ['Canceled pre-onboarding', 'Cancelled pre-onboarding'],
+      ['Cancelled pre onboarding', 'Cancelled pre-onboarding'],
+      ['Canceled pre onboarding', 'Cancelled pre-onboarding'],
+      ['No reason/vague', 'No reason / Vague'],
+      ['No reason', 'No reason / Vague'],
+      ['No dropped reason captured', 'No reason / Vague'],
+      ['No reason captured', 'No reason / Vague'],
+      ['Vague', 'No reason / Vague'],
+      ['Non responsive', 'Non-responsive'],
+      ['Nonresponsive', 'Non-responsive'],
+      ['RPM CPM comparison', 'RPM/CPM comparison'],
+      ['Low RPM', 'Low RPM/CPM'],
+      ['Low CPM', 'Low RPM/CPM'],
+      ['AdThrive', 'Other']
+    ].forEach(([alias, canonical]) => REASON_ALIASES.set(reasonKey(alias), canonical));
 
     function isUsefulReason(value) {
       const clean = text(value).trim();
       return clean && !GENERIC_REASON_VALUES.has(clean);
     }
 
+    function normalizedReasonValue(row) {
+      const existing = text(row.normalized_dropped_reason).trim();
+      if (APPROVED_REASON_OPTIONS.includes(existing)) return existing;
+
+      const candidates = [row.dropped_reason, row.dropped_reason_category, row.cancellation_reason]
+        .map(value => text(value).trim())
+        .filter(value => (
+          isUsefulReason(value) &&
+          value !== NO_DROPPED_REASON &&
+          value !== NO_REASON_CATEGORY
+        ));
+
+      if (!candidates.length) return 'No reason / Vague';
+      return REASON_ALIASES.get(reasonKey(candidates[0])) || EVERYTHING_ELSE_REASON;
+    }
+
     function reasonCategoryValue(row) {
-      const category = text(row.dropped_reason_category).trim();
-      return isUsefulReason(category) ? category : NO_REASON_CATEGORY;
+      return normalizedReasonValue(row);
     }
 
     function reasonValue(row) {
@@ -671,8 +763,7 @@
     }
 
     function populateReasonSelect() {
-      const values = [...new Set(RECORDS.map(row => reasonValue(row)))].sort((a, b) => a.localeCompare(b));
-      fields.reason.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${escapeAttr(value)}">${escapeHtml(value)}</option>`).join('');
+      fields.reason.innerHTML = '<option value="">All</option>' + APPROVED_REASON_OPTIONS.map(value => `<option value="${escapeAttr(value)}">${escapeHtml(value)}</option>`).join('');
     }
 
     function populateOwnerSelect() {
@@ -703,7 +794,7 @@
         if (fields.owner.value && !ownerParts(row).includes(fields.owner.value)) return false;
         const cadenceDays = selectedCadenceDays();
         if (cadenceDays.length && !cadenceHasAnyDays(row.macro_cadence, cadenceDays)) return false;
-        if (fields.reason.value && reasonValue(row) !== fields.reason.value) return false;
+        if (fields.reason.value && normalizedReasonValue(row) !== fields.reason.value) return false;
         if (!query) return true;
         const haystack = [
           row.creator_project_name,
@@ -782,7 +873,7 @@
         started,
         value: started ? pct(dropped, started) : 'N/A',
         note: started ? `${dropped} of ${started} starts` : 'No matching starts',
-        tooltip: `Drop-off Rate = dropped onboard creators divided by SITE_HISTORY onboarding starts. ${caveats.join(' ')}`.trim()
+        tooltip: `Drop-off Rate = dropped sites divided by SITE_HISTORY onboarding starts. ${caveats.join(' ')}`.trim()
       };
     }
 
@@ -798,7 +889,7 @@
       const s = summarize(rows);
       const dropoff = dropoffRateSummary();
       const tiles = [
-        { label: 'Dropped onboards', value: s.total, note: 'Filtered rows' },
+        { label: 'Dropped sites', value: s.total, note: 'Filtered rows' },
         { label: 'Drop-off rate', value: dropoff.value, note: dropoff.note, tooltip: dropoff.tooltip },
         { label: 'Returned', value: s.reengaged, note: pct(s.reengaged, s.total) },
         {
@@ -897,11 +988,11 @@
       const rows = sortRows(filtered());
       renderKpis(rows);
       renderBars('service-bars', groupCounts(rows, 'service_level'), '');
-      renderBars('reason-bars', groupCounts(rows, 'dropped_reason', 8, (_value, row) => reasonValue(row)), 'amber');
+      renderBars('reason-bars', groupCounts(rows, 'dropped_reason', 8, (_value, row) => normalizedReasonValue(row)), 'amber');
       renderBars('cg-bars', groupCounts(rows, 'cg_involvement'), 'blue');
       renderBars('network-bars', groupCounts(rows, 'previous_ad_network'), 'rose');
       document.getElementById('service-count').textContent = `${groupCounts(rows, 'service_level', 50).length} segments`;
-      document.getElementById('reason-count').textContent = `${groupCounts(rows, 'dropped_reason', 50, (_value, row) => reasonValue(row)).length} reasons`;
+      document.getElementById('reason-count').textContent = `${groupCounts(rows, 'dropped_reason', 50, (_value, row) => normalizedReasonValue(row)).length} reasons`;
       document.getElementById('cg-count').textContent = `${groupCounts(rows, 'cg_involvement', 50).length} groups`;
       document.getElementById('network-count').textContent = `${groupCounts(rows, 'previous_ad_network', 50).length} networks`;
       renderTable(rows);

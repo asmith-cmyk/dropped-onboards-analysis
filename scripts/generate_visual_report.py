@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import html
 import json
-import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -15,22 +14,24 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from utils.config import ensure_project_dirs, load_settings
-from utils.io import read_csv, read_csv_if_exists
+from utils.io import read_csv
+from utils.reasons import APPROVED_DROPPED_REASONS
 from utils.zendesk_client import format_macro_cadence
 
 
 BOOL_COLUMNS = {
     "cg_escalation_status",
-    "rescue_intervention_detected",
     "install_completed",
     "converted",
     "reengaged",
-    "source_salesforce_dropped",
-    "source_salesforce_returning",
+    "has_3_day_followup",
+    "has_5_day_followup",
+    "has_7_day_followup",
+    "source_full_site_history",
 }
 
-
 REPORT_FIELDS = [
+    "lifecycle_creator_id",
     "creator_key",
     "lead_key",
     "creator_project_name",
@@ -44,33 +45,38 @@ REPORT_FIELDS = [
     "service_level",
     "previous_ad_network",
     "onboarding_owner",
-    "returning_owner",
     "monthly_pageviews",
+    "current_status",
     "dropped_status",
+    "onboard_year",
+    "returned_year",
     "onboarding_started_date",
     "dropped_date",
+    "dropped_dates",
     "returned_date",
+    "install_date",
+    "install_history",
     "days_to_return",
     "cancellation_reason",
     "dropped_reason",
     "dropped_reason_category",
+    "normalized_dropped_reason",
+    "raw_description",
     "macro_cadence",
-    "zendesk_ticket_ids",
-    "zendesk_ticket_created_dates",
-    "zendesk_ticket_solved_dates",
+    "has_3_day_followup",
+    "has_5_day_followup",
+    "has_7_day_followup",
     "cg_involvement",
     "cg_escalation_status",
     "install_completed",
     "converted",
     "reengaged",
     "outcome",
-    "match_method",
-    "match_score",
+    "returning_owner",
+    "returning_status",
+    "drop_count",
+    "site_history_event_count",
 ]
-
-
-def to_bool(value: object) -> bool:
-    return str(value).strip().lower() in {"1", "true", "yes", "y"}
 
 
 def clean_text(value: object) -> str:
@@ -79,169 +85,8 @@ def clean_text(value: object) -> str:
     return str(value).strip()
 
 
-def parsed_date(value: object) -> pd.Timestamp:
-    return pd.to_datetime(clean_text(value), errors="coerce")
-
-
-def display_date_list(values: list[object]) -> str:
-    dates = sorted(
-        {
-            parsed.strftime("%Y-%m-%d")
-            for parsed in (parsed_date(value) for value in values)
-            if not pd.isna(parsed)
-        }
-    )
-    return "; ".join(dates)
-
-
-def first_present(rows: list[dict[str, object]], column: str) -> str:
-    for row in rows:
-        value = clean_text(row.get(column, ""))
-        if value:
-            return value
-    return ""
-
-
-def combined_present(rows: list[dict[str, object]], column: str) -> str:
-    values = []
-    for row in rows:
-        value = clean_text(row.get(column, ""))
-        if value and value not in values:
-            values.append(value)
-    return "; ".join(values)
-
-
-def bool_any(rows: list[dict[str, object]], column: str) -> bool:
-    return any(to_bool(row.get(column, False)) for row in rows)
-
-
-def outcome_priority(value: object) -> int:
-    normalized = clean_text(value).lower()
-    if normalized == "re-engaged & installed":
-        return 3
-    if normalized == "returned":
-        return 2
-    if normalized == "dropped":
-        return 1
-    return 0
-
-
-def combined_cadence(rows: list[dict[str, object]]) -> str:
-    days = set()
-    for row in rows:
-        days.update(re.findall(r"\b(?:3|5|7|10)\b", clean_text(row.get("macro_cadence", ""))))
-    return format_macro_cadence([day for day in ("3", "5", "7", "10") if day in days])
-
-
-def display_days_to_return(dropped_date: str, returned_date: str, fallback: object) -> str:
-    dropped = parsed_date(dropped_date)
-    returned = parsed_date(returned_date)
-    if pd.isna(dropped) or pd.isna(returned):
-        return clean_text(fallback)
-    return str(int((returned - dropped).days))
-
-
-def collapse_returned_attempts(records: list[dict[str, object]]) -> list[dict[str, object]]:
-    """Show one dashboard row when repeat drops share one lifecycle outcome.
-
-    The master lifecycle CSV stays event-level. The dashboard is creator-level for
-    sites, so multiple dropped attempts with the same return state are represented
-    as one row with visible drop history.
-    """
-    groups: dict[tuple[str, str], list[dict[str, object]]] = {}
-    passthrough: list[dict[str, object]] = []
-
-    for record in records:
-        returned_date = clean_text(record.get("returned_date", ""))
-        site_key = clean_text(record.get("site_id", ""))
-        if not site_key:
-            site_key = clean_text(record.get("salesforce_account_id", ""))
-        if not site_key:
-            site_key = clean_text(record.get("creator_key", "")) or clean_text(record.get("creator_project_name", "")).lower()
-
-        if site_key:
-            groups.setdefault((site_key, returned_date), []).append(record)
-        else:
-            passthrough.append(record)
-
-    collapsed: list[dict[str, object]] = []
-    for (_, returned_date), rows in groups.items():
-        if len(rows) == 1:
-            row = rows[0].copy()
-            row["drop_count"] = 1
-            row["onboarding_started_dates"] = clean_text(row.get("onboarding_started_date", ""))
-            row["onboarding_started_sort_date"] = clean_text(row.get("onboarding_started_date", ""))
-            row["dropped_dates"] = clean_text(row.get("dropped_date", ""))
-            row["dropped_sort_date"] = clean_text(row.get("dropped_date", ""))
-            row["first_dropped_date"] = clean_text(row.get("dropped_date", ""))
-            row["latest_dropped_date"] = clean_text(row.get("dropped_date", ""))
-            row["drop_history"] = clean_text(row.get("dropped_date", ""))
-            collapsed.append(row)
-            continue
-
-        ordered = sorted(
-            rows,
-            key=lambda row: (
-                pd.Timestamp.min if pd.isna(parsed_date(row.get("dropped_date", ""))) else parsed_date(row.get("dropped_date", "")),
-                clean_text(row.get("salesforce_project_id", "")),
-            ),
-        )
-        latest = ordered[-1].copy()
-        date_list = display_date_list([row.get("dropped_date", "") for row in ordered])
-        start_date_list = display_date_list([row.get("onboarding_started_date", "") for row in ordered])
-        latest_drop = clean_text(ordered[-1].get("dropped_date", ""))
-        latest_start = clean_text(ordered[-1].get("onboarding_started_date", ""))
-        first_drop = clean_text(ordered[0].get("dropped_date", ""))
-
-        latest["drop_count"] = len({clean_text(row.get("dropped_date", "")) for row in ordered if clean_text(row.get("dropped_date", ""))})
-        latest["onboarding_started_dates"] = start_date_list
-        latest["onboarding_started_date"] = start_date_list or latest_start
-        latest["onboarding_started_sort_date"] = latest_start
-        latest["dropped_dates"] = date_list
-        latest["dropped_date"] = date_list or latest_drop
-        latest["dropped_sort_date"] = latest_drop
-        latest["first_dropped_date"] = first_drop
-        latest["latest_dropped_date"] = latest_drop
-        latest["days_to_return"] = display_days_to_return(latest_drop, returned_date, latest.get("days_to_return", ""))
-        latest["macro_cadence"] = combined_cadence(ordered)
-        latest["cg_involvement"] = "Assisted" if any(clean_text(row.get("cg_involvement", "")).lower() == "assisted" for row in ordered) else "Not Assisted"
-        latest["install_completed"] = bool_any(ordered, "install_completed")
-        latest["converted"] = bool_any(ordered, "converted")
-        latest["reengaged"] = bool_any(ordered, "reengaged") or bool(returned_date)
-        latest["outcome"] = max((clean_text(row.get("outcome", "")) for row in ordered), key=outcome_priority, default=clean_text(latest.get("outcome", "")))
-        latest["lead_contact"] = first_present(list(reversed(ordered)), "lead_contact")
-        latest["creator_project_name"] = first_present(list(reversed(ordered)), "creator_project_name")
-        latest["onboarding_owner"] = combined_present(ordered, "onboarding_owner")
-        latest["returning_owner"] = first_present(list(reversed(ordered)), "returning_owner")
-
-        history_parts = []
-        for row in ordered:
-            date = clean_text(row.get("dropped_date", ""))
-            owner = clean_text(row.get("onboarding_owner", ""))
-            reason = (
-                clean_text(row.get("dropped_reason", ""))
-                or clean_text(row.get("dropped_reason_category", ""))
-                or clean_text(row.get("cancellation_reason", ""))
-            )
-            cg = clean_text(row.get("cg_involvement", ""))
-            details = " | ".join(part for part in (owner, reason, cg) if part)
-            history_parts.append(f"{date}: {details}" if details else date)
-        latest["drop_history"] = "\n".join(history_parts)
-        collapsed.append(latest)
-
-    for row in passthrough:
-        row = row.copy()
-        row["drop_count"] = 1
-        row["onboarding_started_dates"] = clean_text(row.get("onboarding_started_date", ""))
-        row["onboarding_started_sort_date"] = clean_text(row.get("onboarding_started_date", ""))
-        row["dropped_dates"] = clean_text(row.get("dropped_date", ""))
-        row["dropped_sort_date"] = clean_text(row.get("dropped_date", ""))
-        row["first_dropped_date"] = clean_text(row.get("dropped_date", ""))
-        row["latest_dropped_date"] = clean_text(row.get("dropped_date", ""))
-        row["drop_history"] = clean_text(row.get("dropped_date", ""))
-        collapsed.append(row)
-
-    return collapsed
+def to_bool(value: object) -> bool:
+    return clean_text(value).lower() in {"1", "true", "yes", "y", "booked", "installed", "converted"}
 
 
 def prepare_records(master: pd.DataFrame) -> list[dict[str, object]]:
@@ -251,40 +96,26 @@ def prepare_records(master: pd.DataFrame) -> list[dict[str, object]]:
         for column in BOOL_COLUMNS:
             if column in record:
                 record[column] = to_bool(record[column])
+        if not clean_text(record.get("macro_cadence")):
+            days = [
+                day
+                for day, column in (
+                    ("3", "has_3_day_followup"),
+                    ("5", "has_5_day_followup"),
+                    ("7", "has_7_day_followup"),
+                )
+                if record.get(column) is True
+            ]
+            record["macro_cadence"] = format_macro_cadence(days)
         for key, value in list(record.items()):
             if not isinstance(value, bool):
                 record[key] = "" if value is None else str(value)
-    return collapse_returned_attempts(records)
-
-
-STARTER_FIELDS = [
-    "onboarding_start_id",
-    "site_id",
-    "onboarding_started_date",
-    "onboarding_started_year",
-    "service_level",
-    "vertical",
-    "previous_ad_network",
-    "current_site_status",
-    "install_date",
-]
-
-
-def prepare_starter_records(starts: pd.DataFrame) -> list[dict[str, object]]:
-    if starts.empty:
-        return []
-    starts = starts.rename(columns=lambda column: str(column).strip().lower())
-    available_fields = [field for field in STARTER_FIELDS if field in starts.columns]
-    records = starts[available_fields].fillna("").to_dict(orient="records")
-    for record in records:
-        for key, value in list(record.items()):
-            record[key] = "" if value is None else str(value)
     return records
 
 
-def render_html(records: list[dict[str, object]], starter_records: list[dict[str, object]], generated_at: str) -> str:
+def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     data_json = json.dumps(records, ensure_ascii=False)
-    starter_data_json = json.dumps(starter_records, ensure_ascii=False)
+    reason_json = json.dumps(APPROVED_DROPPED_REASONS, ensure_ascii=False)
     generated = html.escape(generated_at)
     total = len(records)
     return f"""<!doctype html>
@@ -376,9 +207,6 @@ def render_html(records: list[dict[str, object]], starter_records: list[dict[str
       font-size: 12px;
       font-weight: 650;
     }}
-    .control-title {{
-      display: block;
-    }}
     .cadence-options {{
       display: flex;
       align-items: center;
@@ -424,9 +252,6 @@ def render_html(records: list[dict[str, object]], starter_records: list[dict[str
     .tile {{
       padding: 12px 13px;
       min-height: 82px;
-    }}
-    .tile.has-tooltip {{
-      cursor: help;
     }}
     .tile .label {{
       color: var(--muted);
@@ -602,6 +427,7 @@ def render_html(records: list[dict[str, object]], starter_records: list[dict[str
       color: var(--muted);
       font-size: 11px;
       line-height: 1.25;
+      white-space: pre-line;
     }}
     .empty {{
       color: var(--muted);
@@ -625,22 +451,21 @@ def render_html(records: list[dict[str, object]], starter_records: list[dict[str
     <div class="title-row">
       <div>
         <h1>Onboarding Lifecycle Dashboard</h1>
-        <div class="subtitle">{total} dropped onboarding creators · Generated {generated}</div>
+        <div class="subtitle">{total} sites · Generated {generated}</div>
       </div>
-      <div class="subtitle">Source: outputs/master_creator_lifecycle.csv</div>
     </div>
   </header>
 
   <main>
     <section class="controls" aria-label="Filters">
       <label>Search
-        <input id="search" type="search" placeholder="Creator, lead, owner, reason">
+        <input id="search" type="search" placeholder="Site Name, Site Owner Name, Onboarding Owner, Dropped Reason">
       </label>
       <label>Onboard Year
         <select id="onboard-year"></select>
       </label>
       <label>Returned Year
-        <select id="year"></select>
+        <select id="returned-year"></select>
       </label>
       <label>Service Level
         <select id="service"></select>
@@ -652,7 +477,7 @@ def render_html(records: list[dict[str, object]], starter_records: list[dict[str
         <select id="owner"></select>
       </label>
       <div class="control-group">
-        <span class="control-title">Cadence</span>
+        <span>Cadence</span>
         <div class="cadence-options" id="cadence-options" role="group" aria-label="Cadence follow-up days">
           <label class="cadence-option"><input type="checkbox" name="cadence-day" value="3">3 day</label>
           <label class="cadence-option"><input type="checkbox" name="cadence-day" value="5">5 day</label>
@@ -687,7 +512,7 @@ def render_html(records: list[dict[str, object]], starter_records: list[dict[str
 
     <section class="panel table-panel">
       <div class="table-header">
-        <h2>Dropped Onboard Sites</h2>
+        <h2>Onboarding Lifecycle Sites</h2>
         <span class="subtitle" id="row-count"></span>
       </div>
       <div class="table-wrap">
@@ -695,18 +520,18 @@ def render_html(records: list[dict[str, object]], starter_records: list[dict[str
           <thead>
             <tr>
               <th class="number-col">#</th>
-              <th><button class="sort-button" type="button" data-sort="creator_project_name">Creator <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="lead">Lead <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="service_level">Service <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="creator_project_name">Site Name <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="lead">Creator Name <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="service_level">Service Level <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="vertical">Vertical <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="previous_ad_network">Network <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="onboarding_owner">Owner <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="dropped_date">Dropped <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="dropped_date">Dropped Date <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="reason_category">Dropped Reason Category <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="reason">Dropped Reason <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="macro_cadence">Cadence <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="macro_cadence">Follow-up Cadence <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="cg_involvement">CG Involvement <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="returned_date">Returned <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="returned_date">Returned Date <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="outcome">Outcome <span class="sort-indicator"></span></button></th>
             </tr>
           </thead>
@@ -718,13 +543,13 @@ def render_html(records: list[dict[str, object]], starter_records: list[dict[str
 
   <script>
     const RECORDS = {data_json};
-    const START_RECORDS = {starter_data_json};
+    const APPROVED_REASON_OPTIONS = {reason_json};
+    const EVERYTHING_ELSE_REASON = 'Everything Else';
     const sortState = {{ key: 'dropped_date', direction: 'asc' }};
-
     const fields = {{
       search: document.getElementById('search'),
       onboardYear: document.getElementById('onboard-year'),
-      year: document.getElementById('year'),
+      returnedYear: document.getElementById('returned-year'),
       service: document.getElementById('service'),
       vertical: document.getElementById('vertical'),
       owner: document.getElementById('owner'),
@@ -736,8 +561,47 @@ def render_html(records: list[dict[str, object]], starter_records: list[dict[str
       return (value ?? '').toString();
     }}
 
+    function clean(value) {{
+      return text(value).trim();
+    }}
+
+    function reasonKey(value) {{
+      return clean(value).toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '');
+    }}
+
+    const REASON_ALIASES = new Map(
+      APPROVED_REASON_OPTIONS
+        .filter(value => value !== EVERYTHING_ELSE_REASON)
+        .map(value => [reasonKey(value), value])
+    );
+
+    [
+      ['Set-up cancellation', 'Cancelled pre-onboarding'],
+      ['Setup cancellation', 'Cancelled pre-onboarding'],
+      ['Setup cancelled', 'Cancelled pre-onboarding'],
+      ['Canceled pre-onboarding', 'Cancelled pre-onboarding'],
+      ['Cancelled pre onboarding', 'Cancelled pre-onboarding'],
+      ['Canceled pre onboarding', 'Cancelled pre-onboarding'],
+      ['No reason/vague', 'No reason / Vague'],
+      ['No reason', 'No reason / Vague'],
+      ['No dropped reason captured', 'No reason / Vague'],
+      ['No reason captured', 'No reason / Vague'],
+      ['Vague', 'No reason / Vague'],
+      ['Non responsive', 'Non-responsive'],
+      ['Nonresponsive', 'Non-responsive'],
+      ['RPM CPM comparison', 'RPM/CPM comparison'],
+      ['Low RPM', 'Low RPM/CPM'],
+      ['Low CPM', 'Low RPM/CPM'],
+      ['AdThrive', 'Other']
+    ].forEach(([alias, canonical]) => REASON_ALIASES.set(reasonKey(alias), canonical));
+
+    function display(value) {{
+      const valueText = clean(value);
+      return valueText || 'N/A';
+    }}
+
     function truthy(value) {{
-      return value === true || ['true', '1', 'yes', 'y'].includes(text(value).toLowerCase());
+      return value === true || ['true', '1', 'yes', 'y', 'booked', 'installed', 'converted'].includes(text(value).toLowerCase());
     }}
 
     function pct(part, total) {{
@@ -750,223 +614,57 @@ def render_html(records: list[dict[str, object]], starter_records: list[dict[str
     }}
 
     function optionValue(value) {{
-      const clean = text(value).trim();
-      return clean || 'Unknown';
+      return display(value);
     }}
 
-    function cadenceValue(value) {{
-      const clean = text(value).trim();
-      return clean && clean !== 'Unknown' ? clean : 'None';
+    function hasCadence(row, day) {{
+      return truthy(row[`has_${{day}}_day_followup`]);
     }}
 
-    function cadenceDetail(row) {{
-      const details = [
-        row.zendesk_ticket_ids ? `Tickets: ${{row.zendesk_ticket_ids}}` : '',
-        row.zendesk_ticket_created_dates ? `Created: ${{row.zendesk_ticket_created_dates}}` : '',
-        row.zendesk_ticket_solved_dates ? `Solved: ${{row.zendesk_ticket_solved_dates}}` : ''
-      ].filter(Boolean);
-      return details.length ? details.join('\\n') : cadenceValue(row.macro_cadence);
+    function cadenceValue(row) {{
+      const days = ['3', '5', '7'].filter(day => hasCadence(row, day));
+      if (!days.length) return 'None';
+      if (days.length === 1) return `${{days[0]}} day follow up`;
+      if (days.length === 2) return `${{days[0]}} and ${{days[1]}} day follow up`;
+      return `${{days.slice(0, -1).join(', ')}} and ${{days[days.length - 1]}} day follow up`;
     }}
 
-    function cadenceHasDays(value, requiredDays) {{
-      const days = new Set((text(value).match(/\\b(?:3|5|7|10)\\b/g) || []));
-      return requiredDays.every(day => days.has(day));
-    }}
+    function normalizedReason(row) {{
+      const existing = clean(row.normalized_dropped_reason);
+      if (APPROVED_REASON_OPTIONS.includes(existing)) return existing;
 
-    function cadenceHasAnyDays(value, targetDays) {{
-      const days = new Set((text(value).match(/\\b(?:3|5|7|10)\\b/g) || []));
-      return targetDays.some(day => days.has(day));
-    }}
+      const candidates = [row.dropped_reason, row.dropped_reason_category, row.cancellation_reason]
+        .map(value => clean(value))
+        .filter(Boolean);
 
-    function splitList(value) {{
-      return text(value).split(';').map(item => item.trim()).filter(Boolean);
-    }}
-
-    function uniqueList(values) {{
-      return [...new Set(values.filter(Boolean))];
-    }}
-
-    function ownerParts(row) {{
-      return uniqueList([...splitList(row.onboarding_owner), ...splitList(row.returning_owner)]);
-    }}
-
-    function ownerValue(row) {{
-      const owners = ownerParts(row);
-      return owners.length ? owners.join('; ') : 'Unknown';
-    }}
-
-    function ownerDetail(row) {{
-      const dropped = splitList(row.onboarding_owner).join('; ');
-      const returning = splitList(row.returning_owner).join('; ');
-      const details = [
-        dropped ? `Dropped owner: ${{dropped}}` : '',
-        returning ? `Returning owner: ${{returning}}` : ''
-      ].filter(Boolean);
-      return details.length ? details.join('\\n') : ownerValue(row);
-    }}
-
-    function yearValue(value) {{
-      const clean = text(value).trim();
-      if (!clean) return '';
-      const parsed = new Date(clean);
-      return Number.isNaN(parsed.getTime()) ? '' : String(parsed.getUTCFullYear());
-    }}
-
-    function dateInYear(value, year) {{
-      const clean = text(value).trim();
-      if (!clean || !year) return false;
-      const parsed = new Date(clean);
-      if (Number.isNaN(parsed.getTime())) return false;
-      const start = Date.UTC(Number(year), 0, 1);
-      const end = Date.UTC(Number(year) + 1, 0, 1);
-      return parsed.getTime() >= start && parsed.getTime() < end;
-    }}
-
-    function dateYears(value) {{
-      const years = new Set();
-      text(value).split(/[;,\\n]+/).forEach(part => {{
-        const clean = part.trim();
-        if (!clean) return;
-        const parsed = new Date(clean);
-        if (!Number.isNaN(parsed.getTime())) {{
-          years.add(String(parsed.getUTCFullYear()));
-          return;
-        }}
-        const match = clean.match(/\\b(19\\d{{2}}|20\\d{{2}})\\b/);
-        if (match) years.add(match[1]);
-      }});
-      return [...years];
-    }}
-
-    function rowOnboardYears(row) {{
-      const startedYears = dateYears(row.onboarding_started_dates || row.onboarding_started_date);
-      return startedYears.length ? startedYears : dateYears(row.dropped_dates || row.dropped_date);
-    }}
-
-    function rowMatchesOnboardYear(row, year) {{
-      return !year || rowOnboardYears(row).includes(year);
-    }}
-
-    function startRecordYear(row) {{
-      return text(row.onboarding_started_year).trim() || dateYears(row.onboarding_started_date)[0] || '';
-    }}
-
-    const GENERIC_REASON_VALUES = new Set(['Dropped', 'Canceled', 'Cancelled', 'Prior site dropped status']);
-    const NO_DROPPED_REASON = 'No dropped reason captured';
-    const NO_REASON_CATEGORY = 'No dropped reason category captured';
-
-    function isUsefulReason(value) {{
-      const clean = text(value).trim();
-      return clean && !GENERIC_REASON_VALUES.has(clean);
+      if (!candidates.length) return '';
+      return REASON_ALIASES.get(reasonKey(candidates[0])) || EVERYTHING_ELSE_REASON;
     }}
 
     function reasonCategoryValue(row) {{
-      const category = text(row.dropped_reason_category).trim();
-      return isUsefulReason(category) ? category : NO_REASON_CATEGORY;
+      return normalizedReason(row) || 'N/A';
     }}
 
     function reasonValue(row) {{
-      const reason = text(row.dropped_reason).trim();
-      return isUsefulReason(reason) ? reason : NO_DROPPED_REASON;
+      return display(row.dropped_reason);
     }}
 
-    function reasonDetail(row) {{
-      const details = [
-        isUsefulReason(row.dropped_reason_category) ? `Dropped reason category: ${{text(row.dropped_reason_category)}}` : '',
-        isUsefulReason(row.cancellation_reason) ? `Cancellation reason: ${{text(row.cancellation_reason)}}` : ''
-      ].filter(Boolean);
-      return details.length ? details.join('\\n') : reasonValue(row);
+    function yearValue(row, key, dateKey) {{
+      const explicit = clean(row[key]);
+      if (explicit) return explicit;
+      const value = clean(row[dateKey]);
+      if (!value) return '';
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? '' : String(parsed.getUTCFullYear());
     }}
 
-    function displayValue(row, key) {{
-      if (key === 'lead') return text(row.lead_contact || row.company_name);
-      if (key === 'reason_category') return reasonCategoryValue(row);
-      if (key === 'reason') return reasonValue(row);
-      if (key === 'macro_cadence') return cadenceValue(row.macro_cadence);
-      if (key === 'cg_involvement') return text(row.cg_involvement || 'Not Assisted');
-      if (key === 'onboarding_owner') return ownerValue(row);
-      return text(row[key]);
+    function ownerParts(row) {{
+      return clean(row.onboarding_owner).split(';').map(item => item.trim()).filter(Boolean);
     }}
 
-    function dateSortValue(value) {{
-      const clean = text(value).trim();
-      if (!clean) return Number.POSITIVE_INFINITY;
-      const parsed = Date.parse(clean);
-      return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
-    }}
-
-    function sortValue(row, key) {{
-      if (key === 'dropped_date') return dateSortValue(row.dropped_sort_date || row.latest_dropped_date || row.dropped_date);
-      if (key === 'returned_date') return dateSortValue(row[key]);
-      const value = displayValue(row, key).trim().toLowerCase();
-      return value || 'zzzzzz';
-    }}
-
-    function sortMissing(row, key) {{
-      if (key === 'dropped_date') return !text(row.dropped_sort_date || row.latest_dropped_date || row.dropped_date).trim();
-      if (key === 'returned_date') return !text(row[key]).trim();
-      const value = displayValue(row, key).trim();
-      return !value || value === 'Unknown' || value === NO_DROPPED_REASON || value === NO_REASON_CATEGORY;
-    }}
-
-    function sortRows(rows) {{
-      return [...rows].sort((a, b) => {{
-        const leftMissing = sortMissing(a, sortState.key);
-        const rightMissing = sortMissing(b, sortState.key);
-        if (leftMissing !== rightMissing) return leftMissing ? 1 : -1;
-        const left = sortValue(a, sortState.key);
-        const right = sortValue(b, sortState.key);
-        let comparison;
-        if (typeof left === 'number' && typeof right === 'number') {{
-          comparison = left - right;
-        }} else {{
-          comparison = String(left).localeCompare(String(right), undefined, {{ numeric: true, sensitivity: 'base' }});
-        }}
-        if (comparison === 0) {{
-          comparison = text(a.creator_project_name).localeCompare(text(b.creator_project_name), undefined, {{ sensitivity: 'base' }});
-        }}
-        return sortState.direction === 'asc' ? comparison : -comparison;
-      }});
-    }}
-
-    function updateSortIndicators() {{
-      document.querySelectorAll('.sort-button').forEach(button => {{
-        const active = button.dataset.sort === sortState.key;
-        button.setAttribute('aria-sort', active ? (sortState.direction === 'asc' ? 'ascending' : 'descending') : 'none');
-        const indicator = button.querySelector('.sort-indicator');
-        if (indicator) indicator.textContent = active ? (sortState.direction === 'asc' ? '▲' : '▼') : '';
-      }});
-    }}
-
-    function populateSelect(id, key, formatter = optionValue) {{
-      const select = document.getElementById(id);
-      const values = [...new Set(RECORDS.map(row => formatter(row[key])))].sort((a, b) => a.localeCompare(b));
-      select.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
-    }}
-
-    function populateYearSelect() {{
-      const select = fields.year;
-      const values = [...new Set(RECORDS.map(row => yearValue(row.returned_date)).filter(Boolean))]
-        .sort((a, b) => b.localeCompare(a));
-      select.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
-    }}
-
-    function populateOnboardYearSelect() {{
-      const values = [...new Set([
-        ...RECORDS.flatMap(row => rowOnboardYears(row)),
-        ...START_RECORDS.map(row => startRecordYear(row)).filter(Boolean)
-      ])].sort((a, b) => b.localeCompare(a));
-      fields.onboardYear.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
-    }}
-
-    function populateReasonSelect() {{
-      const values = [...new Set(RECORDS.map(row => reasonValue(row)))].sort((a, b) => a.localeCompare(b));
-      fields.reason.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
-    }}
-
-    function populateOwnerSelect() {{
-      const values = uniqueList(RECORDS.flatMap(row => ownerParts(row))).sort((a, b) => a.localeCompare(b));
-      fields.owner.innerHTML = '<option value="">All</option>' + values.map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`).join('');
+    function ownerValue(row) {{
+      const owners = [...new Set(ownerParts(row))];
+      return owners.length ? owners.join('; ') : 'N/A';
     }}
 
     function selectedCadenceDays() {{
@@ -981,38 +679,51 @@ def render_html(records: list[dict[str, object]], starter_records: list[dict[str
       return escapeHtml(value).replace(/`/g, '&#096;');
     }}
 
-    function filtered(options = {{}}) {{
-      const includeReturnedYear = options.includeReturnedYear !== false;
+    function populateSelect(select, values) {{
+      select.innerHTML = '<option value="">All</option>' + values
+        .map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`)
+        .join('');
+    }}
+
+    function populateFilters() {{
+      populateSelect(fields.onboardYear, [...new Set(RECORDS.map(row => yearValue(row, 'onboard_year', 'install_date')).filter(Boolean))].sort((a, b) => b.localeCompare(a)));
+      populateSelect(fields.returnedYear, [...new Set(RECORDS.map(row => yearValue(row, 'returned_year', 'returned_date')).filter(Boolean))].sort((a, b) => b.localeCompare(a)));
+      populateSelect(fields.service, [...new Set(RECORDS.map(row => optionValue(row.service_level)))].sort((a, b) => a.localeCompare(b)));
+      populateSelect(fields.vertical, [...new Set(RECORDS.map(row => optionValue(row.vertical)))].sort((a, b) => a.localeCompare(b)));
+      populateSelect(fields.owner, [...new Set(RECORDS.flatMap(ownerParts))].sort((a, b) => a.localeCompare(b)));
+      populateSelect(fields.reason, APPROVED_REASON_OPTIONS);
+    }}
+
+    function filtered() {{
       const query = fields.search.value.trim().toLowerCase();
+      const cadenceDays = selectedCadenceDays();
       return RECORDS.filter(row => {{
-        if (fields.onboardYear.value && !rowMatchesOnboardYear(row, fields.onboardYear.value)) return false;
-        if (includeReturnedYear && fields.year.value && !dateInYear(row.returned_date, fields.year.value)) return false;
+        if (fields.onboardYear.value && yearValue(row, 'onboard_year', 'install_date') !== fields.onboardYear.value) return false;
+        if (fields.returnedYear.value && yearValue(row, 'returned_year', 'returned_date') !== fields.returnedYear.value) return false;
         if (fields.service.value && optionValue(row.service_level) !== fields.service.value) return false;
         if (fields.vertical.value && optionValue(row.vertical) !== fields.vertical.value) return false;
         if (fields.owner.value && !ownerParts(row).includes(fields.owner.value)) return false;
-        const cadenceDays = selectedCadenceDays();
-        if (cadenceDays.length && !cadenceHasAnyDays(row.macro_cadence, cadenceDays)) return false;
-        if (fields.reason.value && reasonValue(row) !== fields.reason.value) return false;
+        if (cadenceDays.length && !cadenceDays.some(day => hasCadence(row, day))) return false;
+        if (fields.reason.value && normalizedReason(row) !== fields.reason.value) return false;
         if (!query) return true;
         const haystack = [
           row.creator_project_name,
           row.lead_contact,
           row.company_name,
           row.site_id,
+          row.domain,
           row.onboarding_owner,
-          row.returning_owner,
+          row.previous_ad_network,
+          row.current_status,
           row.dropped_reason,
           row.dropped_reason_category,
+          row.normalized_dropped_reason,
           row.cancellation_reason,
-          row.zendesk_ticket_ids,
-          row.zendesk_ticket_created_dates,
-          row.zendesk_ticket_solved_dates,
-          row.drop_history,
-          row.dropped_status,
-          row.dropped_date,
+          row.raw_description,
+          row.dropped_dates,
+          row.install_history,
           row.returned_date,
           row.outcome,
-          row.previous_ad_network,
           row.vertical,
           row.service_level
         ].map(text).join(' ').toLowerCase();
@@ -1020,100 +731,10 @@ def render_html(records: list[dict[str, object]], starter_records: list[dict[str
       }});
     }}
 
-    function startRecordKey(row) {{
-      return text(row.onboarding_start_id).trim()
-        || [text(row.site_id).trim(), text(row.onboarding_started_date).trim()].filter(Boolean).join('|');
-    }}
-
-    function dropRowKey(row) {{
-      return text(row.site_id).trim()
-        || text(row.salesforce_project_id).trim()
-        || text(row.lifecycle_creator_id).trim()
-        || text(row.creator_project_name).trim();
-    }}
-
-    function uniqueCount(rows, keyFn) {{
-      return new Set(rows.map(keyFn).filter(Boolean)).size;
-    }}
-
-    function filteredStarterRecords() {{
-      return START_RECORDS.filter(row => {{
-        if (fields.onboardYear.value && startRecordYear(row) !== fields.onboardYear.value) return false;
-        if (fields.service.value && optionValue(row.service_level) !== fields.service.value) return false;
-        if (fields.vertical.value && optionValue(row.vertical) !== fields.vertical.value) return false;
-        return true;
-      }});
-    }}
-
-    function dropoffRateSummary() {{
-      const rateRows = filtered({{ includeReturnedYear: false }});
-      const dropped = uniqueCount(rateRows, dropRowKey);
-      if (!START_RECORDS.length) {{
-        return {{
-          available: false,
-          dropped,
-          started: 0,
-          value: 'N/A',
-          note: 'Needs starter data',
-          tooltip: 'Run the Snowflake pull so data/raw/snowflake_onboarding_starts.csv can supply all onboarding starts from SITE_HISTORY.'
-        }};
-      }}
-
-      const started = uniqueCount(filteredStarterRecords(), startRecordKey);
-      const cadenceDays = selectedCadenceDays();
-      const caveats = [];
-      if (cadenceDays.length) caveats.push('The cadence filter currently narrows dropped rows only, because completed/non-dropped macro recipients are not yet in the denominator.');
-      if (fields.year.value) caveats.push('Returned Year is not used for the drop-off denominator; use Onboard Year for the rate period.');
-      if (fields.owner.value || fields.reason.value || fields.search.value.trim()) caveats.push('The denominator is filtered by Onboard Year, Service Level, and Vertical only.');
-      return {{
-        available: true,
-        dropped,
-        started,
-        value: started ? pct(dropped, started) : 'N/A',
-        note: started ? `${{dropped}} of ${{started}} starts` : 'No matching starts',
-        tooltip: `Drop-off Rate = dropped onboard creators divided by SITE_HISTORY onboarding starts. ${{caveats.join(' ')}}`.trim()
-      }};
-    }}
-
-    function summarize(rows) {{
-      const total = rows.length;
-      const reengaged = rows.filter(row => truthy(row.reengaged)).length;
-      const returnedWithCadence = rows.filter(row => truthy(row.reengaged) && cadenceHasAnyDays(row.macro_cadence, ['3', '5', '7'])).length;
-      const rise = rows.filter(row => text(row.service_level).toLowerCase() === 'rise').length;
-      return {{ total, reengaged, returnedWithCadence, rise }};
-    }}
-
-    function renderKpis(rows) {{
-      const s = summarize(rows);
-      const dropoff = dropoffRateSummary();
-      const tiles = [
-        {{ label: 'Dropped onboards', value: s.total, note: 'Filtered rows' }},
-        {{ label: 'Drop-off rate', value: dropoff.value, note: dropoff.note, tooltip: dropoff.tooltip }},
-        {{ label: 'Returned', value: s.reengaged, note: pct(s.reengaged, s.total) }},
-        {{
-          label: 'Re-engaged & Installed',
-          value: pct(s.returnedWithCadence, s.total),
-          note: `${{s.returnedWithCadence}} of ${{s.total}} sites`,
-          tooltip: 'Percentage of sites that received a 3, 5, or 7 day follow up and returned.'
-        }},
-        {{ label: 'Rise creators', value: s.rise, note: pct(s.rise, s.total) }}
-      ];
-      document.getElementById('kpis').innerHTML = tiles.map(tile => {{
-        const tooltip = tile.tooltip ? ` title="${{escapeAttr(tile.tooltip)}}" aria-label="${{escapeAttr(`${{tile.label}}: ${{tile.tooltip}}`)}}"` : '';
-        return `
-        <div class="tile${{tile.tooltip ? ' has-tooltip' : ''}}"${{tooltip}}>
-          <div class="label">${{escapeHtml(tile.label)}}</div>
-          <div class="value">${{escapeHtml(tile.value)}}</div>
-          <div class="note">${{escapeHtml(tile.note)}}</div>
-        </div>
-      `;
-      }}).join('');
-    }}
-
-    function groupCounts(rows, key, limit = 8, formatter = optionValue) {{
+    function groupCounts(rows, formatter, limit = 8) {{
       const counts = new Map();
       rows.forEach(row => {{
-        const value = formatter(row[key], row);
+        const value = formatter(row);
         counts.set(value, (counts.get(value) || 0) + 1);
       }});
       return [...counts.entries()]
@@ -1141,19 +762,94 @@ def render_html(records: list[dict[str, object]], starter_records: list[dict[str
       }}).join('');
     }}
 
-    function statusPill(value, label = 'Yes') {{
-      return truthy(value)
-        ? `<span class="status">${{escapeHtml(label)}}</span>`
-        : '<span class="status no">No</span>';
+    function summarize(rows) {{
+      const total = rows.length;
+      const dropped = rows.filter(row => clean(row.outcome) === 'Dropped').length;
+      const returned = rows.filter(row => clean(row.outcome) === 'Returned').length;
+      const returnedWithCadence = rows.filter(row => clean(row.outcome) === 'Returned' && ['3', '5', '7'].some(day => hasCadence(row, day))).length;
+      const rise = rows.filter(row => clean(row.service_level).toLowerCase() === 'rise').length;
+      return {{ total, dropped, returned, returnedWithCadence, rise }};
     }}
 
-    function outcome(row) {{
-      if (text(row.outcome).trim()) return `<span class="${{row.outcome === 'Dropped' ? 'status no' : row.outcome === 'Returned' ? 'status warn' : 'status'}}">${{escapeHtml(row.outcome)}}</span>`;
-      if (truthy(row.install_completed) && cadenceHasDays(row.macro_cadence, ['3', '5', '7'])) {{
-        return '<span class="status">Re-engaged &amp; Installed</span>';
-      }}
-      if (truthy(row.reengaged) || text(row.returned_date).trim()) return '<span class="status warn">Returned</span>';
-      return '<span class="status no">Dropped</span>';
+    function renderKpis(rows) {{
+      const s = summarize(rows);
+      const tiles = [
+        {{ label: 'Sites', value: s.total, note: 'Filtered rows' }},
+        {{ label: 'Dropped rate', value: pct(s.dropped, s.total), note: `${{s.dropped}} of ${{s.total}} sites` }},
+        {{ label: 'Returned', value: s.returned, note: pct(s.returned, s.total) }},
+        {{ label: 'Returned with cadence', value: pct(s.returnedWithCadence, s.total), note: `${{s.returnedWithCadence}} of ${{s.total}} sites` }},
+        {{ label: 'Rise creators', value: s.rise, note: pct(s.rise, s.total) }}
+      ];
+      document.getElementById('kpis').innerHTML = tiles.map(tile => `
+        <div class="tile">
+          <div class="label">${{escapeHtml(tile.label)}}</div>
+          <div class="value">${{escapeHtml(tile.value)}}</div>
+          <div class="note">${{escapeHtml(tile.note)}}</div>
+        </div>
+      `).join('');
+    }}
+
+    function statusClass(outcome) {{
+      if (outcome === 'Dropped' || outcome === 'Inactive') return 'status no';
+      if (outcome === 'Returned') return 'status warn';
+      return 'status';
+    }}
+
+    function displayValue(row, key) {{
+      if (key === 'lead') return display(row.lead_contact || row.company_name);
+      if (key === 'reason_category') return reasonCategoryValue(row);
+      if (key === 'reason') return reasonValue(row);
+      if (key === 'macro_cadence') return cadenceValue(row);
+      if (key === 'cg_involvement') return display(row.cg_involvement || 'Not Assisted');
+      if (key === 'onboarding_owner') return ownerValue(row);
+      return display(row[key]);
+    }}
+
+    function dateSortValue(value) {{
+      const valueText = clean(value);
+      if (!valueText) return Number.POSITIVE_INFINITY;
+      const parsed = Date.parse(valueText);
+      return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
+    }}
+
+    function sortValue(row, key) {{
+      if (key === 'dropped_date' || key === 'returned_date') return dateSortValue(row[key]);
+      return displayValue(row, key).toLowerCase();
+    }}
+
+    function sortRows(rows) {{
+      return [...rows].sort((a, b) => {{
+        const left = sortValue(a, sortState.key);
+        const right = sortValue(b, sortState.key);
+        let comparison = typeof left === 'number' && typeof right === 'number'
+          ? left - right
+          : String(left).localeCompare(String(right), undefined, {{ numeric: true, sensitivity: 'base' }});
+        if (comparison === 0) comparison = display(a.creator_project_name).localeCompare(display(b.creator_project_name), undefined, {{ sensitivity: 'base' }});
+        return sortState.direction === 'asc' ? comparison : -comparison;
+      }});
+    }}
+
+    function updateSortIndicators() {{
+      document.querySelectorAll('.sort-button').forEach(button => {{
+        const active = button.dataset.sort === sortState.key;
+        button.setAttribute('aria-sort', active ? (sortState.direction === 'asc' ? 'ascending' : 'descending') : 'none');
+        const indicator = button.querySelector('.sort-indicator');
+        if (indicator) indicator.textContent = active ? (sortState.direction === 'asc' ? '▲' : '▼') : '';
+      }});
+    }}
+
+    function outcomePill(row) {{
+      const value = display(row.outcome);
+      return `<span class="${{statusClass(value)}}">${{escapeHtml(value)}}</span>`;
+    }}
+
+    function rowDetails(row) {{
+      const parts = [
+        clean(row.current_status) ? `Current status: ${{row.current_status}}` : '',
+        clean(row.install_history) ? `Install history: ${{row.install_history}}` : '',
+        clean(row.dropped_dates) ? `Dropped history: ${{row.dropped_dates}}` : ''
+      ].filter(Boolean);
+      return parts.join('\\n');
     }}
 
     function renderTable(rows) {{
@@ -1163,21 +859,21 @@ def render_html(records: list[dict[str, object]], starter_records: list[dict[str
         <tr>
           <td class="number-col">${{index + 1}}</td>
           <td>
-            <strong>${{escapeHtml(row.creator_project_name)}}</strong>
+            <strong>${{escapeHtml(display(row.creator_project_name))}}</strong>
             ${{number(row.drop_count) > 1 ? `<div class="cell-note">${{number(row.drop_count)}} dropped attempts</div>` : ''}}
           </td>
-          <td>${{escapeHtml(row.lead_contact || row.company_name)}}</td>
-          <td>${{escapeHtml(row.service_level || 'Unknown')}}</td>
-          <td>${{escapeHtml(row.vertical || 'Unknown')}}</td>
-          <td>${{escapeHtml(row.previous_ad_network || 'Unknown')}}</td>
-          <td title="${{escapeAttr(ownerDetail(row))}}">${{escapeHtml(ownerValue(row))}}</td>
-          <td title="${{escapeAttr(row.drop_history || row.dropped_date)}}">${{escapeHtml(row.dropped_date)}}</td>
+          <td>${{escapeHtml(display(row.lead_contact || row.company_name))}}</td>
+          <td>${{escapeHtml(display(row.service_level))}}</td>
+          <td>${{escapeHtml(display(row.vertical))}}</td>
+          <td>${{escapeHtml(display(row.previous_ad_network))}}</td>
+          <td>${{escapeHtml(ownerValue(row))}}</td>
+          <td title="${{escapeAttr(rowDetails(row))}}">${{escapeHtml(display(row.dropped_date))}}</td>
           <td>${{escapeHtml(reasonCategoryValue(row))}}</td>
-          <td title="${{escapeAttr(reasonDetail(row))}}">${{escapeHtml(reasonValue(row))}}</td>
-          <td title="${{escapeAttr(cadenceDetail(row))}}">${{escapeHtml(cadenceValue(row.macro_cadence))}}</td>
-          <td>${{escapeHtml(row.cg_involvement || 'Not Assisted')}}</td>
-          <td>${{escapeHtml(row.returned_date)}}</td>
-          <td>${{outcome(row)}}</td>
+          <td title="${{escapeAttr(row.raw_description || row.cancellation_reason || row.dropped_reason)}}">${{escapeHtml(reasonValue(row))}}</td>
+          <td>${{escapeHtml(cadenceValue(row))}}</td>
+          <td>${{escapeHtml(display(row.cg_involvement || 'Not Assisted'))}}</td>
+          <td>${{escapeHtml(display(row.returned_date))}}</td>
+          <td title="${{escapeAttr(rowDetails(row))}}">${{outcomePill(row)}}</td>
         </tr>
       `).join('');
     }}
@@ -1185,24 +881,23 @@ def render_html(records: list[dict[str, object]], starter_records: list[dict[str
     function render() {{
       const rows = sortRows(filtered());
       renderKpis(rows);
-      renderBars('service-bars', groupCounts(rows, 'service_level'), '');
-      renderBars('reason-bars', groupCounts(rows, 'dropped_reason', 8, (_value, row) => reasonValue(row)), 'amber');
-      renderBars('cg-bars', groupCounts(rows, 'cg_involvement'), 'blue');
-      renderBars('network-bars', groupCounts(rows, 'previous_ad_network'), 'rose');
-      document.getElementById('service-count').textContent = `${{groupCounts(rows, 'service_level', 50).length}} segments`;
-      document.getElementById('reason-count').textContent = `${{groupCounts(rows, 'dropped_reason', 50, (_value, row) => reasonValue(row)).length}} reasons`;
-      document.getElementById('cg-count').textContent = `${{groupCounts(rows, 'cg_involvement', 50).length}} groups`;
-      document.getElementById('network-count').textContent = `${{groupCounts(rows, 'previous_ad_network', 50).length}} networks`;
+      const service = groupCounts(rows, row => optionValue(row.service_level));
+      const reasons = groupCounts(rows, row => reasonCategoryValue(row));
+      const cg = groupCounts(rows, row => display(row.cg_involvement || 'Not Assisted'));
+      const networks = groupCounts(rows, row => optionValue(row.previous_ad_network));
+      renderBars('service-bars', service);
+      renderBars('reason-bars', reasons, 'amber');
+      renderBars('cg-bars', cg, 'blue');
+      renderBars('network-bars', networks, 'rose');
+      document.getElementById('service-count').textContent = `${{groupCounts(rows, row => optionValue(row.service_level), 1000).length}} segments`;
+      document.getElementById('reason-count').textContent = `${{groupCounts(rows, row => reasonCategoryValue(row), 1000).length}} reasons`;
+      document.getElementById('cg-count').textContent = `${{groupCounts(rows, row => display(row.cg_involvement || 'Not Assisted'), 1000).length}} groups`;
+      document.getElementById('network-count').textContent = `${{groupCounts(rows, row => optionValue(row.previous_ad_network), 1000).length}} networks`;
       renderTable(rows);
       updateSortIndicators();
     }}
 
-    populateOnboardYearSelect();
-    populateYearSelect();
-    populateSelect('service', 'service_level');
-    populateSelect('vertical', 'vertical');
-    populateOwnerSelect();
-    populateReasonSelect();
+    populateFilters();
     Object.values(fields).forEach(control => control.addEventListener('input', render));
     Object.values(fields).forEach(control => control.addEventListener('change', render));
     document.querySelectorAll('.sort-button').forEach(button => {{
@@ -1231,10 +926,8 @@ def run() -> Path:
     if not master_path.exists():
         raise RuntimeError("master_creator_lifecycle.csv is missing. Run generate_outputs.py first.")
     master = read_csv(master_path)
-    starts = read_csv_if_exists(settings.raw_data_dir / "snowflake_onboarding_starts.csv")
     records = prepare_records(master)
-    starter_records = prepare_starter_records(starts)
-    html_output = render_html(records, starter_records, datetime.now().strftime("%Y-%m-%d %H:%M"))
+    html_output = render_html(records, datetime.now().strftime("%Y-%m-%d %H:%M"))
 
     output_path = settings.output_dir / "lifecycle_dashboard.html"
     output_path.write_text(html_output, encoding="utf-8")

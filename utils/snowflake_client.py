@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pandas as pd
 
 try:
@@ -8,6 +10,24 @@ except ImportError:
     snowflake = None
 
 from utils.config import Settings
+
+
+ROOT = Path(__file__).resolve().parents[1]
+FULL_SITE_HISTORY_QUERY_PATH = ROOT / "queries" / "full_site_history_lifecycle.sql"
+
+
+def load_full_site_history_query() -> str:
+    if not FULL_SITE_HISTORY_QUERY_PATH.exists():
+        raise RuntimeError(
+            "queries/full_site_history_lifecycle.sql is missing. Add the approved full site-history SQL first."
+        )
+    query = FULL_SITE_HISTORY_QUERY_PATH.read_text(encoding="utf-8").strip()
+    if not query or "PASTE_FULL_SITE_HISTORY_SQL_HERE" in query:
+        raise RuntimeError(
+            "queries/full_site_history_lifecycle.sql still contains the placeholder. "
+            "Paste the approved full site-history SQL before forcing a Snowflake pull."
+        )
+    return query
 
 
 DROPPED_ONBOARDS_QUERY = """

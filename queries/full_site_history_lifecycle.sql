@@ -1,0 +1,97 @@
+WITH current_sites AS (
+    SELECT
+        seh.SITE_ID,
+        seh.SITE_NAME,
+        seh.SERVICE_LEVEL,
+        seh.VERTICALS,
+        seh.PRIMARY_VERTICAL,
+        seh.PREVIOUS_AD_NETWORK,
+        seh.OWNER_USER_ID,
+        seh.INSTALL_DATE,
+        seh.STATUS,
+        seh.URL,
+        ROW_NUMBER() OVER (PARTITION BY seh.SITE_ID ORDER BY seh.CREATED_ON DESC) AS rn
+    FROM ANALYTICS.ADTHRIVE.SITE_EXTENDED_HISTORY seh
+),
+latest_site AS (
+    SELECT *
+    FROM current_sites
+    WHERE rn = 1
+),
+returned_sites AS (
+    SELECT
+        off.SITE_ID,
+        off.CREATED_AT AS DROPPED_DATE,
+        off.DROPPED_REASON_CATEGORY,
+        off.DROPPED_REASON
+    FROM ANALYTICS.ADTHRIVE.SITE_OFFBOARDING off
+    QUALIFY ROW_NUMBER() OVER (PARTITION BY off.SITE_ID ORDER BY off.CREATED_AT DESC) = 1
+),
+zendesk_followups AS (
+    SELECT
+        d.value::STRING AS DOMAIN,
+        MAX(CASE WHEN t.value::STRING = '3_day_follow_up' THEN TRUE ELSE FALSE END) AS HAS_3_DAY_FOLLOWUP,
+        MAX(CASE WHEN t.value::STRING = '5_day_follow_up' THEN TRUE ELSE FALSE END) AS HAS_5_DAY_FOLLOWUP,
+        MAX(CASE WHEN t.value::STRING = '7_day_follow_up' THEN TRUE ELSE FALSE END) AS HAS_7_DAY_FOLLOWUP
+    FROM HYAK_AIRBYTE_PRODUCTION.MARKETING_OPS.ZENDESK_TICKETS zt
+    JOIN HYAK_AIRBYTE_PRODUCTION.MARKETING_OPS.ZENDESK_ORGANIZATIONS zo
+        ON zt.ORGANIZATION_ID = zo.ID,
+        LATERAL FLATTEN(input => zt.TAGS) t,
+        LATERAL FLATTEN(input => zo.DOMAIN_NAMES) d
+    WHERE t.value::STRING IN ('3_day_follow_up', '5_day_follow_up', '7_day_follow_up')
+    GROUP BY d.value::STRING
+),
+onboard_owner AS (
+    SELECT
+        acct.SITE_ID,
+        su.NAME AS ONBOARD_OWNER_NAME
+    FROM ANALYTICS.SALESFORCE.MPM4_BASE__MILESTONE1_PROJECT__C mpm
+    JOIN ANALYTICS.SALESFORCE.ACCOUNT acct
+        ON mpm.MPM4_BASE__ACCOUNT__C = acct.ACCOUNT_ID
+    JOIN ANALYTICS.SALESFORCE.USER su
+        ON mpm.OWNERID = su.ID
+    WHERE mpm.RECORD_TYPE_NAME__C = 'Onboarding'
+    QUALIFY ROW_NUMBER() OVER (PARTITION BY acct.SITE_ID ORDER BY mpm.CREATEDDATE DESC) = 1
+),
+cg_involvement AS (
+    SELECT
+        LOWER(REGEXP_REPLACE(WEBSITE, '^https?://(www\\.)?', '')) AS CLEAN_DOMAIN,
+        CG_EFFORT__C,
+        CG_INVOLVEMENT__C
+    FROM ANALYTICS.SALESFORCE.LEAD
+    WHERE CG_EFFORT__C = TRUE
+       OR CG_INVOLVEMENT__C IS NOT NULL
+    QUALIFY ROW_NUMBER() OVER (
+        PARTITION BY LOWER(REGEXP_REPLACE(WEBSITE, '^https?://(www\\.)?', ''))
+        ORDER BY CREATEDDATE DESC
+    ) = 1
+)
+SELECT
+    ls.SITE_ID,
+    ls.SITE_NAME,
+    creator.NAME AS SITE_OWNER_NAME,
+    ls.SERVICE_LEVEL,
+    COALESCE(ls.PRIMARY_VERTICAL, ls.VERTICALS) AS VERTICAL,
+    ls.PREVIOUS_AD_NETWORK,
+    oo.ONBOARD_OWNER_NAME,
+    ls.STATUS AS SITE_STATUS,
+    rs.DROPPED_DATE,
+    rs.DROPPED_REASON_CATEGORY,
+    rs.DROPPED_REASON,
+    zf.HAS_3_DAY_FOLLOWUP,
+    zf.HAS_5_DAY_FOLLOWUP,
+    zf.HAS_7_DAY_FOLLOWUP,
+    cg.CG_EFFORT__C AS CG_ASSISTED,
+    cg.CG_INVOLVEMENT__C AS CG_INVOLVEMENT,
+    ls.INSTALL_DATE
+FROM latest_site ls
+LEFT JOIN ANALYTICS.ADTHRIVE.USER creator
+    ON ls.OWNER_USER_ID = creator.ID
+LEFT JOIN returned_sites rs
+    ON ls.SITE_ID = rs.SITE_ID
+LEFT JOIN onboard_owner oo
+    ON ls.SITE_ID = oo.SITE_ID
+LEFT JOIN zendesk_followups zf
+    ON zf.DOMAIN = LOWER(REGEXP_REPLACE(REGEXP_REPLACE(ls.URL, '^https?://(www\\.)?', ''), '/$', ''))
+LEFT JOIN cg_involvement cg
+    ON cg.CLEAN_DOMAIN = LOWER(REGEXP_REPLACE(REGEXP_REPLACE(ls.URL, '^https?://(www\\.)?', ''), '/$', ''))
