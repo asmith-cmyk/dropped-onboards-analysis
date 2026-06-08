@@ -567,6 +567,16 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return valueText || 'N/A';
     }}
 
+    function displayLabel(value) {{
+      const valueText = clean(value);
+      const letters = valueText.match(/[A-Za-z]/g) || [];
+      if (letters.length && /[A-Z]/.test(valueText) && !/[a-z]/.test(valueText)) {{
+        const lowered = valueText.toLowerCase();
+        return lowered.charAt(0).toUpperCase() + lowered.slice(1);
+      }}
+      return valueText || 'N/A';
+    }}
+
     function truthy(value) {{
       return value === true || ['true', '1', 'yes', 'y', 'booked', 'installed', 'converted'].includes(text(value).toLowerCase());
     }}
@@ -597,11 +607,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function reasonCategoryValue(row) {{
-      return display(row.dropped_reason_category);
+      return displayLabel(row.dropped_reason_category);
     }}
 
     function reasonValue(row) {{
-      return display(row.dropped_reason);
+      return displayLabel(row.dropped_reason);
     }}
 
     function reasonOptionKey(category, reason) {{

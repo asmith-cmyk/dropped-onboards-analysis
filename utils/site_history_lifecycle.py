@@ -6,7 +6,7 @@ from typing import Iterable
 import pandas as pd
 
 from utils.columns import format_date_for_output
-from utils.io import clean_blank
+from utils.io import clean_blank, display_label
 from utils.lifecycle import MASTER_COLUMNS
 from utils.reasons import normalize_dropped_reason
 from utils.text import normalize_creator_name
@@ -208,8 +208,8 @@ def _build_group_row(site_key: str, group: pd.DataFrame) -> dict[str, object]:
     else:
         outcome = "Inactive"
 
-    raw_reason = _drop_reason_for_group(group, latest_drop)
-    raw_reason_category = _drop_reason_category_for_group(group, latest_drop)
+    raw_reason = display_label(_drop_reason_for_group(group, latest_drop))
+    raw_reason_category = display_label(_drop_reason_category_for_group(group, latest_drop))
     normalized_reason = normalize_dropped_reason(raw_reason or raw_reason_category, has_drop=has_drop)
     dropped_date = _format_date(latest_drop)
     returned_date = _format_date(latest_return)
@@ -254,7 +254,7 @@ def _build_group_row(site_key: str, group: pd.DataFrame) -> dict[str, object]:
         "scheduled_install_date": "",
         "install_date": install_date,
         "days_to_return": days_to_return,
-        "cancellation_reason": _last_present(group, "cancelled_reason") or _last_present(group, "canceled_reason"),
+        "cancellation_reason": display_label(_last_present(group, "cancelled_reason") or _last_present(group, "canceled_reason")),
         "dropped_reason": raw_reason,
         "dropped_reason_category": raw_reason_category,
         "raw_description": _last_present(group, "raw_description") or _last_present(group, "description"),

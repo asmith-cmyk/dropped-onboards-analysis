@@ -39,6 +39,16 @@ def clean_blank(value: Any) -> str:
     return text
 
 
+def display_label(value: Any) -> str:
+    """Clean a display label and soften all-uppercase labels."""
+    text = clean_blank(value)
+    letters = [char for char in text if char.isalpha()]
+    if letters and any(char.isupper() for char in letters) and not any(char.islower() for char in letters):
+        lowered = text.lower()
+        return lowered[:1].upper() + lowered[1:]
+    return text
+
+
 def coalesce(*values: Any) -> str:
     for value in values:
         cleaned = clean_blank(value)

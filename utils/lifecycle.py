@@ -6,7 +6,7 @@ import pandas as pd
 
 from utils.analysis import bool_series, derive_cg_timing, link_slack, link_zendesk
 from utils.columns import format_date_for_output
-from utils.io import clean_blank
+from utils.io import clean_blank, display_label
 from utils.text import normalize_creator_name
 
 
@@ -852,6 +852,9 @@ def build_master_creator_lifecycle(
     missing_dropped_reason = lifecycle["dropped_reason"].str.lower().isin(generic_reasons)
     lifecycle.loc[missing_dropped_reason, "dropped_reason"] = "No dropped reason captured"
     lifecycle = _format_offboarding_dropped_reasons(lifecycle)
+    for column in ("dropped_reason", "dropped_reason_category", "cancellation_reason", "normalized_reason"):
+        if column in lifecycle.columns:
+            lifecycle[column] = lifecycle[column].map(display_label)
     lifecycle["cg_involvement"] = _cg_involvement_label(lifecycle["cg_involvement"])
     lifecycle["outcome"] = _outcome_series(lifecycle)
     return lifecycle.sort_values(["dropped_date", "creator_project_name"], na_position="last")
