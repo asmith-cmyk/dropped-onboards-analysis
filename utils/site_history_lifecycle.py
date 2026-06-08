@@ -141,7 +141,6 @@ def _drop_reason_for_group(group: pd.DataFrame, latest_drop: pd.Timestamp) -> st
         "drop_reason",
         "reason_they_left",
         "reason_they_left_specifics",
-        "dropped_reason_category",
     ]
     reason_frame = group.copy()
     if pd.notna(latest_drop):
@@ -155,6 +154,26 @@ def _drop_reason_for_group(group: pd.DataFrame, latest_drop: pd.Timestamp) -> st
         if value:
             return value
     for column in reason_columns:
+        value = _last_present(group, column)
+        if value:
+            return value
+    return ""
+
+
+def _drop_reason_category_for_group(group: pd.DataFrame, latest_drop: pd.Timestamp) -> str:
+    category_columns = ["dropped_reason_category", "reason_category"]
+    category_frame = group.copy()
+    if pd.notna(latest_drop):
+        same_drop_date = category_frame["_drop_date"].eq(latest_drop)
+        status_drop = category_frame["_status_key"].isin(DROP_LIFECYCLE_STATUSES)
+        filtered = category_frame.loc[same_drop_date | status_drop]
+        if not filtered.empty:
+            category_frame = filtered
+    for column in category_columns:
+        value = _last_present(category_frame, column)
+        if value:
+            return value
+    for column in category_columns:
         value = _last_present(group, column)
         if value:
             return value
@@ -190,7 +209,8 @@ def _build_group_row(site_key: str, group: pd.DataFrame) -> dict[str, object]:
         outcome = "Inactive"
 
     raw_reason = _drop_reason_for_group(group, latest_drop)
-    normalized_reason = normalize_dropped_reason(raw_reason, has_drop=has_drop)
+    raw_reason_category = _drop_reason_category_for_group(group, latest_drop)
+    normalized_reason = normalize_dropped_reason(raw_reason or raw_reason_category, has_drop=has_drop)
     dropped_date = _format_date(latest_drop)
     returned_date = _format_date(latest_return)
     install_date = _format_date(latest_install)
@@ -236,7 +256,7 @@ def _build_group_row(site_key: str, group: pd.DataFrame) -> dict[str, object]:
         "days_to_return": days_to_return,
         "cancellation_reason": _last_present(group, "cancelled_reason") or _last_present(group, "canceled_reason"),
         "dropped_reason": raw_reason,
-        "dropped_reason_category": normalized_reason if has_drop else "",
+        "dropped_reason_category": raw_reason_category,
         "raw_description": _last_present(group, "raw_description") or _last_present(group, "description"),
         "normalized_reason": normalized_reason if has_drop else "",
         "reason_confidence_score": "",

@@ -68,13 +68,11 @@ Sites without a prior dropped/cancelled event are retained as `Active` or `Inact
 - Cadence: `HAS_3_DAY_FOLLOWUP`, `HAS_5_DAY_FOLLOWUP`, `HAS_7_DAY_FOLLOWUP`
 - Previous Ad Network widget: `PREVIOUS_AD_NETWORK`
 
-## Dropped Reason Buckets
+## Dropped Reason Filter
 
-The dropped reason dropdown uses a controlled list, plus `Everything Else`. Long freeform reasons remain visible in the table as raw text, but the filter and widget use the normalized bucket.
+The dropped reason dropdown is grouped by the existing `DROPPED_REASON_CATEGORY` values. Category labels display as non-selectable dropdown headers, and each selectable option uses the existing raw `DROPPED_REASON` value.
 
-Approved buckets live in `utils/reasons.py`.
-
-If a raw reason is blank for a site with a dropped/cancelled event, it is bucketed as `No reason / Vague`. If a raw reason does not match an approved bucket or known legacy spelling, it is bucketed as `Everything Else`.
+The table keeps the dropped reason category and dropped reason values as they come from the data source. `normalized_dropped_reason` is still produced as a separate helper field for analysis, but it does not replace the displayed category or reason.
 
 ## Running Locally
 

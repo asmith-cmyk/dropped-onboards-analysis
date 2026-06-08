@@ -15,7 +15,6 @@ if str(ROOT) not in sys.path:
 
 from utils.config import ensure_project_dirs, load_settings
 from utils.io import read_csv
-from utils.reasons import APPROVED_DROPPED_REASONS
 from utils.zendesk_client import format_macro_cadence
 
 
@@ -115,7 +114,6 @@ def prepare_records(master: pd.DataFrame) -> list[dict[str, object]]:
 
 def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     data_json = json.dumps(records, ensure_ascii=False)
-    reason_json = json.dumps(APPROVED_DROPPED_REASONS, ensure_ascii=False)
     generated = html.escape(generated_at)
     total = len(records)
     return f"""<!doctype html>
@@ -543,8 +541,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 
   <script>
     const RECORDS = {data_json};
-    const APPROVED_REASON_OPTIONS = {reason_json};
-    const EVERYTHING_ELSE_REASON = 'Everything Else';
+    const REASON_OPTION_SEPARATOR = '::';
     const sortState = {{ key: 'dropped_date', direction: 'asc' }};
     const fields = {{
       search: document.getElementById('search'),
@@ -564,36 +561,6 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function clean(value) {{
       return text(value).trim();
     }}
-
-    function reasonKey(value) {{
-      return clean(value).toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '');
-    }}
-
-    const REASON_ALIASES = new Map(
-      APPROVED_REASON_OPTIONS
-        .filter(value => value !== EVERYTHING_ELSE_REASON)
-        .map(value => [reasonKey(value), value])
-    );
-
-    [
-      ['Set-up cancellation', 'Cancelled pre-onboarding'],
-      ['Setup cancellation', 'Cancelled pre-onboarding'],
-      ['Setup cancelled', 'Cancelled pre-onboarding'],
-      ['Canceled pre-onboarding', 'Cancelled pre-onboarding'],
-      ['Cancelled pre onboarding', 'Cancelled pre-onboarding'],
-      ['Canceled pre onboarding', 'Cancelled pre-onboarding'],
-      ['No reason/vague', 'No reason / Vague'],
-      ['No reason', 'No reason / Vague'],
-      ['No dropped reason captured', 'No reason / Vague'],
-      ['No reason captured', 'No reason / Vague'],
-      ['Vague', 'No reason / Vague'],
-      ['Non responsive', 'Non-responsive'],
-      ['Nonresponsive', 'Non-responsive'],
-      ['RPM CPM comparison', 'RPM/CPM comparison'],
-      ['Low RPM', 'Low RPM/CPM'],
-      ['Low CPM', 'Low RPM/CPM'],
-      ['AdThrive', 'Other']
-    ].forEach(([alias, canonical]) => REASON_ALIASES.set(reasonKey(alias), canonical));
 
     function display(value) {{
       const valueText = clean(value);
@@ -629,24 +596,20 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return `${{days.slice(0, -1).join(', ')}} and ${{days[days.length - 1]}} day follow up`;
     }}
 
-    function normalizedReason(row) {{
-      const existing = clean(row.normalized_dropped_reason);
-      if (APPROVED_REASON_OPTIONS.includes(existing)) return existing;
-
-      const candidates = [row.dropped_reason, row.dropped_reason_category, row.cancellation_reason]
-        .map(value => clean(value))
-        .filter(Boolean);
-
-      if (!candidates.length) return '';
-      return REASON_ALIASES.get(reasonKey(candidates[0])) || EVERYTHING_ELSE_REASON;
-    }}
-
     function reasonCategoryValue(row) {{
-      return normalizedReason(row) || 'N/A';
+      return display(row.dropped_reason_category);
     }}
 
     function reasonValue(row) {{
       return display(row.dropped_reason);
+    }}
+
+    function reasonOptionKey(category, reason) {{
+      return `${{encodeURIComponent(category)}}${{REASON_OPTION_SEPARATOR}}${{encodeURIComponent(reason)}}`;
+    }}
+
+    function rowReasonOptionKey(row) {{
+      return reasonOptionKey(reasonCategoryValue(row), reasonValue(row));
     }}
 
     function yearValue(row, key, dateKey) {{
@@ -685,13 +648,35 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         .join('');
     }}
 
+    function populateReasonSelect() {{
+      const groups = new Map();
+      RECORDS.forEach(row => {{
+        const category = reasonCategoryValue(row);
+        const reason = reasonValue(row);
+        const key = reasonOptionKey(category, reason);
+        if (!groups.has(category)) groups.set(category, new Map());
+        groups.get(category).set(key, reason);
+      }});
+      const options = [...groups.entries()]
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([category, reasons]) => {{
+          const reasonOptions = [...reasons.entries()]
+            .sort(([, left], [, right]) => left.localeCompare(right))
+            .map(([value, label]) => `<option value="${{escapeAttr(value)}}">${{escapeHtml(label)}}</option>`)
+            .join('');
+          return `<optgroup label="${{escapeAttr(category)}}">${{reasonOptions}}</optgroup>`;
+        }})
+        .join('');
+      fields.reason.innerHTML = '<option value="">All</option>' + options;
+    }}
+
     function populateFilters() {{
       populateSelect(fields.onboardYear, [...new Set(RECORDS.map(row => yearValue(row, 'onboard_year', 'install_date')).filter(Boolean))].sort((a, b) => b.localeCompare(a)));
       populateSelect(fields.returnedYear, [...new Set(RECORDS.map(row => yearValue(row, 'returned_year', 'returned_date')).filter(Boolean))].sort((a, b) => b.localeCompare(a)));
       populateSelect(fields.service, [...new Set(RECORDS.map(row => optionValue(row.service_level)))].sort((a, b) => a.localeCompare(b)));
       populateSelect(fields.vertical, [...new Set(RECORDS.map(row => optionValue(row.vertical)))].sort((a, b) => a.localeCompare(b)));
       populateSelect(fields.owner, [...new Set(RECORDS.flatMap(ownerParts))].sort((a, b) => a.localeCompare(b)));
-      populateSelect(fields.reason, APPROVED_REASON_OPTIONS);
+      populateReasonSelect();
     }}
 
     function filtered() {{
@@ -704,7 +689,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         if (fields.vertical.value && optionValue(row.vertical) !== fields.vertical.value) return false;
         if (fields.owner.value && !ownerParts(row).includes(fields.owner.value)) return false;
         if (cadenceDays.length && !cadenceDays.some(day => hasCadence(row, day))) return false;
-        if (fields.reason.value && normalizedReason(row) !== fields.reason.value) return false;
+        if (fields.reason.value && rowReasonOptionKey(row) !== fields.reason.value) return false;
         if (!query) return true;
         const haystack = [
           row.creator_project_name,
@@ -882,7 +867,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       const rows = sortRows(filtered());
       renderKpis(rows);
       const service = groupCounts(rows, row => optionValue(row.service_level));
-      const reasons = groupCounts(rows, row => reasonCategoryValue(row));
+      const reasons = groupCounts(rows, row => reasonValue(row));
       const cg = groupCounts(rows, row => display(row.cg_involvement || 'Not Assisted'));
       const networks = groupCounts(rows, row => optionValue(row.previous_ad_network));
       renderBars('service-bars', service);
@@ -890,7 +875,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       renderBars('cg-bars', cg, 'blue');
       renderBars('network-bars', networks, 'rose');
       document.getElementById('service-count').textContent = `${{groupCounts(rows, row => optionValue(row.service_level), 1000).length}} segments`;
-      document.getElementById('reason-count').textContent = `${{groupCounts(rows, row => reasonCategoryValue(row), 1000).length}} reasons`;
+      document.getElementById('reason-count').textContent = `${{groupCounts(rows, row => reasonValue(row), 1000).length}} reasons`;
       document.getElementById('cg-count').textContent = `${{groupCounts(rows, row => display(row.cg_involvement || 'Not Assisted'), 1000).length}} groups`;
       document.getElementById('network-count').textContent = `${{groupCounts(rows, row => optionValue(row.previous_ad_network), 1000).length}} networks`;
       renderTable(rows);

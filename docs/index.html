@@ -564,113 +564,29 @@
     const GENERIC_REASON_VALUES = new Set(['Dropped', 'Canceled', 'Cancelled', 'Prior site dropped status']);
     const NO_DROPPED_REASON = 'No dropped reason captured';
     const NO_REASON_CATEGORY = 'No dropped reason category captured';
-    const EVERYTHING_ELSE_REASON = 'Everything Else';
-    const APPROVED_REASON_OPTIONS = [
-      'Account manager',
-      'Ad content/controls',
-      'AI Content',
-      'Brand safety',
-      'Cancelled pre-onboarding',
-      'Chose another provider',
-      'Core Web Vitals',
-      'Dashboard/More data',
-      'Design concerns',
-      'Disappointed in RPM Guarantee',
-      'Expanded Solutions related',
-      'Failed verification',
-      'Failure to complete MCM IDV',
-      'Fraud traffic',
-      'Fraudulent traffic detected',
-      'Google Terminated MCM Account',
-      'Identity Concerns',
-      'Loyalty Bonus',
-      'Low RPM/CPM',
-      'Making changes / Vague',
-      'Never engaged',
-      'New owner did not want to stay with AdThrive',
-      'No Longer Eligible For Transfer',
-      'No reason / Vague',
-      'Non-responsive',
-      'Other',
-      'Other revenue sources',
-      'Ownership/MCM',
-      'Personal Reasons',
-      'Poor user experience',
-      'Refused ad layout',
-      'Refused to share ad performance',
-      'Rejected by MCM',
-      'Retiring site',
-      'Revenue Share',
-      'RPM too high',
-      'RPM/CPM comparison',
-      'SEO/Pageviews down',
-      'Single page application',
-      'Site performance',
-      'Staying with Current ad provider',
-      'Stolen content',
-      'Stuck in long-term contract',
-      'Testing competitor',
-      EVERYTHING_ELSE_REASON
-    ];
-
-    function reasonKey(value) {
-      return text(value).trim().toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '');
-    }
-
-    const REASON_ALIASES = new Map(
-      APPROVED_REASON_OPTIONS
-        .filter(value => value !== EVERYTHING_ELSE_REASON)
-        .map(value => [reasonKey(value), value])
-    );
-
-    [
-      ['Set-up cancellation', 'Cancelled pre-onboarding'],
-      ['Setup cancellation', 'Cancelled pre-onboarding'],
-      ['Setup cancelled', 'Cancelled pre-onboarding'],
-      ['Canceled pre-onboarding', 'Cancelled pre-onboarding'],
-      ['Cancelled pre onboarding', 'Cancelled pre-onboarding'],
-      ['Canceled pre onboarding', 'Cancelled pre-onboarding'],
-      ['No reason/vague', 'No reason / Vague'],
-      ['No reason', 'No reason / Vague'],
-      ['No dropped reason captured', 'No reason / Vague'],
-      ['No reason captured', 'No reason / Vague'],
-      ['Vague', 'No reason / Vague'],
-      ['Non responsive', 'Non-responsive'],
-      ['Nonresponsive', 'Non-responsive'],
-      ['RPM CPM comparison', 'RPM/CPM comparison'],
-      ['Low RPM', 'Low RPM/CPM'],
-      ['Low CPM', 'Low RPM/CPM'],
-      ['AdThrive', 'Other']
-    ].forEach(([alias, canonical]) => REASON_ALIASES.set(reasonKey(alias), canonical));
+    const REASON_OPTION_SEPARATOR = '::';
 
     function isUsefulReason(value) {
       const clean = text(value).trim();
       return clean && !GENERIC_REASON_VALUES.has(clean);
     }
 
-    function normalizedReasonValue(row) {
-      const existing = text(row.normalized_dropped_reason).trim();
-      if (APPROVED_REASON_OPTIONS.includes(existing)) return existing;
-
-      const candidates = [row.dropped_reason, row.dropped_reason_category, row.cancellation_reason]
-        .map(value => text(value).trim())
-        .filter(value => (
-          isUsefulReason(value) &&
-          value !== NO_DROPPED_REASON &&
-          value !== NO_REASON_CATEGORY
-        ));
-
-      if (!candidates.length) return 'No reason / Vague';
-      return REASON_ALIASES.get(reasonKey(candidates[0])) || EVERYTHING_ELSE_REASON;
-    }
-
     function reasonCategoryValue(row) {
-      return normalizedReasonValue(row);
+      const category = text(row.dropped_reason_category).trim();
+      return isUsefulReason(category) ? category : NO_REASON_CATEGORY;
     }
 
     function reasonValue(row) {
       const reason = text(row.dropped_reason).trim();
       return isUsefulReason(reason) ? reason : NO_DROPPED_REASON;
+    }
+
+    function reasonOptionKey(category, reason) {
+      return `${encodeURIComponent(category)}${REASON_OPTION_SEPARATOR}${encodeURIComponent(reason)}`;
+    }
+
+    function rowReasonOptionKey(row) {
+      return reasonOptionKey(reasonCategoryValue(row), reasonValue(row));
     }
 
     function reasonDetail(row) {
@@ -763,7 +679,25 @@
     }
 
     function populateReasonSelect() {
-      fields.reason.innerHTML = '<option value="">All</option>' + APPROVED_REASON_OPTIONS.map(value => `<option value="${escapeAttr(value)}">${escapeHtml(value)}</option>`).join('');
+      const groups = new Map();
+      RECORDS.forEach(row => {
+        const category = reasonCategoryValue(row);
+        const reason = reasonValue(row);
+        const key = reasonOptionKey(category, reason);
+        if (!groups.has(category)) groups.set(category, new Map());
+        groups.get(category).set(key, reason);
+      });
+      const options = [...groups.entries()]
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([category, reasons]) => {
+          const reasonOptions = [...reasons.entries()]
+            .sort(([, left], [, right]) => left.localeCompare(right))
+            .map(([value, label]) => `<option value="${escapeAttr(value)}">${escapeHtml(label)}</option>`)
+            .join('');
+          return `<optgroup label="${escapeAttr(category)}">${reasonOptions}</optgroup>`;
+        })
+        .join('');
+      fields.reason.innerHTML = '<option value="">All</option>' + options;
     }
 
     function populateOwnerSelect() {
@@ -794,7 +728,7 @@
         if (fields.owner.value && !ownerParts(row).includes(fields.owner.value)) return false;
         const cadenceDays = selectedCadenceDays();
         if (cadenceDays.length && !cadenceHasAnyDays(row.macro_cadence, cadenceDays)) return false;
-        if (fields.reason.value && normalizedReasonValue(row) !== fields.reason.value) return false;
+        if (fields.reason.value && rowReasonOptionKey(row) !== fields.reason.value) return false;
         if (!query) return true;
         const haystack = [
           row.creator_project_name,
@@ -988,11 +922,11 @@
       const rows = sortRows(filtered());
       renderKpis(rows);
       renderBars('service-bars', groupCounts(rows, 'service_level'), '');
-      renderBars('reason-bars', groupCounts(rows, 'dropped_reason', 8, (_value, row) => normalizedReasonValue(row)), 'amber');
+      renderBars('reason-bars', groupCounts(rows, 'dropped_reason', 8, (_value, row) => reasonValue(row)), 'amber');
       renderBars('cg-bars', groupCounts(rows, 'cg_involvement'), 'blue');
       renderBars('network-bars', groupCounts(rows, 'previous_ad_network'), 'rose');
       document.getElementById('service-count').textContent = `${groupCounts(rows, 'service_level', 50).length} segments`;
-      document.getElementById('reason-count').textContent = `${groupCounts(rows, 'dropped_reason', 50, (_value, row) => normalizedReasonValue(row)).length} reasons`;
+      document.getElementById('reason-count').textContent = `${groupCounts(rows, 'dropped_reason', 50, (_value, row) => reasonValue(row)).length} reasons`;
       document.getElementById('cg-count').textContent = `${groupCounts(rows, 'cg_involvement', 50).length} groups`;
       document.getElementById('network-count').textContent = `${groupCounts(rows, 'previous_ad_network', 50).length} networks`;
       renderTable(rows);
