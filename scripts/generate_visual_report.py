@@ -923,20 +923,32 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       }}).join('');
     }}
 
+    function isDropped(row) {{
+      return clean(row.outcome) === 'Dropped';
+    }}
+
+    function isInstalled(row) {{
+      return truthy(row.install_completed)
+        || truthy(row.converted)
+        || Boolean(clean(row.install_date))
+        || Boolean(clean(row.returned_date));
+    }}
+
     function summarize(rows) {{
       const total = rows.length;
-      const dropped = rows.filter(row => clean(row.outcome) === 'Dropped').length;
+      const dropped = rows.filter(isDropped).length;
+      const installed = rows.filter(isInstalled).length;
       const returned = rows.filter(row => clean(row.outcome) === 'Returned').length;
       const returnedWithCadence = rows.filter(row => clean(row.outcome) === 'Returned' && ['3', '5', '7'].some(day => hasCadence(row, day))).length;
       const rise = rows.filter(row => clean(row.service_level).toLowerCase() === 'rise').length;
-      return {{ total, dropped, returned, returnedWithCadence, rise }};
+      return {{ total, dropped, installed, returned, returnedWithCadence, rise }};
     }}
 
     function renderKpis(rows) {{
       const s = summarize(rows);
       const tiles = [
         {{ label: 'Sites', value: s.total, note: 'Filtered rows' }},
-        {{ label: 'Dropped rate', value: pct(s.dropped, s.total), note: `${{s.dropped}} of ${{s.total}} sites` }},
+        {{ label: 'Dropped rate', value: s.installed ? pct(s.dropped, s.installed) : 'N/A', note: `${{s.dropped}} dropped / ${{s.installed}} installed` }},
         {{ label: 'Returned', value: s.returned, note: pct(s.returned, s.total) }},
         {{ label: 'Returned with cadence', value: pct(s.returnedWithCadence, s.total), note: `${{s.returnedWithCadence}} of ${{s.total}} sites` }},
         {{ label: 'Rise creators', value: s.rise, note: pct(s.rise, s.total) }}
