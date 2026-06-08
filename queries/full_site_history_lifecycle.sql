@@ -38,7 +38,7 @@ dim_site_drop AS (
 ),
 zendesk_followups AS (
     SELECT
-        d.value::STRING AS DOMAIN,
+        LOWER(REGEXP_REPLACE(REGEXP_REPLACE(d.value::STRING, '^(https?://)?(www\\.)?', ''), '/.*$', '')) AS CLEAN_DOMAIN,
         MAX(CASE WHEN t.value::STRING = '3_day_follow_up' THEN TRUE ELSE FALSE END) AS HAS_3_DAY_FOLLOWUP,
         MAX(CASE WHEN t.value::STRING = '5_day_follow_up' THEN TRUE ELSE FALSE END) AS HAS_5_DAY_FOLLOWUP,
         MAX(CASE WHEN t.value::STRING = '7_day_follow_up' THEN TRUE ELSE FALSE END) AS HAS_7_DAY_FOLLOWUP
@@ -48,7 +48,7 @@ zendesk_followups AS (
         LATERAL FLATTEN(input => zt.TAGS) t,
         LATERAL FLATTEN(input => zo.DOMAIN_NAMES) d
     WHERE t.value::STRING IN ('3_day_follow_up', '5_day_follow_up', '7_day_follow_up')
-    GROUP BY d.value::STRING
+    GROUP BY 1
 ),
 onboard_owner AS (
     SELECT
@@ -64,14 +64,14 @@ onboard_owner AS (
 ),
 cg_involvement AS (
     SELECT
-        LOWER(REGEXP_REPLACE(WEBSITE, '^https?://(www\\.)?', '')) AS CLEAN_DOMAIN,
+        LOWER(REGEXP_REPLACE(REGEXP_REPLACE(WEBSITE, '^(https?://)?(www\\.)?', ''), '/.*$', '')) AS CLEAN_DOMAIN,
         CG_EFFORT__C,
         CG_INVOLVEMENT__C
     FROM ANALYTICS.SALESFORCE.LEAD
     WHERE CG_EFFORT__C = TRUE
        OR CG_INVOLVEMENT__C IS NOT NULL
     QUALIFY ROW_NUMBER() OVER (
-        PARTITION BY LOWER(REGEXP_REPLACE(WEBSITE, '^https?://(www\\.)?', ''))
+        PARTITION BY LOWER(REGEXP_REPLACE(REGEXP_REPLACE(WEBSITE, '^(https?://)?(www\\.)?', ''), '/.*$', ''))
         ORDER BY CREATEDDATE DESC
     ) = 1
 )
@@ -103,6 +103,6 @@ LEFT JOIN dim_site_drop dsd
 LEFT JOIN onboard_owner oo
     ON ls.SITE_ID = oo.SITE_ID
 LEFT JOIN zendesk_followups zf
-    ON zf.DOMAIN = LOWER(REGEXP_REPLACE(REGEXP_REPLACE(ls.URL, '^https?://(www\\.)?', ''), '/$', ''))
+    ON zf.CLEAN_DOMAIN = LOWER(REGEXP_REPLACE(REGEXP_REPLACE(ls.URL, '^(https?://)?(www\\.)?', ''), '/.*$', ''))
 LEFT JOIN cg_involvement cg
-    ON cg.CLEAN_DOMAIN = LOWER(REGEXP_REPLACE(REGEXP_REPLACE(ls.URL, '^https?://(www\\.)?', ''), '/$', ''))
+    ON cg.CLEAN_DOMAIN = LOWER(REGEXP_REPLACE(REGEXP_REPLACE(ls.URL, '^(https?://)?(www\\.)?', ''), '/.*$', ''))

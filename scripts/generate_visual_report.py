@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -181,6 +182,10 @@ def to_bool(value: object) -> bool:
     return clean_text(value).lower() in {"1", "true", "yes", "y", "booked", "installed", "converted"}
 
 
+def cadence_has_day(cadence: object, day: str) -> bool:
+    return bool(re.search(rf"\b{re.escape(day)}\b", clean_text(cadence).lower()))
+
+
 def prepare_records(master: pd.DataFrame) -> list[dict[str, object]]:
     available_fields = [field for field in REPORT_FIELDS if field in master.columns]
     records = master[available_fields].fillna("").to_dict(orient="records")
@@ -188,6 +193,12 @@ def prepare_records(master: pd.DataFrame) -> list[dict[str, object]]:
         for column in BOOL_COLUMNS:
             if column in record:
                 record[column] = to_bool(record[column])
+        for day, column in (
+            ("3", "has_3_day_followup"),
+            ("5", "has_5_day_followup"),
+            ("7", "has_7_day_followup"),
+        ):
+            record[column] = bool(record.get(column)) or cadence_has_day(record.get("macro_cadence"), day)
         if not clean_text(record.get("macro_cadence")):
             days = [
                 day
@@ -687,7 +698,8 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function hasCadence(row, day) {{
-      return truthy(row[`has_${{day}}_day_followup`]);
+      const cadenceText = clean(row.macro_cadence).toLowerCase();
+      return truthy(row[`has_${{day}}_day_followup`]) || new RegExp(`\\\\b${{day}}\\\\b`).test(cadenceText);
     }}
 
     function cadenceValue(row) {{
