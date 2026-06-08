@@ -270,7 +270,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
     .controls {{
       display: grid;
-      grid-template-columns: minmax(220px, 2fr) repeat(7, minmax(120px, 1fr));
+      grid-template-columns: minmax(220px, 2fr) repeat(6, minmax(120px, 1fr));
       gap: 10px;
       align-items: end;
       margin-bottom: 16px;
@@ -553,9 +553,6 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       <label>Search
         <input id="search" type="search" placeholder="Site Name, Site Owner Name, Onboarding Owner, Dropped Reason">
       </label>
-      <label>Onboard Year
-        <select id="onboard-year"></select>
-      </label>
       <label>Returned Year
         <select id="returned-year"></select>
       </label>
@@ -641,7 +638,6 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     const sortState = {{ key: 'dropped_date', direction: 'asc' }};
     const fields = {{
       search: document.getElementById('search'),
-      onboardYear: document.getElementById('onboard-year'),
       returnedYear: document.getElementById('returned-year'),
       service: document.getElementById('service'),
       vertical: document.getElementById('vertical'),
@@ -831,7 +827,6 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function populateFilters() {{
-      populateSelect(fields.onboardYear, [...new Set(RECORDS.map(row => yearValue(row, 'onboard_year', 'install_date')).filter(Boolean))].sort((a, b) => b.localeCompare(a)));
       populateSelect(fields.returnedYear, [...new Set(RECORDS.map(row => yearValue(row, 'returned_year', 'returned_date')).filter(Boolean))].sort((a, b) => b.localeCompare(a)));
       populateSelect(fields.service, [...new Set(RECORDS.map(row => optionValue(row.service_level)))].sort((a, b) => a.localeCompare(b)));
       populateSelect(fields.vertical, [...new Set(RECORDS.map(row => optionValue(row.vertical)))].sort((a, b) => a.localeCompare(b)));
@@ -843,7 +838,6 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       const query = fields.search.value.trim().toLowerCase();
       const cadenceDays = selectedCadenceDays();
       return RECORDS.filter(row => {{
-        if (fields.onboardYear.value && yearValue(row, 'onboard_year', 'install_date') !== fields.onboardYear.value) return false;
         if (fields.returnedYear.value && yearValue(row, 'returned_year', 'returned_date') !== fields.returnedYear.value) return false;
         if (fields.service.value && optionValue(row.service_level) !== fields.service.value) return false;
         if (fields.vertical.value && optionValue(row.vertical) !== fields.vertical.value) return false;

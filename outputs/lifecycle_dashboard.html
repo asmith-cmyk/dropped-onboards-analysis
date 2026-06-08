@@ -58,7 +58,7 @@
     }
     .controls {
       display: grid;
-      grid-template-columns: minmax(220px, 2fr) repeat(7, minmax(120px, 1fr));
+      grid-template-columns: minmax(220px, 2fr) repeat(6, minmax(120px, 1fr));
       gap: 10px;
       align-items: end;
       margin-bottom: 16px;
@@ -331,7 +331,7 @@
     <div class="title-row">
       <div>
         <h1>Onboarding Lifecycle Dashboard</h1>
-        <div class="subtitle">778 sites · Generated 2026-06-08 10:01</div>
+        <div class="subtitle">778 sites · Generated 2026-06-08 10:23</div>
       </div>
     </div>
   </header>
@@ -340,9 +340,6 @@
     <section class="controls" aria-label="Filters">
       <label>Search
         <input id="search" type="search" placeholder="Site Name, Site Owner Name, Onboarding Owner, Dropped Reason">
-      </label>
-      <label>Onboard Year
-        <select id="onboard-year"></select>
       </label>
       <label>Returned Year
         <select id="returned-year"></select>
@@ -429,7 +426,6 @@
     const sortState = { key: 'dropped_date', direction: 'asc' };
     const fields = {
       search: document.getElementById('search'),
-      onboardYear: document.getElementById('onboard-year'),
       returnedYear: document.getElementById('returned-year'),
       service: document.getElementById('service'),
       vertical: document.getElementById('vertical'),
@@ -619,7 +615,6 @@
     }
 
     function populateFilters() {
-      populateSelect(fields.onboardYear, [...new Set(RECORDS.map(row => yearValue(row, 'onboard_year', 'install_date')).filter(Boolean))].sort((a, b) => b.localeCompare(a)));
       populateSelect(fields.returnedYear, [...new Set(RECORDS.map(row => yearValue(row, 'returned_year', 'returned_date')).filter(Boolean))].sort((a, b) => b.localeCompare(a)));
       populateSelect(fields.service, [...new Set(RECORDS.map(row => optionValue(row.service_level)))].sort((a, b) => a.localeCompare(b)));
       populateSelect(fields.vertical, [...new Set(RECORDS.map(row => optionValue(row.vertical)))].sort((a, b) => a.localeCompare(b)));
@@ -631,7 +626,6 @@
       const query = fields.search.value.trim().toLowerCase();
       const cadenceDays = selectedCadenceDays();
       return RECORDS.filter(row => {
-        if (fields.onboardYear.value && yearValue(row, 'onboard_year', 'install_date') !== fields.onboardYear.value) return false;
         if (fields.returnedYear.value && yearValue(row, 'returned_year', 'returned_date') !== fields.returnedYear.value) return false;
         if (fields.service.value && optionValue(row.service_level) !== fields.service.value) return false;
         if (fields.vertical.value && optionValue(row.vertical) !== fields.vertical.value) return false;
