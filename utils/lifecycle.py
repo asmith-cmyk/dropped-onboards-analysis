@@ -183,7 +183,7 @@ def _left_raptive_reason(value: object) -> str:
         return clean
     key = _reason_key(clean)
     if key in {"", "noreasonvague", "noreasoncaptured", "nodroppedreasoncaptured", "offboarded"}:
-        clean = "No reason/vague"
+        return "No reason/vague"
     else:
         clean = re.sub(r"\s*/\s*", "/", clean)
     return f"Left Raptive – {clean}"

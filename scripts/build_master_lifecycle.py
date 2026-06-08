@@ -9,7 +9,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from utils.config import ensure_project_dirs, load_settings
-from utils.io import read_csv, write_csv
+from utils.io import read_csv, read_csv_if_exists, write_csv
+from utils.lifecycle import apply_manual_overrides
 from utils.site_history_lifecycle import build_master_from_site_history
 
 
@@ -23,6 +24,9 @@ def run() -> Path:
         )
 
     master = build_master_from_site_history(read_csv(site_history_path))
+    manual_overrides = read_csv_if_exists(settings.data_dir / "manual_lifecycle_overrides.csv")
+    if not manual_overrides.empty:
+        master = apply_manual_overrides(master, manual_overrides)
     processed_path = settings.processed_data_dir / "master_creator_lifecycle.csv"
     output_path = settings.output_dir / "master_creator_lifecycle.csv"
     write_csv(master, processed_path)
