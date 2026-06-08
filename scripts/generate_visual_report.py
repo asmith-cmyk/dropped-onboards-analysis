@@ -77,6 +77,99 @@ REPORT_FIELDS = [
     "site_history_event_count",
 ]
 
+DROPPED_REASON_GROUPS = [
+    {
+        "category": "Site Performance/SEO",
+        "reasons": [
+            "SEO/Pageviews down",
+            "Site performance",
+            "Poor user experience",
+            "Other",
+            "Core Web Vitals",
+        ],
+    },
+    {
+        "category": "Site Transfer",
+        "reasons": [
+            "No Longer Eligible For Transfer",
+            "Rejected by MCM",
+            "Failure to complete MCM IDV",
+            "New owner did not want to stay with AdThrive",
+        ],
+    },
+    {
+        "category": "Fired",
+        "reasons": [
+            "Fraud traffic",
+            "Brand safety",
+            "Stolen content",
+            "Other",
+            "Ownership/MCM",
+            "Identity Concerns",
+            "AI Content",
+        ],
+    },
+    {"category": "Merged", "reasons": ["Merged"]},
+    {
+        "category": "Switched ad networks",
+        "reasons": [
+            "Making changes / Vague",
+            "No reason / Vague",
+            "Testing competitor",
+        ],
+    },
+    {
+        "category": "Missing features",
+        "reasons": [
+            "Account manager",
+            "Dashboard/More data",
+            "Other",
+            "Expanded Solutions related",
+            "Ad content/controls",
+        ],
+    },
+    {
+        "category": "Set-up Cancellation",
+        "reasons": [
+            "RPM too high",
+            "Never engaged",
+            "Personal Reasons",
+            "Failed verification",
+            "Non-responsive",
+            "Refused ad layout",
+            "Rejected by MCM",
+            "Single page application",
+            "Refused to share ad performance",
+            "Staying with Current ad provider",
+            "Stuck in long-term contract",
+            "Chose another provider",
+            "Cancelled pre-onboarding",
+            "Fraudulent traffic detected",
+            "Other",
+        ],
+    },
+    {
+        "category": "Discontinuing Ads",
+        "reasons": [
+            "Design concerns",
+            "Other revenue sources",
+            "Retiring site",
+            "Google Terminated MCM Account",
+        ],
+    },
+    {
+        "category": "Earning Concerns",
+        "reasons": [
+            "Low RPM/CPM",
+            "Disappointed in RPM Guarantee",
+            "RPM/CPM comparison",
+            "Revenue Share",
+            "Loyalty Bonus",
+        ],
+    },
+    {"category": "Everything else", "reasons": ["Everything else"]},
+]
+
 
 def clean_text(value: object) -> str:
     if value is None or pd.isna(value):
@@ -114,6 +207,7 @@ def prepare_records(master: pd.DataFrame) -> list[dict[str, object]]:
 
 def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     data_json = json.dumps(records, ensure_ascii=False)
+    reason_groups_json = json.dumps(DROPPED_REASON_GROUPS, ensure_ascii=False)
     generated = html.escape(generated_at)
     total = len(records)
     return f"""<!doctype html>
@@ -541,6 +635,8 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 
   <script>
     const RECORDS = {data_json};
+    const DROPPED_REASON_GROUPS = {reason_groups_json};
+    const EVERYTHING_ELSE_REASON_OPTION = {{ category: 'Everything else', reason: 'Everything else' }};
     const REASON_OPTION_SEPARATOR = '::';
     const sortState = {{ key: 'dropped_date', direction: 'asc' }};
     const fields = {{
@@ -614,12 +710,76 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return displayLabel(row.dropped_reason);
     }}
 
+    function taxonomyKey(value) {{
+      return clean(value)
+        .toLowerCase()
+        .replace(/&/g, 'and')
+        .replace(/[^a-z0-9]+/g, '');
+    }}
+
+    function canonicalReasonKey(value) {{
+      const key = taxonomyKey(value);
+      const aliases = {{
+        canceledpreonboarding: 'cancelledpreonboarding',
+        cancelledpreboarding: 'cancelledpreonboarding',
+        cancelledpreonboarding: 'cancelledpreonboarding',
+        setupcancellation: 'cancelledpreonboarding',
+        setupcancelled: 'cancelledpreonboarding',
+        noreason: 'noreasonvague',
+        noreasonvague: 'noreasonvague',
+        noreasoncaptured: 'noreasonvague',
+        nodroppedreasoncaptured: 'noreasonvague',
+        vague: 'noreasonvague',
+        everythingelse: 'everythingelse'
+      }};
+      return aliases[key] || key;
+    }}
+
+    const REASON_GROUP_BY_KEY = new Map();
+    const REASON_OPTION_BY_GROUP_AND_REASON = new Map();
+    const REASON_OPTIONS_BY_REASON = new Map();
+    DROPPED_REASON_GROUPS.forEach(group => {{
+      const categoryKey = taxonomyKey(group.category);
+      REASON_GROUP_BY_KEY.set(categoryKey, group);
+      group.reasons.forEach(reason => {{
+        const option = {{ category: group.category, reason }};
+        const reasonKey = canonicalReasonKey(reason);
+        REASON_OPTION_BY_GROUP_AND_REASON.set(`${{categoryKey}}::${{reasonKey}}`, option);
+        if (!REASON_OPTIONS_BY_REASON.has(reasonKey)) REASON_OPTIONS_BY_REASON.set(reasonKey, []);
+        REASON_OPTIONS_BY_REASON.get(reasonKey).push(option);
+      }});
+    }});
+
+    function reasonOptionForRow(row) {{
+      const categoryKey = taxonomyKey(row.dropped_reason_category);
+      const candidates = [
+        row.dropped_reason,
+        row.normalized_dropped_reason,
+        row.cancellation_reason
+      ].map(clean).filter(Boolean);
+
+      if (REASON_GROUP_BY_KEY.has(categoryKey)) {{
+        for (const candidate of candidates) {{
+          const exact = REASON_OPTION_BY_GROUP_AND_REASON.get(`${{categoryKey}}::${{canonicalReasonKey(candidate)}}`);
+          if (exact) return exact;
+        }}
+      }}
+
+      for (const candidate of candidates) {{
+        const matches = REASON_OPTIONS_BY_REASON.get(canonicalReasonKey(candidate)) || [];
+        if (matches.length === 1) return matches[0];
+      }}
+
+      return EVERYTHING_ELSE_REASON_OPTION;
+    }}
+
     function reasonOptionKey(category, reason) {{
       return `${{encodeURIComponent(category)}}${{REASON_OPTION_SEPARATOR}}${{encodeURIComponent(reason)}}`;
     }}
 
     function rowReasonOptionKey(row) {{
-      return reasonOptionKey(reasonCategoryValue(row), reasonValue(row));
+      const option = reasonOptionForRow(row);
+      return reasonOptionKey(option.category, option.reason);
     }}
 
     function yearValue(row, key, dateKey) {{
@@ -659,22 +819,12 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function populateReasonSelect() {{
-      const groups = new Map();
-      RECORDS.forEach(row => {{
-        const category = reasonCategoryValue(row);
-        const reason = reasonValue(row);
-        const key = reasonOptionKey(category, reason);
-        if (!groups.has(category)) groups.set(category, new Map());
-        groups.get(category).set(key, reason);
-      }});
-      const options = [...groups.entries()]
-        .sort(([left], [right]) => left.localeCompare(right))
-        .map(([category, reasons]) => {{
-          const reasonOptions = [...reasons.entries()]
-            .sort(([, left], [, right]) => left.localeCompare(right))
-            .map(([value, label]) => `<option value="${{escapeAttr(value)}}">${{escapeHtml(label)}}</option>`)
+      const options = DROPPED_REASON_GROUPS
+        .map(group => {{
+          const reasonOptions = group.reasons
+            .map(reason => `<option value="${{escapeAttr(reasonOptionKey(group.category, reason))}}">${{escapeHtml(reason)}}</option>`)
             .join('');
-          return `<optgroup label="${{escapeAttr(category)}}">${{reasonOptions}}</optgroup>`;
+          return `<optgroup label="${{escapeAttr(group.category)}}">${{reasonOptions}}</optgroup>`;
         }})
         .join('');
       fields.reason.innerHTML = '<option value="">All</option>' + options;
