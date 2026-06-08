@@ -281,7 +281,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
     .controls {{
       display: grid;
-      grid-template-columns: minmax(220px, 2fr) repeat(6, minmax(120px, 1fr));
+      grid-template-columns: minmax(220px, 2fr) repeat(7, minmax(120px, 1fr));
       gap: 10px;
       align-items: end;
       margin-bottom: 16px;
@@ -584,6 +584,9 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <label class="cadence-option"><input type="checkbox" name="cadence-day" value="7">7 day</label>
         </div>
       </div>
+      <label>Dropped Reason Category
+        <select id="reason-category"></select>
+      </label>
       <label>Dropped Reason
         <select id="reason"></select>
       </label>
@@ -654,6 +657,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       vertical: document.getElementById('vertical'),
       owner: document.getElementById('owner'),
       cadenceOptions: document.getElementById('cadence-options'),
+      reasonCategory: document.getElementById('reason-category'),
       reason: document.getElementById('reason')
     }};
 
@@ -790,6 +794,10 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return reasonOptionKey(option.category, option.reason);
     }}
 
+    function rowReasonCategoryFilterValue(row) {{
+      return reasonOptionForRow(row).category;
+    }}
+
     function yearValue(row, key, dateKey) {{
       const explicit = clean(row[key]);
       if (explicit) return explicit;
@@ -843,6 +851,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       populateSelect(fields.service, [...new Set(RECORDS.map(row => optionValue(row.service_level)))].sort((a, b) => a.localeCompare(b)));
       populateSelect(fields.vertical, [...new Set(RECORDS.map(row => optionValue(row.vertical)))].sort((a, b) => a.localeCompare(b)));
       populateSelect(fields.owner, [...new Set(RECORDS.flatMap(ownerParts))].sort((a, b) => a.localeCompare(b)));
+      populateSelect(fields.reasonCategory, DROPPED_REASON_GROUPS.map(group => group.category));
       populateReasonSelect();
     }}
 
@@ -855,6 +864,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         if (fields.vertical.value && optionValue(row.vertical) !== fields.vertical.value) return false;
         if (fields.owner.value && !ownerParts(row).includes(fields.owner.value)) return false;
         if (cadenceDays.length && !cadenceDays.some(day => hasCadence(row, day))) return false;
+        if (fields.reasonCategory.value && rowReasonCategoryFilterValue(row) !== fields.reasonCategory.value) return false;
         if (fields.reason.value && rowReasonOptionKey(row) !== fields.reason.value) return false;
         if (!query) return true;
         const haystack = [
