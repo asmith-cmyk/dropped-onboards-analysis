@@ -171,6 +171,8 @@ DROPPED_REASON_GROUPS = [
     {"category": "Everything else", "reasons": ["Everything else"]},
 ]
 
+ALL_TIME_INSTALLED_SITE_COUNT = 9646
+
 
 def clean_text(value: object) -> str:
     if value is None or pd.isna(value):
@@ -647,6 +649,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
   <script>
     const RECORDS = {data_json};
     const DROPPED_REASON_GROUPS = {reason_groups_json};
+    const ALL_TIME_INSTALLED_SITE_COUNT = {ALL_TIME_INSTALLED_SITE_COUNT};
     const EVERYTHING_ELSE_REASON_OPTION = {{ category: 'Everything else', reason: 'Everything else' }};
     const REASON_OPTION_SEPARATOR = '::';
     const sortState = {{ key: 'dropped_date', direction: 'asc' }};
@@ -695,6 +698,10 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function number(value) {{
       const n = Number(String(value).replace(/,/g, ''));
       return Number.isFinite(n) ? n : 0;
+    }}
+
+    function formatCount(value) {{
+      return Number(value).toLocaleString();
     }}
 
     function optionValue(value) {{
@@ -934,10 +941,27 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         || Boolean(clean(row.returned_date));
     }}
 
+    function hasActiveRateFilter() {{
+      return Boolean(
+        clean(fields.search.value)
+        || fields.returnedYear.value
+        || fields.service.value
+        || fields.vertical.value
+        || fields.owner.value
+        || selectedCadenceDays().length
+        || fields.reasonCategory.value
+        || fields.reason.value
+      );
+    }}
+
+    function installedDenominator(rows) {{
+      return hasActiveRateFilter() ? rows.filter(isInstalled).length : ALL_TIME_INSTALLED_SITE_COUNT;
+    }}
+
     function summarize(rows) {{
       const total = rows.length;
       const dropped = rows.filter(isDropped).length;
-      const installed = rows.filter(isInstalled).length;
+      const installed = installedDenominator(rows);
       const returned = rows.filter(row => clean(row.outcome) === 'Returned').length;
       const returnedWithCadence = rows.filter(row => clean(row.outcome) === 'Returned' && ['3', '5', '7'].some(day => hasCadence(row, day))).length;
       const rise = rows.filter(row => clean(row.service_level).toLowerCase() === 'rise').length;
@@ -947,11 +971,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function renderKpis(rows) {{
       const s = summarize(rows);
       const tiles = [
-        {{ label: 'Sites', value: s.total, note: 'Filtered rows' }},
-        {{ label: 'Dropped rate', value: s.installed ? pct(s.dropped, s.installed) : 'N/A', note: `${{s.dropped}} dropped / ${{s.installed}} installed` }},
-        {{ label: 'Returned', value: s.returned, note: pct(s.returned, s.total) }},
-        {{ label: 'Returned with cadence', value: pct(s.returnedWithCadence, s.total), note: `${{s.returnedWithCadence}} of ${{s.total}} sites` }},
-        {{ label: 'Rise creators', value: s.rise, note: pct(s.rise, s.total) }}
+        {{ label: 'Sites', value: formatCount(s.total), note: 'Filtered rows' }},
+        {{ label: 'Dropped rate', value: s.installed ? pct(s.dropped, s.installed) : 'N/A', note: `${{formatCount(s.dropped)}} dropped / ${{formatCount(s.installed)}} installed` }},
+        {{ label: 'Returned', value: formatCount(s.returned), note: pct(s.returned, s.total) }},
+        {{ label: 'Returned with cadence', value: pct(s.returnedWithCadence, s.total), note: `${{formatCount(s.returnedWithCadence)}} of ${{formatCount(s.total)}} sites` }},
+        {{ label: 'Rise creators', value: formatCount(s.rise), note: pct(s.rise, s.total) }}
       ];
       document.getElementById('kpis').innerHTML = tiles.map(tile => `
         <div class="tile">
