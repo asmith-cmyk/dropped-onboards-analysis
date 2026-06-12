@@ -231,30 +231,36 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
   <title>Onboarding Lifecycle Dashboard</title>
   <style>
     :root {{
-      --bg: #f7f7f4;
-      --surface: #ffffff;
-      --line: #d8d9d2;
-      --text: #172026;
-      --muted: #5d6770;
-      --teal: #0f766e;
-      --blue: #2563eb;
-      --amber: #b45309;
-      --rose: #be123c;
-      --ink-soft: #eef0ec;
-      --shadow: 0 1px 2px rgba(23, 32, 38, 0.06);
+      --bg: #F0EDEB;
+      --surface: #FFFFFF;
+      --line: #E1DAD4;
+      --text: #000000;
+      --muted: #354786;
+      --brand: #6B65FF;
+      --brand-soft: #F0F0FF;
+      --spark: #D2FF66;
+      --pink: #ECB5D2;
+      --orange: #FF7858;
+      --green: #00785D;
+      --red: #A23B4C;
+      --blue: #354786;
+      --grey: #978985;
+      --ink-soft: #F0F0FF;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
     }}
     * {{ box-sizing: border-box; }}
     body {{
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: "Roobert Pro", "DM Sans", Arial, sans-serif;
       font-size: 14px;
       line-height: 1.4;
     }}
     header {{
       border-bottom: 1px solid var(--line);
-      background: var(--surface);
+      border-top: 6px solid var(--brand);
+      background: var(--brand-soft);
       padding: 18px 28px 16px;
     }}
     .title-row {{
@@ -270,6 +276,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       line-height: 1.15;
       letter-spacing: 0;
       font-weight: 720;
+      color: var(--text);
     }}
     .subtitle {{
       color: var(--muted);
@@ -304,6 +311,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       padding: 9px 10px;
       font: inherit;
       min-height: 38px;
+    }}
+    input:focus, select:focus {{
+      border-color: var(--brand);
+      outline: 2px solid var(--brand);
+      outline-offset: 1px;
     }}
     .control-group {{
       display: grid;
@@ -340,7 +352,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       min-height: 0;
       margin: 0;
       padding: 0;
-      accent-color: var(--teal);
+      accent-color: var(--brand);
     }}
     .kpis {{
       display: grid;
@@ -369,6 +381,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       line-height: 1;
       font-weight: 760;
       letter-spacing: 0;
+      color: var(--blue);
     }}
     .tile .note {{
       margin-top: 6px;
@@ -416,7 +429,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      color: #25313a;
+      color: var(--text);
       font-size: 12px;
     }}
     .bar-track {{
@@ -428,12 +441,12 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     .bar-fill {{
       height: 100%;
       min-width: 2px;
-      background: var(--teal);
+      background: var(--brand);
       border-radius: 999px;
     }}
-    .bar-fill.blue {{ background: var(--blue); }}
-    .bar-fill.amber {{ background: var(--amber); }}
-    .bar-fill.rose {{ background: var(--rose); }}
+    .bar-fill.blue {{ background: var(--green); }}
+    .bar-fill.amber {{ background: var(--orange); }}
+    .bar-fill.rose {{ background: var(--blue); }}
     .bar-value {{
       text-align: right;
       color: var(--muted);
@@ -463,7 +476,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
     th, td {{
       padding: 9px 10px;
-      border-bottom: 1px solid #eceee8;
+      border-bottom: 1px solid var(--line);
       text-align: left;
       vertical-align: top;
     }}
@@ -477,7 +490,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     th {{
       position: sticky;
       top: 0;
-      background: #fbfbf9;
+      background: var(--brand-soft);
       z-index: 1;
       color: var(--muted);
       font-size: 11px;
@@ -500,7 +513,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       cursor: pointer;
     }}
     .sort-indicator {{
-      color: var(--teal);
+      color: var(--brand);
       display: inline-block;
       min-width: 8px;
     }}
@@ -515,17 +528,17 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       padding: 2px 8px;
       font-size: 11px;
       font-weight: 700;
-      background: #edf7f4;
-      color: #0f5f58;
+      background: var(--green);
+      color: #FFFFFF;
       white-space: nowrap;
     }}
     .status.no {{
-      background: #f3f4f0;
-      color: #687078;
+      background: var(--red);
+      color: #FFFFFF;
     }}
     .status.warn {{
-      background: #fff4df;
-      color: #8a4b08;
+      background: var(--spark);
+      color: var(--text);
     }}
     .cell-note {{
       margin-top: 3px;
@@ -828,11 +841,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function escapeHtml(value) {{
-      return text(value).replace(/[&<>"']/g, char => ({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}}[char]));
+      return text(value).replace(/[&<>"']/g, char => ({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}}[char]));
     }}
 
     function escapeAttr(value) {{
-      return escapeHtml(value).replace(/`/g, '&#096;');
+      return escapeHtml(value).replace(/`/g, '&grave;');
     }}
 
     function populateSelect(select, values) {{
