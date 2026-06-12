@@ -41,13 +41,14 @@ zendesk_followups AS (
         LOWER(REGEXP_REPLACE(REGEXP_REPLACE(d.value::STRING, '^(https?://)?(www\\.)?', ''), '/.*$', '')) AS CLEAN_DOMAIN,
         MAX(CASE WHEN t.value::STRING = '3_day_follow_up' THEN TRUE ELSE FALSE END) AS HAS_3_DAY_FOLLOWUP,
         MAX(CASE WHEN t.value::STRING = '5_day_follow_up' THEN TRUE ELSE FALSE END) AS HAS_5_DAY_FOLLOWUP,
-        MAX(CASE WHEN t.value::STRING = '7_day_follow_up' THEN TRUE ELSE FALSE END) AS HAS_7_DAY_FOLLOWUP
+        MAX(CASE WHEN t.value::STRING = '7_day_follow_up' THEN TRUE ELSE FALSE END) AS HAS_7_DAY_FOLLOWUP,
+        MAX(CASE WHEN t.value::STRING = 'escalated_to_cg' THEN TRUE ELSE FALSE END) AS HAS_ESCALATED_TO_CG
     FROM HYAK_AIRBYTE_PRODUCTION.MARKETING_OPS.ZENDESK_TICKETS zt
     JOIN HYAK_AIRBYTE_PRODUCTION.MARKETING_OPS.ZENDESK_ORGANIZATIONS zo
         ON zt.ORGANIZATION_ID = zo.ID,
         LATERAL FLATTEN(input => zt.TAGS) t,
         LATERAL FLATTEN(input => zo.DOMAIN_NAMES) d
-    WHERE t.value::STRING IN ('3_day_follow_up', '5_day_follow_up', '7_day_follow_up')
+    WHERE t.value::STRING IN ('3_day_follow_up', '5_day_follow_up', '7_day_follow_up', 'escalated_to_cg')
     GROUP BY 1
 ),
 onboard_owner AS (
@@ -90,6 +91,7 @@ SELECT
     zf.HAS_3_DAY_FOLLOWUP,
     zf.HAS_5_DAY_FOLLOWUP,
     zf.HAS_7_DAY_FOLLOWUP,
+    zf.HAS_ESCALATED_TO_CG,
     cg.CG_EFFORT__C AS CG_ASSISTED,
     cg.CG_INVOLVEMENT__C AS CG_INVOLVEMENT,
     ls.INSTALL_DATE

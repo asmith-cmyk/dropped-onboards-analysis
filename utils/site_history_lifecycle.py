@@ -226,8 +226,12 @@ def _build_group_row(site_key: str, group: pd.DataFrame) -> dict[str, object]:
         or site_key
     )
     onboard_owner = _last_present(group, "onboard_owner_name") or _last_present(group, "onboarding_owner")
+    cg_escalated = bool(
+        _bool_series(group.get("cg_escalation_status", pd.Series(False, index=group.index))).any()
+    )
     cg_signal = (
-        _last_present(group, "cg_assisted")
+        _last_present(group, "cg_escalation_status")
+        or _last_present(group, "cg_assisted")
         or _last_present(group, "cg_involvement")
         or _last_present(group, "creator_growth")
     )
@@ -266,9 +270,9 @@ def _build_group_row(site_key: str, group: pd.DataFrame) -> dict[str, object]:
         "zendesk_ticket_solved_dates": _last_present(group, "zendesk_ticket_solved_dates"),
         "zendesk_ticket_count": _last_present(group, "zendesk_ticket_count") or 0,
         "ticket_reopened": bool(_bool_series(group.get("ticket_reopened", pd.Series(False, index=group.index))).any()),
-        "cg_involvement": _cg_label(cg_signal),
+        "cg_involvement": "Assisted" if cg_escalated else _cg_label(cg_signal),
         "cg_effort": _last_present(group, "cg_effort"),
-        "cg_escalation_status": bool(_bool_series(group.get("cg_escalation_status", pd.Series(False, index=group.index))).any()),
+        "cg_escalation_status": cg_escalated,
         "cg_escalation_timing": "",
         "cg_first_touch_at": _last_present(group, "cg_first_touch_at"),
         "cg_days_from_drop": "",
@@ -345,6 +349,10 @@ def build_master_from_site_history(history: pd.DataFrame) -> pd.DataFrame:
     out["has_7_day_followup"] = _field(out, ["has_7_day_followup", "has_7_day_macro", "macro_day_7"])
     out["cg_assisted"] = _field(out, ["cg_assisted", "cg_effort", "cg_effort_c"])
     out["cg_involvement"] = _field(out, ["cg_involvement", "cg_involvement_c"])
+    out["cg_escalation_status"] = _field(
+        out,
+        ["cg_escalation_status", "has_escalated_to_cg", "escalated_to_cg"],
+    )
 
     out["_install_date"] = _date_series(out["install_date"])
     out["_drop_date"] = _date_series(out["dropped_date"])

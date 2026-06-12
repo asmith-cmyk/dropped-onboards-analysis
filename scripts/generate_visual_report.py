@@ -171,7 +171,7 @@ DROPPED_REASON_GROUPS = [
     {"category": "Everything else", "reasons": ["Everything else"]},
 ]
 
-ALL_TIME_INSTALLED_SITE_COUNT = 9646
+FALLBACK_ALL_TIME_INSTALLED_SITE_COUNT = 9646
 
 
 def clean_text(value: object) -> str:
@@ -649,7 +649,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
   <script>
     const RECORDS = {data_json};
     const DROPPED_REASON_GROUPS = {reason_groups_json};
-    const ALL_TIME_INSTALLED_SITE_COUNT = {ALL_TIME_INSTALLED_SITE_COUNT};
+    const FALLBACK_ALL_TIME_INSTALLED_SITE_COUNT = {FALLBACK_ALL_TIME_INSTALLED_SITE_COUNT};
     const EVERYTHING_ELSE_REASON_OPTION = {{ category: 'Everything else', reason: 'Everything else' }};
     const REASON_OPTION_SEPARATOR = '::';
     const sortState = {{ key: 'dropped_date', direction: 'asc' }};
@@ -955,7 +955,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function installedDenominator(rows) {{
-      return hasActiveRateFilter() ? rows.filter(isInstalled).length : ALL_TIME_INSTALLED_SITE_COUNT;
+      const installedRows = rows.filter(isInstalled).length;
+      if (hasActiveRateFilter()) return installedRows;
+      return RECORDS.length < FALLBACK_ALL_TIME_INSTALLED_SITE_COUNT
+        ? FALLBACK_ALL_TIME_INSTALLED_SITE_COUNT
+        : installedRows;
     }}
 
     function summarize(rows) {{
