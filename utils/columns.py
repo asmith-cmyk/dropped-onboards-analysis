@@ -86,6 +86,16 @@ CANONICAL_COLUMNS = [
     "domain",
 ]
 
+DERIVED_COLUMNS = [
+    "creator_key",
+    "lead_key",
+    "domain_key",
+    "network_key",
+    "service_level_key",
+    "vertical_key",
+    "owner_key",
+]
+
 
 def rename_columns(df: pd.DataFrame) -> pd.DataFrame:
     rename_map: dict[str, str] = {}
@@ -109,7 +119,7 @@ def canonicalize_dataframe(
     df: pd.DataFrame, source: str, reference_date: date | None = None
 ) -> pd.DataFrame:
     if df.empty:
-        return pd.DataFrame(columns=CANONICAL_COLUMNS + ["source"])
+        return pd.DataFrame(columns=CANONICAL_COLUMNS + DERIVED_COLUMNS + ["source"])
 
     out = rename_columns(df.copy())
     for column in out.columns:
@@ -172,4 +182,3 @@ def canonicalize_dataframe(
 def format_date_for_output(series: pd.Series) -> pd.Series:
     dates = pd.to_datetime(series, errors="coerce")
     return dates.dt.strftime("%Y-%m-%d").fillna("")
-
