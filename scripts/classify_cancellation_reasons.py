@@ -12,14 +12,25 @@ if str(ROOT) not in sys.path:
 
 from utils.ai import classify_cancellation_reason
 from utils.config import ensure_project_dirs, load_settings
-from utils.io import read_csv, write_csv
+from utils.io import read_csv_if_exists, write_csv
 from utils.text import normalize_creator_name
+
+
+CLASSIFICATION_COLUMNS = [
+    "creator",
+    "creator_key",
+    "raw_description",
+    "raw_cancelled_reason",
+    "normalized_category",
+    "confidence_score",
+    "classification_method",
+]
 
 
 def run(limit: int | None = None) -> Path:
     settings = load_settings(ROOT)
     ensure_project_dirs(settings)
-    dropped = read_csv(settings.processed_data_dir / "dropped_normalized.csv")
+    dropped = read_csv_if_exists(settings.processed_data_dir / "dropped_normalized.csv")
     if limit:
         dropped = dropped.head(limit)
 
@@ -41,7 +52,7 @@ def run(limit: int | None = None) -> Path:
             }
         )
 
-    classifications = pd.DataFrame(rows)
+    classifications = pd.DataFrame(rows, columns=CLASSIFICATION_COLUMNS)
     output_path = settings.processed_data_dir / "cancellation_reasons.csv"
     write_csv(classifications, output_path)
     print(f"Wrote {output_path} ({len(classifications)} rows)")
@@ -57,4 +68,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

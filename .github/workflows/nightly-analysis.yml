@@ -25,6 +25,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Pull Snowflake full site history
+      - name: Pull Snowflake cohorts
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
