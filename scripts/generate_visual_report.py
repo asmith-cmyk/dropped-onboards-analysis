@@ -661,6 +661,10 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       background: var(--spark);
       color: var(--text);
     }}
+    .status.progress {{
+      background: var(--brand);
+      color: #FFFFFF;
+    }}
     .cell-note {{
       margin-top: 3px;
       color: var(--muted);
@@ -743,8 +747,8 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       <label class="search-control">Search
         <input id="search" type="search" placeholder="Site, creator, or onboarding owner">
       </label>
-      <label>Returned Year
-        <select id="returned-year"></select>
+      <label>Installed Year
+        <select id="installed-year"></select>
       </label>
       <label>Outcome
         <select id="outcome"></select>
@@ -842,7 +846,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     const EVERYTHING_ELSE_REASON_OPTION = {{ category: 'Everything else', reason: 'Everything else' }};
     const REASON_OPTION_SEPARATOR = '::';
     const SERVICE_LEVELS = ['Insider', 'Platinum', 'Platinum Elite', 'Rise'];
-    const OUTCOME_OPTIONS = ['Installed', 'Dropped', 'Returned'];
+    const OUTCOME_OPTIONS = ['Installed', 'Onboarding', 'Dropped', 'Returned'];
     const ONBOARDING_TEAM_OWNERS = ['Amy Burgess', 'Antoinette Smith', 'Michelle Stappert', 'Whitney Harrist'];
     const PREVIOUS_NETWORK_LABELS = {{
       'n/a': 'N/A',
@@ -860,7 +864,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     const sortState = {{ key: 'activity_date', direction: 'desc' }};
     const fields = {{
       search: document.getElementById('search'),
-      returnedYear: document.getElementById('returned-year'),
+      installedYear: document.getElementById('installed-year'),
       outcome: document.getElementById('outcome'),
       service: document.getElementById('service'),
       previousNetwork: document.getElementById('previous-network'),
@@ -877,7 +881,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }};
     const filterControls = [
       fields.search,
-      fields.returnedYear,
+      fields.installedYear,
       fields.outcome,
       fields.service,
       fields.previousNetwork,
@@ -1182,9 +1186,9 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function populateFilters() {{
-      populateSelect(fields.returnedYear, [...new Set(RECORDS
-        .filter(row => clean(row.outcome) === 'Returned' && clean(row.returned_date))
-        .map(row => yearValue(row, 'returned_year', 'returned_date'))
+      populateSelect(fields.installedYear, [...new Set(RECORDS
+        .filter(row => clean(row.install_date))
+        .map(row => yearValue(row, 'onboard_year', 'install_date'))
         .filter(Boolean))].sort((a, b) => b.localeCompare(a)));
       populateSelect(fields.outcome, OUTCOME_OPTIONS);
       populateSelect(fields.service, [...new Set(RECORDS.map(row => optionValue(row.service_level)))].sort((a, b) => a.localeCompare(b)));
@@ -1199,7 +1203,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       const query = fields.search.value.trim().toLowerCase();
       const cadenceDays = selectedCadenceDays();
       return RECORDS.filter(row => {{
-        if (fields.returnedYear.value && yearValue(row, 'returned_year', 'returned_date') !== fields.returnedYear.value) return false;
+        if (fields.installedYear.value && yearValue(row, 'onboard_year', 'install_date') !== fields.installedYear.value) return false;
         if (fields.outcome.value && clean(row.outcome) !== fields.outcome.value) return false;
         if (fields.service.value && optionValue(row.service_level) !== fields.service.value) return false;
         if (fields.previousNetwork.value && !previousNetworkParts(row.previous_ad_network).includes(fields.previousNetwork.value)) return false;
@@ -1324,6 +1328,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function statusClass(outcome) {{
       if (outcome === 'Dropped') return 'status no';
       if (outcome === 'Returned') return 'status warn';
+      if (outcome === 'Onboarding') return 'status progress';
       return 'status';
     }}
 
@@ -1498,7 +1503,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 
     function resetFilters() {{
       fields.search.value = '';
-      fields.returnedYear.value = '';
+      fields.installedYear.value = '';
       fields.outcome.value = '';
       fields.service.value = '';
       fields.previousNetwork.value = '';

@@ -186,6 +186,13 @@ def _build_group_row(site_key: str, group: pd.DataFrame) -> dict[str, object]:
 
     install_dates = group["_install_date"].dropna()
     latest_install = install_dates.max() if not install_dates.empty else pd.NaT
+    today = pd.Timestamp.today().normalize()
+    current_status_key = _status_key(current_status)
+    is_preinstall_setup = (
+        current_status_key == "setup"
+        and pd.notna(latest_install)
+        and latest_install.normalize() > today
+    )
 
     explicit_drop_dates = group["_drop_date"].dropna()
     status_drop_dates = group.loc[group["_status_key"].isin(DROP_LIFECYCLE_STATUSES), "_event_at"].dropna()
@@ -197,7 +204,9 @@ def _build_group_row(site_key: str, group: pd.DataFrame) -> dict[str, object]:
     latest_return = returned_after_drop.max() if not returned_after_drop.empty else pd.NaT
     has_return_after_drop = pd.notna(latest_return)
 
-    if has_drop and has_return_after_drop:
+    if is_preinstall_setup:
+        outcome = "Onboarding"
+    elif has_drop and has_return_after_drop:
         outcome = "Returned"
     elif has_drop:
         outcome = "Dropped"
@@ -208,10 +217,10 @@ def _build_group_row(site_key: str, group: pd.DataFrame) -> dict[str, object]:
     raw_reason_category = display_label(_drop_reason_category_for_group(group, latest_drop))
     normalized_reason = normalize_dropped_reason(raw_reason or raw_reason_category, has_drop=has_drop)
     dropped_date = _format_date(latest_drop)
-    returned_date = _format_date(latest_return)
+    returned_date = _format_date(latest_return if outcome == "Returned" else pd.NaT)
     install_date = _format_date(latest_install)
     days_to_return = ""
-    if pd.notna(latest_drop) and pd.notna(latest_return):
+    if outcome == "Returned" and pd.notna(latest_drop) and pd.notna(latest_return):
         days_to_return = str(int((latest_return - latest_drop).days))
 
     owner_name = _last_present(group, "site_owner_name") or _last_present(group, "creator_name") or _last_present(group, "lead_contact")
@@ -295,7 +304,7 @@ def _build_group_row(site_key: str, group: pd.DataFrame) -> dict[str, object]:
         "source_snowflake": True,
         "current_status": current_status,
         "onboard_year": str(latest_install.year) if pd.notna(latest_install) else "",
-        "returned_year": str(latest_return.year) if pd.notna(latest_return) else "",
+        "returned_year": str(latest_return.year) if outcome == "Returned" and pd.notna(latest_return) else "",
         "drop_count": len({date.strftime("%Y-%m-%d") for date in all_drop_dates.dropna()}),
         "dropped_dates": _date_list(all_drop_dates),
         "install_history": _date_list(install_dates),

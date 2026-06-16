@@ -1,6 +1,6 @@
 # Site Retention & Return Analysis
 
-Python analytics pipeline for the Raptive onboarding lifecycle dashboard. The rebuilt dashboard uses one full Snowflake site-history dataset as the source of truth, then derives lifecycle outcome, return date, returned year, cadence flags, dropped-reason buckets, widgets, and the static HTML dashboard from that dataset.
+Python analytics pipeline for the Raptive onboarding lifecycle dashboard. The rebuilt dashboard uses one full Snowflake site-history dataset as the source of truth, then derives lifecycle outcome, return date, installed year, cadence flags, dropped-reason buckets, widgets, and the static HTML dashboard from that dataset.
 
 The central output is:
 
@@ -51,6 +51,11 @@ Returned:
 - The latest `INSTALL_DATE` is after the latest dropped/cancelled date.
 - There is no newer dropped/cancelled event after that install.
 
+Onboarding:
+
+- The current `SITE_STATUS` is `Setup`.
+- The current date is before the site's `INSTALL_DATE`.
+
 Dropped:
 
 - The site has a historical dropped/cancelled event.
@@ -64,7 +69,7 @@ Sites without a prior dropped/cancelled event are retained as `Installed` so the
 
 ## Filter Logic
 
-- Returned Year: year from the latest `INSTALL_DATE` after the latest dropped/cancelled date
+- Installed Year: year from `INSTALL_DATE`
 - Service Level: `SERVICE_LEVEL`
 - Vertical: `PRIMARY_VERTICAL`, falling back to `VERTICALS`
 - Onboarding Owner: `ONBOARD_OWNER_NAME`
