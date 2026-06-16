@@ -1,35 +1,35 @@
 # Onboarding Lifecycle Executive Summary
 
-Generated from the master lifecycle dataset with 10566 lifecycle sites and 428 returned sites.
+Generated from the master lifecycle dataset with 10569 lifecycle sites and 429 returned sites.
 
 ## Headline Metrics
 
 - Re-engagement rate: 4.1%
-- Install/conversion rate across filtered lifecycle sites: 72.8%
-- Median days to return: 235.0
-- Returned after 3, 5, or 7 day follow up cadence: 12/10566
+- Install/conversion rate across filtered lifecycle sites: 72.6%
+- Median days to return: 236.0
+- Returned after 3, 5, or 7 day follow up cadence: 19/10569
 
 ## Strongest Cohorts
 
+- Macro Cadence = 3, 5 and 7 day follow up: 100.0% re-engagement (1/1).
 - Vertical = Pregnancy: 20.0% re-engagement (1/5).
-- Previous Ad Network = Mediavine: 14.4% re-engagement (271/1882).
+- Previous Ad Network = Mediavine: 14.4% re-engagement (272/1883).
 - Vertical = Careers: 14.3% re-engagement (2/14).
-- Onboarding Owner = Antoinette Smith: 14.1% re-engagement (92/652).
-- Onboarding Owner = Whitney Harrist: 13.7% re-engagement (89/648).
-- Creator Growth = Assisted: 12.8% re-engagement (59/461).
+- Onboarding Owner = Antoinette Smith: 14.3% re-engagement (93/652).
+- Onboarding Owner = Whitney Harrist: 13.7% re-engagement (89/650).
+- Creator Growth = Assisted: 12.6% re-engagement (56/445).
 - Previous Ad Network = Freestar: 11.5% re-engagement (7/61).
-- Previous Ad Network = I manage my own ad setup using one or more ad provider: 11.5% re-engagement (7/61).
 
 ## Creator Growth
 
-- Assisted: 12.8% re-engagement across 461 creators.
-- Not Assisted: 3.6% re-engagement across 10105 creators.
+- Assisted: 12.6% re-engagement across 445 creators.
+- Not Assisted: 3.7% re-engagement across 10124 creators.
 
 ## Rise Creators
 
-- All Rise: 3.5% re-engagement and 75.1% install rate.
+- All Rise: 3.5% re-engagement and 75.2% install rate.
 - Onboarding Call Offered: 0.0% re-engagement and 0.0% install rate.
-- No Onboarding Call Offered: 3.5% re-engagement and 75.1% install rate.
+- No Onboarding Call Offered: 3.5% re-engagement and 75.2% install rate.
 - Salesloft Meeting Detected: 0.0% re-engagement and 0.0% install rate.
 - Slack Intervention Detected: 0.0% re-engagement and 0.0% install rate.
 
