@@ -231,6 +231,14 @@ def _outcome_series(df: pd.DataFrame) -> pd.Series:
     dropped = pd.to_datetime(_series_or_default(df, "dropped_date"), errors="coerce")
     returned = pd.to_datetime(_series_or_default(df, "returned_date"), errors="coerce")
     install = pd.to_datetime(_series_or_default(df, "install_date"), errors="coerce")
+    current_status = _series_or_default(df, "current_status")
+    fallback_status = _series_or_default(df, "dropped_status")
+    status = (
+        current_status.where(current_status.fillna("").astype(str).str.strip().ne(""), fallback_status)
+        .fillna("")
+        .astype(str)
+        .map(lambda value: re.sub(r"[^a-z0-9]+", "", clean_blank(value).lower()))
+    )
 
     has_drop = dropped.notna()
     returned_after_drop = has_drop & (
@@ -241,6 +249,7 @@ def _outcome_series(df: pd.DataFrame) -> pd.Series:
     outcome = pd.Series("Installed", index=df.index)
     outcome.loc[has_drop] = "Dropped"
     outcome.loc[returned_after_drop] = "Returned"
+    outcome.loc[status.eq("setup")] = "Onboarding"
     return outcome
 
 
@@ -269,13 +278,18 @@ def _recalculate_lifecycle_flags(lifecycle: pd.DataFrame) -> pd.DataFrame:
     reengaged = valid_return
     converted = bool_series(_series_or_default(out, "converted", False), index=out.index) | install_completed
 
-    out["install_completed"] = install_completed
-    out["converted"] = converted
-    out["reengaged"] = reengaged
+    out["outcome"] = _outcome_series(out)
+    is_onboarding = out["outcome"].eq("Onboarding")
+    returned = returned.where(~is_onboarding)
+    out["returned_date"] = format_date_for_output(returned)
+    out["days_to_return"] = _format_days((returned - dropped).dt.days)
+
+    out["install_completed"] = install_completed.where(~is_onboarding, False)
+    out["converted"] = converted.where(~is_onboarding, False)
+    out["reengaged"] = reengaged.where(~is_onboarding, False)
     out["source_salesforce_returning"] = bool_series(
         _series_or_default(out, "source_salesforce_returning", False), index=out.index
     )
-    out["outcome"] = _outcome_series(out)
     return out
 
 

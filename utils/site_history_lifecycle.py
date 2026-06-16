@@ -186,13 +186,8 @@ def _build_group_row(site_key: str, group: pd.DataFrame) -> dict[str, object]:
 
     install_dates = group["_install_date"].dropna()
     latest_install = install_dates.max() if not install_dates.empty else pd.NaT
-    today = pd.Timestamp.today().normalize()
     current_status_key = _status_key(current_status)
-    is_preinstall_setup = (
-        current_status_key == "setup"
-        and pd.notna(latest_install)
-        and latest_install.normalize() > today
-    )
+    is_setup = current_status_key == "setup"
 
     explicit_drop_dates = group["_drop_date"].dropna()
     status_drop_dates = group.loc[group["_status_key"].isin(DROP_LIFECYCLE_STATUSES), "_event_at"].dropna()
@@ -204,7 +199,7 @@ def _build_group_row(site_key: str, group: pd.DataFrame) -> dict[str, object]:
     latest_return = returned_after_drop.max() if not returned_after_drop.empty else pd.NaT
     has_return_after_drop = pd.notna(latest_return)
 
-    if is_preinstall_setup:
+    if is_setup:
         outcome = "Onboarding"
     elif has_drop and has_return_after_drop:
         outcome = "Returned"
