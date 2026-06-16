@@ -54,7 +54,6 @@ Returned:
 Onboarding:
 
 - The current `SITE_STATUS` is `Setup`.
-- The current date is before the site's `INSTALL_DATE`.
 
 Dropped:
 

@@ -5,7 +5,7 @@ Generated from the master lifecycle dataset with 10569 lifecycle sites and 429 r
 ## Headline Metrics
 
 - Re-engagement rate: 4.1%
-- Install/conversion rate across filtered lifecycle sites: 72.6%
+- Install/conversion rate across filtered lifecycle sites: 71.4%
 - Median days to return: 236.0
 - Returned after 3, 5, or 7 day follow up cadence: 19/10569
 
@@ -27,9 +27,9 @@ Generated from the master lifecycle dataset with 10569 lifecycle sites and 429 r
 
 ## Rise Creators
 
-- All Rise: 3.5% re-engagement and 75.2% install rate.
+- All Rise: 3.5% re-engagement and 70.7% install rate.
 - Onboarding Call Offered: 0.0% re-engagement and 0.0% install rate.
-- No Onboarding Call Offered: 3.5% re-engagement and 75.2% install rate.
+- No Onboarding Call Offered: 3.5% re-engagement and 70.7% install rate.
 - Salesloft Meeting Detected: 0.0% re-engagement and 0.0% install rate.
 - Slack Intervention Detected: 0.0% re-engagement and 0.0% install rate.
 
