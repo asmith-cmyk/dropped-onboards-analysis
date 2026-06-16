@@ -54,6 +54,7 @@ REPORT_FIELDS = [
     "dropped_date",
     "dropped_dates",
     "returned_date",
+    "returned_reason",
     "install_date",
     "install_history",
     "days_to_return",
@@ -171,9 +172,6 @@ DROPPED_REASON_GROUPS = [
     {"category": "Everything else", "reasons": ["Everything else"]},
 ]
 
-FALLBACK_ALL_TIME_INSTALLED_SITE_COUNT = 9646
-
-
 def clean_text(value: object) -> str:
     if value is None or pd.isna(value):
         return ""
@@ -228,7 +226,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Onboarding Lifecycle Dashboard</title>
+  <title>Site Retention &amp; Return Analysis</title>
   <style>
     :root {{
       --bg: #F0EDEB;
@@ -254,25 +252,33 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       background: var(--bg);
       color: var(--text);
       font-family: "Roobert Pro", "DM Sans", Arial, sans-serif;
-      font-size: 14px;
+      font-size: 16px;
       line-height: 1.4;
     }}
     header {{
       border-bottom: 1px solid var(--line);
       border-top: 6px solid var(--brand);
       background: var(--brand-soft);
-      padding: 18px 28px 16px;
+      padding: 26px 32px 22px;
     }}
     .title-row {{
       display: flex;
-      align-items: baseline;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 18px;
       flex-wrap: wrap;
     }}
+    .eyebrow {{
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 760;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }}
     h1 {{
       margin: 0;
-      font-size: 24px;
+      font-size: 46px;
       line-height: 1.15;
       letter-spacing: 0;
       font-weight: 720;
@@ -280,26 +286,62 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
     .subtitle {{
       color: var(--muted);
-      margin-top: 5px;
-      font-size: 13px;
+      margin-top: 12px;
+      font-size: 17px;
+      max-width: 980px;
+    }}
+    .header-actions {{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }}
+    .button {{
+      border: 1px solid var(--green);
+      border-radius: 6px;
+      background: var(--green);
+      color: var(--surface);
+      cursor: pointer;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 760;
+      min-height: 46px;
+      padding: 10px 18px;
+    }}
+    .button.secondary {{
+      border-color: var(--line);
+      background: var(--surface);
+      color: var(--muted);
     }}
     main {{
-      padding: 20px 28px 32px;
-      max-width: 1500px;
+      padding: 28px 32px 40px;
+      max-width: 1680px;
       margin: 0 auto;
     }}
     .controls {{
       display: grid;
-      grid-template-columns: minmax(220px, 2fr) repeat(7, minmax(120px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
       align-items: end;
-      margin-bottom: 16px;
+      margin-bottom: 24px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }}
+    .search-control {{
+      grid-column: span 2;
+    }}
+    .cadence-control {{
+      grid-column: span 2;
     }}
     label {{
       display: grid;
-      gap: 5px;
+      gap: 8px;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 650;
     }}
     input, select {{
@@ -308,9 +350,10 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       border-radius: 6px;
       background: var(--surface);
       color: var(--text);
-      padding: 9px 10px;
+      padding: 12px 14px;
       font: inherit;
-      min-height: 38px;
+      font-size: 16px;
+      min-height: 48px;
     }}
     input:focus, select:focus {{
       border-color: var(--brand);
@@ -319,31 +362,35 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
     .control-group {{
       display: grid;
-      gap: 5px;
+      gap: 8px;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 650;
+    }}
+    .controls > label,
+    .control-group > span {{
+      text-transform: uppercase;
     }}
     .cadence-options {{
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 14px;
       flex-wrap: wrap;
-      min-height: 38px;
+      min-height: 48px;
       border: 1px solid var(--line);
       border-radius: 6px;
       background: var(--surface);
-      padding: 5px 6px;
+      padding: 9px 12px;
     }}
     .cadence-option {{
       display: inline-flex;
       align-items: center;
       gap: 5px;
       color: var(--text);
-      background: var(--ink-soft);
-      border-radius: 6px;
-      padding: 4px 7px;
-      font-size: 12px;
+      background: transparent;
+      border-radius: 0;
+      padding: 0;
+      font-size: 15px;
       font-weight: 650;
       line-height: 1;
     }}
@@ -357,8 +404,8 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     .kpis {{
       display: grid;
       grid-template-columns: repeat(5, minmax(130px, 1fr));
-      gap: 10px;
-      margin-bottom: 16px;
+      gap: 16px;
+      margin-bottom: 18px;
     }}
     .tile, .panel {{
       background: var(--surface);
@@ -367,62 +414,111 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       box-shadow: var(--shadow);
     }}
     .tile {{
-      padding: 12px 13px;
-      min-height: 82px;
+      padding: 18px 20px;
+      min-height: 116px;
+      position: relative;
+      cursor: help;
+    }}
+    .tile:focus {{
+      border-color: var(--brand);
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+    }}
+    .tile::after {{
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 12px;
+      top: calc(100% + 8px);
+      z-index: 20;
+      width: min(320px, calc(100vw - 48px));
+      border-radius: 6px;
+      background: var(--text);
+      color: var(--surface);
+      box-shadow: var(--shadow);
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.35;
+      opacity: 0;
+      padding: 9px 10px;
+      pointer-events: none;
+      transform: translateY(-4px);
+      transition: opacity 120ms ease, transform 120ms ease;
+    }}
+    .tile:hover::after,
+    .tile:focus::after {{
+      opacity: 1;
+      transform: translateY(0);
     }}
     .tile .label {{
       color: var(--muted);
-      font-size: 12px;
-      font-weight: 650;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 760;
+      text-transform: uppercase;
+    }}
+    .info-dot {{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 760;
+      line-height: 1;
     }}
     .tile .value {{
-      margin-top: 7px;
-      font-size: 28px;
+      margin-top: 14px;
+      font-size: 40px;
       line-height: 1;
       font-weight: 760;
       letter-spacing: 0;
-      color: var(--blue);
+      color: var(--text);
     }}
     .tile .note {{
-      margin-top: 6px;
+      margin-top: 10px;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 15px;
     }}
     .grid {{
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 14px;
+      gap: 18px;
+      margin-bottom: 18px;
     }}
     .panel {{
-      padding: 14px;
-      min-height: 285px;
+      padding: 18px;
+      min-height: 320px;
     }}
     .panel-header {{
       display: flex;
       justify-content: space-between;
       gap: 10px;
       align-items: baseline;
-      margin-bottom: 10px;
+      margin-bottom: 14px;
     }}
     h2 {{
       margin: 0;
-      font-size: 15px;
+      font-size: 18px;
       line-height: 1.2;
       letter-spacing: 0;
     }}
     .panel-header span {{
       color: var(--muted);
-      font-size: 12px;
+      font-size: 13px;
     }}
     .bars {{
       display: grid;
-      gap: 8px;
+      gap: 10px;
     }}
     .bar-row {{
       display: grid;
       grid-template-columns: minmax(120px, 190px) 1fr 72px;
-      gap: 10px;
+      gap: 12px;
       align-items: center;
     }}
     .bar-label {{
@@ -430,7 +526,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       text-overflow: ellipsis;
       white-space: nowrap;
       color: var(--text);
-      font-size: 12px;
+      font-size: 14px;
     }}
     .bar-track {{
       background: var(--ink-soft);
@@ -451,19 +547,44 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       text-align: right;
       color: var(--muted);
       font-variant-numeric: tabular-nums;
-      font-size: 12px;
+      font-size: 14px;
     }}
     .table-panel {{
       padding: 0;
       overflow: hidden;
     }}
     .table-header {{
-      padding: 14px;
+      padding: 18px;
       border-bottom: 1px solid var(--line);
       display: flex;
       align-items: baseline;
       justify-content: space-between;
       gap: 12px;
+    }}
+    .table-title {{
+      display: grid;
+      gap: 2px;
+    }}
+    .table-tools {{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+    }}
+    .toggle-line {{
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }}
+    .toggle-line input {{
+      width: auto;
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+      accent-color: var(--brand);
     }}
     .table-wrap {{
       overflow: auto;
@@ -472,10 +593,10 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     table {{
       width: 100%;
       border-collapse: collapse;
-      min-width: 1180px;
+      min-width: 1500px;
     }}
     th, td {{
-      padding: 9px 10px;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--line);
       text-align: left;
       vertical-align: top;
@@ -493,7 +614,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       background: var(--brand-soft);
       z-index: 1;
       color: var(--muted);
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 760;
       text-transform: uppercase;
       letter-spacing: 0;
@@ -518,15 +639,15 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       min-width: 8px;
     }}
     td {{
-      font-size: 12px;
+      font-size: 14px;
     }}
     .status {{
       display: inline-flex;
       align-items: center;
       gap: 6px;
       border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 11px;
+      padding: 3px 10px;
+      font-size: 12px;
       font-weight: 700;
       background: var(--green);
       color: #FFFFFF;
@@ -543,14 +664,51 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     .cell-note {{
       margin-top: 3px;
       color: var(--muted);
-      font-size: 11px;
+      font-size: 12px;
       line-height: 1.25;
       white-space: pre-line;
+    }}
+    .cadence-pill {{
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.1;
+      margin: 0 4px 4px 0;
+      padding: 3px 8px;
+      white-space: nowrap;
+    }}
+    .cadence-pill--3 {{
+      background: var(--brand-soft);
+      color: var(--blue);
+    }}
+    .cadence-pill--5 {{
+      background: var(--spark);
+      color: var(--text);
+    }}
+    .cadence-pill--7 {{
+      background: var(--pink);
+      color: var(--text);
+    }}
+    .cadence-pill--cg {{
+      background: var(--blue);
+      color: var(--surface);
+    }}
+    .hidden-col {{
+      display: none;
     }}
     .empty {{
       color: var(--muted);
       padding: 18px 0;
       font-size: 13px;
+    }}
+    .empty-row td {{
+      color: var(--muted);
+      padding: 24px 14px;
+      text-align: center;
     }}
     @media (max-width: 1100px) {{
       .controls {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
@@ -560,6 +718,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     @media (max-width: 720px) {{
       header, main {{ padding-left: 16px; padding-right: 16px; }}
       .controls, .kpis {{ grid-template-columns: 1fr; }}
+      .search-control, .cadence-control {{ grid-column: auto; }}
       .bar-row {{ grid-template-columns: 110px 1fr 56px; }}
     }}
   </style>
@@ -568,35 +727,47 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
   <header>
     <div class="title-row">
       <div>
-        <h1>Onboarding Lifecycle Dashboard</h1>
-        <div class="subtitle">{total} sites · Generated {generated}</div>
+        <div class="eyebrow">Reporting</div>
+        <h1>Site Retention &amp; Return Analysis</h1>
+        <div class="subtitle">Track installed, dropped, returned, and re-engaged sites across onboarding ownership, follow-up cadence, Creator Growth involvement, and drop reasons.</div>
+      </div>
+      <div class="header-actions">
+        <button class="button secondary" type="button" id="reset-filters">Reset</button>
+        <button class="button" type="button" id="export-csv">Export CSV</button>
       </div>
     </div>
   </header>
 
   <main>
     <section class="controls" aria-label="Filters">
-      <label>Search
-        <input id="search" type="search" placeholder="Site Name, Site Owner Name, Onboarding Owner, Dropped Reason">
+      <label class="search-control">Search
+        <input id="search" type="search" placeholder="Site, creator, or onboarding owner">
       </label>
       <label>Returned Year
         <select id="returned-year"></select>
       </label>
-      <label>Service Level
-        <select id="service"></select>
-      </label>
-      <label>Vertical
-        <select id="vertical"></select>
+      <label>Outcome
+        <select id="outcome"></select>
       </label>
       <label>Owner
         <select id="owner"></select>
       </label>
-      <div class="control-group">
-        <span>Cadence</span>
-        <div class="cadence-options" id="cadence-options" role="group" aria-label="Cadence follow-up days">
-          <label class="cadence-option"><input type="checkbox" name="cadence-day" value="3">3 day</label>
-          <label class="cadence-option"><input type="checkbox" name="cadence-day" value="5">5 day</label>
-          <label class="cadence-option"><input type="checkbox" name="cadence-day" value="7">7 day</label>
+      <label>Vertical
+        <select id="vertical"></select>
+      </label>
+      <label>Service Level
+        <select id="service"></select>
+      </label>
+      <label>Previous Ad Network
+        <select id="previous-network"></select>
+      </label>
+      <div class="control-group cadence-control">
+        <span>Follow-Up Cadence</span>
+        <div class="cadence-options" id="cadence-options" role="group" aria-label="Follow-up cadence">
+          <label class="cadence-option"><input type="checkbox" name="cadence-day" value="3">3 Day Follow Up</label>
+          <label class="cadence-option"><input type="checkbox" name="cadence-day" value="5">5 Day Follow Up</label>
+          <label class="cadence-option"><input type="checkbox" name="cadence-day" value="7">7 Day Follow Up</label>
+          <label class="cadence-option"><input type="checkbox" name="cadence-day" value="cg">Escalated to Creator Growth</label>
         </div>
       </div>
       <label>Dropped Reason Category
@@ -630,8 +801,13 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 
     <section class="panel table-panel">
       <div class="table-header">
-        <h2>Onboarding Lifecycle Sites</h2>
-        <span class="subtitle" id="row-count"></span>
+        <div class="table-title">
+          <h2>Sites</h2>
+          <span class="subtitle" id="row-count"></span>
+        </div>
+        <div class="table-tools">
+          <label class="toggle-line"><input type="checkbox" id="toggle-returned-reason">Returned Reason</label>
+        </div>
       </div>
       <div class="table-wrap">
         <table>
@@ -642,8 +818,8 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
               <th><button class="sort-button" type="button" data-sort="lead">Creator Name <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="service_level">Service Level <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="vertical">Vertical <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="previous_ad_network">Network <span class="sort-indicator"></span></button></th>
-              <th><button class="sort-button" type="button" data-sort="onboarding_owner">Owner <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="previous_ad_network">Previous Ad Network <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="onboarding_owner">Onboarding Owner <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="dropped_date">Dropped Date <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="reason_category">Dropped Reason Category <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="reason">Dropped Reason <span class="sort-indicator"></span></button></th>
@@ -651,6 +827,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
               <th><button class="sort-button" type="button" data-sort="cg_involvement">CG Involvement <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="returned_date">Returned Date <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="outcome">Outcome <span class="sort-indicator"></span></button></th>
+              <th class="returned-reason-col hidden-col"><button class="sort-button" type="button" data-sort="returned_reason">Returned Reason <span class="sort-indicator"></span></button></th>
             </tr>
           </thead>
           <tbody id="creator-rows"></tbody>
@@ -662,20 +839,53 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
   <script>
     const RECORDS = {data_json};
     const DROPPED_REASON_GROUPS = {reason_groups_json};
-    const FALLBACK_ALL_TIME_INSTALLED_SITE_COUNT = {FALLBACK_ALL_TIME_INSTALLED_SITE_COUNT};
     const EVERYTHING_ELSE_REASON_OPTION = {{ category: 'Everything else', reason: 'Everything else' }};
     const REASON_OPTION_SEPARATOR = '::';
-    const sortState = {{ key: 'dropped_date', direction: 'asc' }};
+    const SERVICE_LEVELS = ['Insider', 'Platinum', 'Platinum Elite', 'Rise'];
+    const OUTCOME_OPTIONS = ['Installed', 'Dropped', 'Returned'];
+    const ONBOARDING_TEAM_OWNERS = ['Amy Burgess', 'Antoinette Smith', 'Michelle Stappert', 'Whitney Harrist'];
+    const PREVIOUS_NETWORK_LABELS = {{
+      'n/a': 'N/A',
+      'adsense': 'AdSense',
+      'adstyle': 'AdStyle',
+      'adx': 'AdX',
+      'adthrive legacy': 'AdThrive Legacy',
+      'ezoic': 'Ezoic',
+      'freestar': 'Freestar',
+      'media.net': 'Media.net',
+      'mediavine': 'Mediavine',
+      'monumetric': 'Monumetric',
+      'she media': 'SHE Media'
+    }};
+    const sortState = {{ key: 'activity_date', direction: 'desc' }};
     const fields = {{
       search: document.getElementById('search'),
       returnedYear: document.getElementById('returned-year'),
+      outcome: document.getElementById('outcome'),
       service: document.getElementById('service'),
+      previousNetwork: document.getElementById('previous-network'),
       vertical: document.getElementById('vertical'),
       owner: document.getElementById('owner'),
       cadenceOptions: document.getElementById('cadence-options'),
       reasonCategory: document.getElementById('reason-category'),
       reason: document.getElementById('reason')
     }};
+    const actions = {{
+      reset: document.getElementById('reset-filters'),
+      exportCsv: document.getElementById('export-csv'),
+      returnedReasonToggle: document.getElementById('toggle-returned-reason')
+    }};
+    const filterControls = [
+      fields.search,
+      fields.returnedYear,
+      fields.outcome,
+      fields.service,
+      fields.previousNetwork,
+      fields.vertical,
+      fields.owner,
+      fields.cadenceOptions,
+      fields.reason
+    ];
 
     function text(value) {{
       return (value ?? '').toString();
@@ -721,17 +931,72 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return display(value);
     }}
 
+    function previousNetworkLabel(value) {{
+      const valueText = clean(value);
+      if (!valueText) return 'N/A';
+      const key = valueText.toLowerCase().replace(/\\s+/g, ' ');
+      return PREVIOUS_NETWORK_LABELS[key] || displayLabel(valueText);
+    }}
+
+    function previousNetworkParts(value) {{
+      const valueText = clean(value);
+      if (!valueText) return ['N/A'];
+      const parts = valueText.split(',')
+        .map(part => previousNetworkLabel(part))
+        .filter(Boolean);
+      return [...new Set(parts.length ? parts : [previousNetworkLabel(valueText)])];
+    }}
+
+    function previousNetworkValue(value) {{
+      return previousNetworkParts(value).join(', ');
+    }}
+
     function hasCadence(row, day) {{
       const cadenceText = clean(row.macro_cadence).toLowerCase();
       return truthy(row[`has_${{day}}_day_followup`]) || new RegExp(`\\\\b${{day}}\\\\b`).test(cadenceText);
     }}
 
+    function hasEscalatedToCg(row) {{
+      const involvement = clean(row.cg_involvement).toLowerCase();
+      return truthy(row.cg_escalation_status)
+        || truthy(row.has_escalated_to_cg)
+        || involvement.includes('escalated to cg')
+        || involvement.includes('escalated to creator growth');
+    }}
+
+    function hasCadenceFilter(row, value) {{
+      return value === 'cg' ? hasEscalatedToCg(row) : hasCadence(row, value);
+    }}
+
+    function hasAnyFollowUp(row) {{
+      return ['3', '5', '7'].some(day => hasCadence(row, day)) || hasEscalatedToCg(row);
+    }}
+
+    function cadenceItems(row) {{
+      const labels = [];
+      if (hasCadence(row, '3')) labels.push('3 Day');
+      if (hasCadence(row, '5')) labels.push('5 Day');
+      if (hasCadence(row, '7')) labels.push('7 Day');
+      if (hasEscalatedToCg(row)) labels.push('Escalated to CG');
+      return labels;
+    }}
+
     function cadenceValue(row) {{
-      const days = ['3', '5', '7'].filter(day => hasCadence(row, day));
-      if (!days.length) return 'None';
-      if (days.length === 1) return `${{days[0]}} day follow up`;
-      if (days.length === 2) return `${{days[0]}} and ${{days[1]}} day follow up`;
-      return `${{days.slice(0, -1).join(', ')}} and ${{days[days.length - 1]}} day follow up`;
+      const labels = cadenceItems(row);
+      return labels.length ? labels.join(', ') : 'None';
+    }}
+
+    function cadencePillClass(label) {{
+      if (label.startsWith('3')) return 'cadence-pill--3';
+      if (label.startsWith('5')) return 'cadence-pill--5';
+      if (label.startsWith('7')) return 'cadence-pill--7';
+      return 'cadence-pill--cg';
+    }}
+
+    function cadencePills(row) {{
+      const labels = cadenceItems(row);
+      if (!labels.length) return 'None';
+      return labels.map(label => `<span class="cadence-pill ${{cadencePillClass(label)}}">${{escapeHtml(label)}}</span>`).join('');
     }}
 
     function reasonCategoryValue(row) {{
@@ -782,6 +1047,18 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       }});
     }});
 
+    function hasDropSignal(row) {{
+      const outcome = clean(row.outcome);
+      return Boolean(
+        clean(row.dropped_date)
+        || number(row.drop_count) > 0
+        || clean(row.dropped_reason)
+        || clean(row.dropped_reason_category)
+        || outcome === 'Dropped'
+        || outcome === 'Returned'
+      );
+    }}
+
     function reasonOptionForRow(row) {{
       const categoryKey = taxonomyKey(row.dropped_reason_category);
       const candidates = [
@@ -789,6 +1066,8 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         row.normalized_dropped_reason,
         row.cancellation_reason
       ].map(clean).filter(Boolean);
+
+      if (!hasDropSignal(row) && !categoryKey && !candidates.length) return null;
 
       if (REASON_GROUP_BY_KEY.has(categoryKey)) {{
         for (const candidate of candidates) {{
@@ -811,11 +1090,13 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 
     function rowReasonOptionKey(row) {{
       const option = reasonOptionForRow(row);
+      if (!option) return '';
       return reasonOptionKey(option.category, option.reason);
     }}
 
     function rowReasonCategoryFilterValue(row) {{
-      return reasonOptionForRow(row).category;
+      const option = reasonOptionForRow(row);
+      return option ? option.category : '';
     }}
 
     function yearValue(row, key, dateKey) {{
@@ -854,8 +1135,37 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         .join('');
     }}
 
+    function populateGroupedSelect(select, groups) {{
+      const groupOptions = groups
+        .filter(group => group.values.length)
+        .map(group => {{
+          const options = group.values
+            .map(value => `<option value="${{escapeAttr(value)}}">${{escapeHtml(value)}}</option>`)
+            .join('');
+          return `<optgroup label="${{escapeAttr(group.label)}}">${{options}}</optgroup>`;
+        }})
+        .join('');
+      select.innerHTML = '<option value="">All</option>' + groupOptions;
+    }}
+
+    function populateOwnerSelect() {{
+      const owners = [...new Set(RECORDS.flatMap(ownerParts))].sort((a, b) => a.localeCompare(b));
+      const onboardingTeamSet = new Set(ONBOARDING_TEAM_OWNERS);
+      const onboardingTeamOwners = ONBOARDING_TEAM_OWNERS.filter(owner => owners.includes(owner));
+      const otherOwners = owners.filter(owner => !onboardingTeamSet.has(owner));
+      populateGroupedSelect(fields.owner, [
+        {{ label: 'Onboarding Team', values: onboardingTeamOwners }},
+        {{ label: 'Other', values: otherOwners }}
+      ]);
+    }}
+
     function populateReasonSelect() {{
-      const options = DROPPED_REASON_GROUPS
+      const selectedCategory = fields.reasonCategory.value;
+      const groups = selectedCategory
+        ? DROPPED_REASON_GROUPS.filter(group => group.category === selectedCategory)
+        : DROPPED_REASON_GROUPS;
+      const currentValue = fields.reason.value;
+      const options = groups
         .map(group => {{
           const reasonOptions = group.reasons
             .map(reason => `<option value="${{escapeAttr(reasonOptionKey(group.category, reason))}}">${{escapeHtml(reason)}}</option>`)
@@ -864,13 +1174,23 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         }})
         .join('');
       fields.reason.innerHTML = '<option value="">All</option>' + options;
+      if (currentValue && ![...fields.reason.options].some(option => option.value === currentValue)) {{
+        fields.reason.value = '';
+      }} else {{
+        fields.reason.value = currentValue;
+      }}
     }}
 
     function populateFilters() {{
-      populateSelect(fields.returnedYear, [...new Set(RECORDS.map(row => yearValue(row, 'returned_year', 'returned_date')).filter(Boolean))].sort((a, b) => b.localeCompare(a)));
+      populateSelect(fields.returnedYear, [...new Set(RECORDS
+        .filter(row => clean(row.outcome) === 'Returned' && clean(row.returned_date))
+        .map(row => yearValue(row, 'returned_year', 'returned_date'))
+        .filter(Boolean))].sort((a, b) => b.localeCompare(a)));
+      populateSelect(fields.outcome, OUTCOME_OPTIONS);
       populateSelect(fields.service, [...new Set(RECORDS.map(row => optionValue(row.service_level)))].sort((a, b) => a.localeCompare(b)));
+      populateSelect(fields.previousNetwork, [...new Set(RECORDS.flatMap(row => previousNetworkParts(row.previous_ad_network)))].sort((a, b) => a.localeCompare(b)));
       populateSelect(fields.vertical, [...new Set(RECORDS.map(row => optionValue(row.vertical)))].sort((a, b) => a.localeCompare(b)));
-      populateSelect(fields.owner, [...new Set(RECORDS.flatMap(ownerParts))].sort((a, b) => a.localeCompare(b)));
+      populateOwnerSelect();
       populateSelect(fields.reasonCategory, DROPPED_REASON_GROUPS.map(group => group.category));
       populateReasonSelect();
     }}
@@ -880,10 +1200,12 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       const cadenceDays = selectedCadenceDays();
       return RECORDS.filter(row => {{
         if (fields.returnedYear.value && yearValue(row, 'returned_year', 'returned_date') !== fields.returnedYear.value) return false;
+        if (fields.outcome.value && clean(row.outcome) !== fields.outcome.value) return false;
         if (fields.service.value && optionValue(row.service_level) !== fields.service.value) return false;
+        if (fields.previousNetwork.value && !previousNetworkParts(row.previous_ad_network).includes(fields.previousNetwork.value)) return false;
         if (fields.vertical.value && optionValue(row.vertical) !== fields.vertical.value) return false;
         if (fields.owner.value && !ownerParts(row).includes(fields.owner.value)) return false;
-        if (cadenceDays.length && !cadenceDays.some(day => hasCadence(row, day))) return false;
+        if (cadenceDays.length && !cadenceDays.some(value => hasCadenceFilter(row, value))) return false;
         if (fields.reasonCategory.value && rowReasonCategoryFilterValue(row) !== fields.reasonCategory.value) return false;
         if (fields.reason.value && rowReasonOptionKey(row) !== fields.reason.value) return false;
         if (!query) return true;
@@ -891,22 +1213,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           row.creator_project_name,
           row.lead_contact,
           row.company_name,
-          row.site_id,
-          row.domain,
-          row.onboarding_owner,
-          row.previous_ad_network,
-          row.current_status,
-          row.dropped_reason,
-          row.dropped_reason_category,
-          row.normalized_dropped_reason,
-          row.cancellation_reason,
-          row.raw_description,
-          row.dropped_dates,
-          row.install_history,
-          row.returned_date,
-          row.outcome,
-          row.vertical,
-          row.service_level
+          row.onboarding_owner
         ].map(text).join(' ').toLowerCase();
         return haystack.includes(query);
       }});
@@ -924,6 +1231,15 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         .slice(0, limit);
     }}
 
+    function fixedCounts(rows, labels, formatter) {{
+      const counts = new Map(labels.map(label => [label, 0]));
+      rows.forEach(row => {{
+        const value = formatter(row);
+        if (counts.has(value)) counts.set(value, counts.get(value) + 1);
+      }});
+      return labels.map(label => ({{ label, count: counts.get(label) || 0 }}));
+    }}
+
     function renderBars(id, rows, color = '') {{
       const target = document.getElementById(id);
       if (!rows.length) {{
@@ -934,10 +1250,10 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       target.innerHTML = rows.map(row => {{
         const width = Math.max(2, (row.count / max) * 100);
         return `
-          <div class="bar-row" title="${{escapeAttr(row.label)}}: ${{row.count}}">
+          <div class="bar-row" title="${{escapeAttr(row.label)}}: ${{formatCount(row.count)}}">
             <div class="bar-label">${{escapeHtml(row.label)}}</div>
             <div class="bar-track"><div class="bar-fill ${{color}}" style="width: ${{width}}%"></div></div>
-            <div class="bar-value">${{row.count}}</div>
+            <div class="bar-value">${{formatCount(row.count)}}</div>
           </div>
         `;
       }}).join('');
@@ -947,56 +1263,58 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return clean(row.outcome) === 'Dropped';
     }}
 
-    function isInstalled(row) {{
-      return truthy(row.install_completed)
-        || truthy(row.converted)
-        || Boolean(clean(row.install_date))
-        || Boolean(clean(row.returned_date));
-    }}
-
-    function hasActiveRateFilter() {{
-      return Boolean(
-        clean(fields.search.value)
-        || fields.returnedYear.value
-        || fields.service.value
-        || fields.vertical.value
-        || fields.owner.value
-        || selectedCadenceDays().length
-        || fields.reasonCategory.value
-        || fields.reason.value
-      );
-    }}
-
-    function installedDenominator(rows) {{
-      const installedRows = rows.filter(isInstalled).length;
-      if (hasActiveRateFilter()) return installedRows;
-      return RECORDS.length < FALLBACK_ALL_TIME_INSTALLED_SITE_COUNT
-        ? FALLBACK_ALL_TIME_INSTALLED_SITE_COUNT
-        : installedRows;
+    function isSuccessfulOutcome(row) {{
+      const outcome = clean(row.outcome);
+      return outcome === 'Installed' || outcome === 'Returned';
     }}
 
     function summarize(rows) {{
       const total = rows.length;
       const dropped = rows.filter(isDropped).length;
-      const installed = installedDenominator(rows);
+      const installed = total;
       const returned = rows.filter(row => clean(row.outcome) === 'Returned').length;
-      const returnedWithCadence = rows.filter(row => clean(row.outcome) === 'Returned' && ['3', '5', '7'].some(day => hasCadence(row, day))).length;
+      const reengagedWithCadence = rows.filter(row => hasAnyFollowUp(row) && isSuccessfulOutcome(row)).length;
       const rise = rows.filter(row => clean(row.service_level).toLowerCase() === 'rise').length;
-      return {{ total, dropped, installed, returned, returnedWithCadence, rise }};
+      return {{ total, dropped, installed, returned, reengagedWithCadence, rise }};
     }}
 
     function renderKpis(rows) {{
       const s = summarize(rows);
       const tiles = [
-        {{ label: 'Sites', value: formatCount(s.total), note: 'Filtered rows' }},
-        {{ label: 'Dropped rate', value: s.installed ? pct(s.dropped, s.installed) : 'N/A', note: `${{formatCount(s.dropped)}} dropped / ${{formatCount(s.installed)}} installed` }},
-        {{ label: 'Returned', value: formatCount(s.returned), note: pct(s.returned, s.total) }},
-        {{ label: 'Returned with cadence', value: pct(s.returnedWithCadence, s.total), note: `${{formatCount(s.returnedWithCadence)}} of ${{formatCount(s.total)}} sites` }},
-        {{ label: 'Rise creators', value: formatCount(s.rise), note: pct(s.rise, s.total) }}
+        {{
+          label: 'Sites',
+          value: formatCount(s.total),
+          note: 'Filtered row count',
+          tooltip: 'Shows the total number of sites that match the current filters.'
+        }},
+        {{
+          label: 'Dropped Rate',
+          value: pct(s.dropped, s.installed),
+          note: `${{formatCount(s.dropped)}} dropped`,
+          tooltip: 'Shows the number of sites that have been dropped out of the number of sites installed for the selected time period and filters.'
+        }},
+        {{
+          label: 'Returned Rate',
+          value: pct(s.returned, s.installed),
+          note: `${{formatCount(s.returned)}} returned`,
+          tooltip: 'Shows the number of sites that returned after being dropped out of the number of sites installed for the selected time period and filters.'
+        }},
+        {{
+          label: 'Re-engaged with cadence',
+          value: pct(s.reengagedWithCadence, s.total),
+          note: `${{formatCount(s.reengagedWithCadence)}} re-engaged`,
+          tooltip: 'Shows the number of sites that received any follow-up cadence or Creator Growth escalation and ultimately ended as Installed or Returned, out of all sites matching the current filters.'
+        }},
+        {{
+          label: 'Rise creators',
+          value: pct(s.rise, s.total),
+          note: `${{formatCount(s.rise)}} Rise sites`,
+          tooltip: 'Shows the number of Rise service-level sites out of all sites matching the current filters.'
+        }}
       ];
       document.getElementById('kpis').innerHTML = tiles.map(tile => `
-        <div class="tile">
-          <div class="label">${{escapeHtml(tile.label)}}</div>
+        <div class="tile" tabindex="0" aria-label="${{escapeAttr(`${{tile.label}}. ${{tile.tooltip}}`)}}" data-tooltip="${{escapeAttr(tile.tooltip)}}">
+          <div class="label">${{escapeHtml(tile.label)}} <span class="info-dot" aria-hidden="true">?</span></div>
           <div class="value">${{escapeHtml(tile.value)}}</div>
           <div class="note">${{escapeHtml(tile.note)}}</div>
         </div>
@@ -1004,9 +1322,26 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function statusClass(outcome) {{
-      if (outcome === 'Dropped' || outcome === 'Inactive') return 'status no';
+      if (outcome === 'Dropped') return 'status no';
       if (outcome === 'Returned') return 'status warn';
       return 'status';
+    }}
+
+    function cgLabel(row) {{
+      return hasEscalatedToCg(row) ? 'Escalated to CG' : 'Not Escalated to CG';
+    }}
+
+    function cgDisplayValue(row) {{
+      const involvement = clean(row.cg_involvement);
+      if (involvement) return involvement;
+      return hasEscalatedToCg(row) ? 'Escalated to CG' : 'None';
+    }}
+
+    function activityDateValue(row) {{
+      const dates = [row.returned_date, row.install_date, row.dropped_date]
+        .map(value => dateSortValue(value))
+        .filter(value => value > 0);
+      return dates.length ? Math.max(...dates) : 0;
     }}
 
     function displayValue(row, key) {{
@@ -1014,20 +1349,23 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       if (key === 'reason_category') return reasonCategoryValue(row);
       if (key === 'reason') return reasonValue(row);
       if (key === 'macro_cadence') return cadenceValue(row);
-      if (key === 'cg_involvement') return display(row.cg_involvement || 'Not Assisted');
+      if (key === 'cg_involvement') return display(cgDisplayValue(row));
       if (key === 'onboarding_owner') return ownerValue(row);
+      if (key === 'returned_reason') return display(row.returned_reason);
+      if (key === 'activity_date') return String(activityDateValue(row));
       return display(row[key]);
     }}
 
     function dateSortValue(value) {{
       const valueText = clean(value);
-      if (!valueText) return Number.POSITIVE_INFINITY;
+      if (!valueText) return 0;
       const parsed = Date.parse(valueText);
-      return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
+      return Number.isFinite(parsed) ? parsed : 0;
     }}
 
     function sortValue(row, key) {{
-      if (key === 'dropped_date' || key === 'returned_date') return dateSortValue(row[key]);
+      if (key === 'dropped_date' || key === 'returned_date' || key === 'install_date') return dateSortValue(row[key]);
+      if (key === 'activity_date') return activityDateValue(row);
       return displayValue(row, key).toLowerCase();
     }}
 
@@ -1067,8 +1405,16 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     function renderTable(rows) {{
-      document.getElementById('row-count').textContent = `${{rows.length}} rows`;
+      document.getElementById('row-count').textContent = `${{formatCount(rows.length)}} records`;
       const tbody = document.getElementById('creator-rows');
+      const showReturnedReason = actions.returnedReasonToggle.checked;
+      document.querySelectorAll('.returned-reason-col').forEach(cell => {{
+        cell.classList.toggle('hidden-col', !showReturnedReason);
+      }});
+      if (!rows.length) {{
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="${{showReturnedReason ? 15 : 14}}">No records match the current filters.</td></tr>`;
+        return;
+      }}
       tbody.innerHTML = rows.map((row, index) => `
         <tr>
           <td class="number-col">${{index + 1}}</td>
@@ -1084,10 +1430,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <td title="${{escapeAttr(rowDetails(row))}}">${{escapeHtml(display(row.dropped_date))}}</td>
           <td>${{escapeHtml(reasonCategoryValue(row))}}</td>
           <td title="${{escapeAttr(row.raw_description || row.cancellation_reason || row.dropped_reason)}}">${{escapeHtml(reasonValue(row))}}</td>
-          <td>${{escapeHtml(cadenceValue(row))}}</td>
-          <td>${{escapeHtml(display(row.cg_involvement || 'Not Assisted'))}}</td>
+          <td>${{cadencePills(row)}}</td>
+          <td>${{escapeHtml(display(cgDisplayValue(row)))}}</td>
           <td>${{escapeHtml(display(row.returned_date))}}</td>
           <td title="${{escapeAttr(rowDetails(row))}}">${{outcomePill(row)}}</td>
+          <td class="returned-reason-col ${{showReturnedReason ? '' : 'hidden-col'}}">${{escapeHtml(display(row.returned_reason))}}</td>
         </tr>
       `).join('');
     }}
@@ -1095,25 +1442,88 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     function render() {{
       const rows = sortRows(filtered());
       renderKpis(rows);
-      const service = groupCounts(rows, row => optionValue(row.service_level));
-      const reasons = groupCounts(rows, row => reasonValue(row));
-      const cg = groupCounts(rows, row => display(row.cg_involvement || 'Not Assisted'));
-      const networks = groupCounts(rows, row => optionValue(row.previous_ad_network));
+      const service = fixedCounts(rows, SERVICE_LEVELS, row => optionValue(row.service_level));
+      const reasons = groupCounts(rows.filter(isDropped), row => reasonValue(row), 10);
+      const cg = fixedCounts(rows, ['Escalated to CG', 'Not Escalated to CG'], row => cgLabel(row));
+      const networks = groupCounts(rows, row => previousNetworkValue(row.previous_ad_network), 10);
       renderBars('service-bars', service);
       renderBars('reason-bars', reasons, 'amber');
       renderBars('cg-bars', cg, 'blue');
       renderBars('network-bars', networks, 'rose');
-      document.getElementById('service-count').textContent = `${{groupCounts(rows, row => optionValue(row.service_level), 1000).length}} segments`;
-      document.getElementById('reason-count').textContent = `${{groupCounts(rows, row => reasonValue(row), 1000).length}} reasons`;
-      document.getElementById('cg-count').textContent = `${{groupCounts(rows, row => display(row.cg_involvement || 'Not Assisted'), 1000).length}} groups`;
-      document.getElementById('network-count').textContent = `${{groupCounts(rows, row => optionValue(row.previous_ad_network), 1000).length}} networks`;
+      document.getElementById('service-count').textContent = `${{service.length}} groups`;
+      document.getElementById('reason-count').textContent = `${{reasons.length}} groups`;
+      document.getElementById('cg-count').textContent = `${{cg.length}} groups`;
+      document.getElementById('network-count').textContent = `${{networks.length}} groups`;
       renderTable(rows);
       updateSortIndicators();
     }}
 
+    const CSV_COLUMNS = [
+      ['#', (_row, index) => index + 1],
+      ['Site Name', row => display(row.creator_project_name)],
+      ['Creator Name', row => display(row.lead_contact || row.company_name)],
+      ['Service Level', row => display(row.service_level)],
+      ['Vertical', row => display(row.vertical)],
+      ['Previous Ad Network', row => display(row.previous_ad_network)],
+      ['Onboarding Owner', row => ownerValue(row)],
+      ['Dropped Date', row => display(row.dropped_date)],
+      ['Dropped Reason Category', row => reasonCategoryValue(row)],
+      ['Dropped Reason', row => reasonValue(row)],
+      ['Follow-Up Cadence', row => cadenceValue(row)],
+      ['CG Involvement', row => display(cgDisplayValue(row))],
+      ['Returned Date', row => display(row.returned_date)],
+      ['Outcome', row => display(row.outcome)],
+      ['Returned Reason', row => display(row.returned_reason)]
+    ];
+
+    function csvEscape(value) {{
+      const raw = text(value).replace(/\\r?\\n/g, ' ');
+      if (/[",\\n]/.test(raw)) return `"${{raw.replace(/"/g, '""')}}"`;
+      return raw;
+    }}
+
+    function exportCsv() {{
+      const rows = sortRows(filtered());
+      const header = CSV_COLUMNS.map(([label]) => csvEscape(label)).join(',');
+      const body = rows.map((row, index) => CSV_COLUMNS.map(([, getter]) => csvEscape(getter(row, index))).join(','));
+      const blob = new Blob([[header, ...body].join('\\n')], {{ type: 'text/csv;charset=utf-8;' }});
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `site-retention-return-analysis-${{new Date().toISOString().slice(0, 10)}}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(link.href);
+    }}
+
+    function resetFilters() {{
+      fields.search.value = '';
+      fields.returnedYear.value = '';
+      fields.outcome.value = '';
+      fields.service.value = '';
+      fields.previousNetwork.value = '';
+      fields.vertical.value = '';
+      fields.owner.value = '';
+      fields.reasonCategory.value = '';
+      fields.reason.value = '';
+      document.querySelectorAll('input[name="cadence-day"]').forEach(input => {{ input.checked = false; }});
+      actions.returnedReasonToggle.checked = false;
+      sortState.key = 'activity_date';
+      sortState.direction = 'desc';
+      populateReasonSelect();
+      render();
+    }}
+
     populateFilters();
-    Object.values(fields).forEach(control => control.addEventListener('input', render));
-    Object.values(fields).forEach(control => control.addEventListener('change', render));
+    filterControls.forEach(control => control.addEventListener('input', render));
+    filterControls.forEach(control => control.addEventListener('change', render));
+    fields.reasonCategory.addEventListener('change', () => {{
+      populateReasonSelect();
+      render();
+    }});
+    actions.returnedReasonToggle.addEventListener('change', render);
+    actions.reset.addEventListener('click', resetFilters);
+    actions.exportCsv.addEventListener('click', exportCsv);
     document.querySelectorAll('.sort-button').forEach(button => {{
       button.addEventListener('click', () => {{
         const key = button.dataset.sort;
@@ -1121,7 +1531,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
         }} else {{
           sortState.key = key;
-          sortState.direction = 'asc';
+          sortState.direction = ['dropped_date', 'returned_date', 'install_date', 'activity_date'].includes(key) ? 'desc' : 'asc';
         }}
         render();
       }});

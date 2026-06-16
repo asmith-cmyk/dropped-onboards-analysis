@@ -1,4 +1,4 @@
-# Onboarding Lifecycle Dashboard
+# Site Retention & Return Analysis
 
 Python analytics pipeline for the Raptive onboarding lifecycle dashboard. The rebuilt dashboard uses one full Snowflake site-history dataset as the source of truth, then derives lifecycle outcome, return date, returned year, cadence flags, dropped-reason buckets, widgets, and the static HTML dashboard from that dataset.
 
@@ -34,11 +34,12 @@ Expected query output columns include:
 - `HAS_3_DAY_FOLLOWUP`
 - `HAS_5_DAY_FOLLOWUP`
 - `HAS_7_DAY_FOLLOWUP`
+- `HAS_ESCALATED_TO_CG`
 - `CG_ASSISTED`
 - `CG_INVOLVEMENT`
 - `DROPPED_REASON` or `CANCELLED_REASON`
 
-Optional columns such as `COMPANY_NAME`, `DOMAIN`, `URL`, `MONTHLY_PAGEVIEWS`, and `RAW_DESCRIPTION` are carried through when present.
+Optional columns such as `COMPANY_NAME`, `DOMAIN`, `URL`, `MONTHLY_PAGEVIEWS`, `RAW_DESCRIPTION`, and `RETURNED_REASON` are carried through when present.
 
 ## Lifecycle Logic
 
@@ -47,25 +48,27 @@ The master table is site-grain: one row per site.
 Returned:
 
 - The site has a historical dropped/cancelled event.
-- The site has an `INSTALL_DATE` after the latest dropped/cancelled date.
-- The current lifecycle status is one of `Pending`, `Active`, `Setup`, `Install`, or `Checkup`.
+- The latest `INSTALL_DATE` is after the latest dropped/cancelled date.
+- There is no newer dropped/cancelled event after that install.
 
 Dropped:
 
 - The site has a historical dropped/cancelled event.
 - The site has no `INSTALL_DATE` after the latest dropped/cancelled date.
-- The current lifecycle status is not one of `Pending`, `Active`, `Setup`, `Install`, or `Checkup`.
 
-Sites without a prior dropped/cancelled event are retained as `Active` or `Inactive` so the dashboard can show full site history, not only dropped/returned rows.
+Installed:
+
+- The site has an install record and no dropped/cancelled event after that install.
+
+Sites without a prior dropped/cancelled event are retained as `Installed` so the dashboard can show full site history, not only dropped/returned rows.
 
 ## Filter Logic
 
-- Onboard Year: year from `INSTALL_DATE`
 - Returned Year: year from the latest `INSTALL_DATE` after the latest dropped/cancelled date
 - Service Level: `SERVICE_LEVEL`
 - Vertical: `PRIMARY_VERTICAL`, falling back to `VERTICALS`
 - Onboarding Owner: `ONBOARD_OWNER_NAME`
-- Cadence: `HAS_3_DAY_FOLLOWUP`, `HAS_5_DAY_FOLLOWUP`, `HAS_7_DAY_FOLLOWUP`
+- Cadence: `HAS_3_DAY_FOLLOWUP`, `HAS_5_DAY_FOLLOWUP`, `HAS_7_DAY_FOLLOWUP`, `HAS_ESCALATED_TO_CG`
 - Previous Ad Network widget: `PREVIOUS_AD_NETWORK`
 
 ## Dropped Reason Filter

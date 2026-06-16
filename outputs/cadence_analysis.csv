@@ -1,6 +1,7 @@
-cohort_type,cohort_value,total_dropped,reengaged_count,reengagement_rate,installed_count,install_rate,converted_count,conversion_rate,median_days_to_return
-Macro Cadence,3 and 7 day follow up,25,1,0.04,1,0.04,1,0.04,73.0
-Macro Cadence,3 day follow up,33,4,0.1212,4,0.1212,4,0.1212,69.5
-Macro Cadence,5 day follow up,1,0,0.0,0,0.0,0,0.0,
-Macro Cadence,7 day follow up,12,1,0.0833,0,0.0,0,0.0,217.0
-Macro Cadence,None,707,348,0.4922,323,0.4569,323,0.4569,335.0
+cohort_type,cohort_value,total_sites,total_dropped,reengaged_count,reengagement_rate,installed_count,install_rate,converted_count,conversion_rate,median_days_to_return
+Macro Cadence,3 and 5 day follow up,9,9,1,0.1111,9,1.0,9,1.0,216.0
+Macro Cadence,3 and 7 day follow up,67,67,2,0.0299,54,0.806,54,0.806,75.5
+Macro Cadence,3 day follow up,78,78,6,0.0769,71,0.9103,71,0.9103,225.5
+Macro Cadence,5 day follow up,5,5,0,0.0,2,0.4,2,0.4,
+Macro Cadence,7 day follow up,42,42,3,0.0714,23,0.5476,23,0.5476,110.0
+Macro Cadence,None,10365,10365,416,0.0401,7529,0.7264,7529,0.7264,238.0

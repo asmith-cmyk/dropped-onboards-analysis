@@ -183,8 +183,6 @@ def _drop_reason_category_for_group(group: pd.DataFrame, latest_drop: pd.Timesta
 def _build_group_row(site_key: str, group: pd.DataFrame) -> dict[str, object]:
     group = group.sort_values(["_event_at", "_row_order"], na_position="last").copy()
     current_status = _last_present(group, "current_status") or _last_present(group, "status")
-    current_status_key = _status_key(current_status)
-    active_current_status = current_status_key in ACTIVE_LIFECYCLE_STATUSES
 
     install_dates = group["_install_date"].dropna()
     latest_install = install_dates.max() if not install_dates.empty else pd.NaT
@@ -199,14 +197,12 @@ def _build_group_row(site_key: str, group: pd.DataFrame) -> dict[str, object]:
     latest_return = returned_after_drop.max() if not returned_after_drop.empty else pd.NaT
     has_return_after_drop = pd.notna(latest_return)
 
-    if has_drop and has_return_after_drop and active_current_status:
+    if has_drop and has_return_after_drop:
         outcome = "Returned"
-    elif has_drop and not has_return_after_drop and not active_current_status:
+    elif has_drop:
         outcome = "Dropped"
-    elif active_current_status:
-        outcome = "Active"
     else:
-        outcome = "Inactive"
+        outcome = "Installed"
 
     raw_reason = display_label(_drop_reason_for_group(group, latest_drop))
     raw_reason_category = display_label(_drop_reason_category_for_group(group, latest_drop))
@@ -255,6 +251,7 @@ def _build_group_row(site_key: str, group: pd.DataFrame) -> dict[str, object]:
         "onboarding_started_date": _format_date(_first_present(group, "onboarding_started_date")),
         "dropped_date": dropped_date,
         "returned_date": returned_date,
+        "returned_reason": _last_present(group, "returned_reason"),
         "scheduled_install_date": "",
         "install_date": install_date,
         "days_to_return": days_to_return,
@@ -282,8 +279,8 @@ def _build_group_row(site_key: str, group: pd.DataFrame) -> dict[str, object]:
         "slack_intervention_detected": bool(_bool_series(group.get("slack_intervention_detected", pd.Series(False, index=group.index))).any()),
         "slack_intervention_count": _last_present(group, "slack_intervention_count") or 0,
         "rescue_intervention_detected": bool(_bool_series(group.get("rescue_intervention_detected", pd.Series(False, index=group.index))).any()),
-        "install_completed": active_current_status and pd.notna(latest_install),
-        "converted": active_current_status and pd.notna(latest_install),
+        "install_completed": outcome in {"Installed", "Returned"},
+        "converted": outcome in {"Installed", "Returned"},
         "reengaged": outcome == "Returned",
         "outcome": outcome,
         "returning_project_name": site_name if outcome == "Returned" else "",
@@ -339,6 +336,7 @@ def build_master_from_site_history(history: pd.DataFrame) -> pd.DataFrame:
     out["onboard_owner_name"] = _field(out, ["onboard_owner_name", "onboarding_owner", "owner_name", "project_owner_name"])
     out["dropped_reason"] = _field(out, ["dropped_reason", "drop_reason", "reason"])
     out["dropped_reason_category"] = _field(out, ["dropped_reason_category", "reason_category"])
+    out["returned_reason"] = _field(out, ["returned_reason", "return_reason"])
     out["cancelled_reason"] = _field(out, ["cancelled_reason", "canceled_reason", "cancellation_reason"])
     out["install_date"] = _field(out, ["install_date", "actual_install_date"])
     out["dropped_date"] = _field(out, ["dropped_date", "drop_date", "cancelled_date", "canceled_date", "offboarded_date"])
