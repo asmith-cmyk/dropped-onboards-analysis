@@ -1,6 +1,6 @@
 segment,total_rise_creators,reengaged_count,reengagement_rate,installed_count,install_rate,converted_count,conversion_rate
-All Rise,24,3,0.125,3,0.125,3,0.125
+All Rise,1133,40,0.0353,851,0.7511,851,0.7511
 Onboarding Call Offered,0,0,0.0,0,0.0,0,0.0
-No Onboarding Call Offered,24,3,0.125,3,0.125,3,0.125
+No Onboarding Call Offered,1133,40,0.0353,851,0.7511,851,0.7511
 Salesloft Meeting Detected,0,0,0.0,0,0.0,0,0.0
 Slack Intervention Detected,0,0,0.0,0,0.0,0,0.0

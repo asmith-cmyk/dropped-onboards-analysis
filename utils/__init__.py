@@ -1,2 +1,1 @@
-"""Shared utilities for the dropped onboarding re-engagement pipeline."""
-
+"""Shared utilities for the onboarding lifecycle dashboard pipeline."""

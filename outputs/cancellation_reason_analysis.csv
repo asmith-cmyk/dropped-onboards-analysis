@@ -1,6 +1,16 @@
 normalized_category,count,pct_of_dropped,reengaged_count,reengagement_rate,installed_count,install_rate,avg_confidence_score
-Set-up cancellation,493,0.6337,163,0.3306,151,0.3063,0.72
-Unknown,233,0.2995,157,0.6738,147,0.6309,
-Cancelled Pre-onboarding,50,0.0643,33,0.66,29,0.58,
-SWITCHED AD NETWORKS,1,0.0013,1,1.0,1,1.0,
-Timing / Busy,1,0.0013,0,0.0,0,0.0,0.72
+Unknown,7240,0.6852,0,0.0,7240,1.0,
+Set-up Cancellation,1203,0.1139,278,0.2311,278,0.2311,
+No reason / Vague,546,0.0517,12,0.022,12,0.022,
+Discontinuing Ads,473,0.0448,7,0.0148,7,0.0148,
+Switched ad networks,412,0.039,77,0.1869,79,0.1917,
+Fired,183,0.0173,2,0.0109,2,0.0109,
+Earning Concerns,173,0.0164,36,0.2081,36,0.2081,
+Site Transfer,90,0.0085,2,0.0222,2,0.0222,
+Switched to other ad network,82,0.0078,0,0.0,18,0.2195,
+Site Performance/SEO,81,0.0077,2,0.0247,2,0.0247,
+Missing features,50,0.0047,10,0.2,10,0.2,
+Merged,24,0.0023,1,0.0417,1,0.0417,
+Low RPM/CPM,6,0.0006,1,0.1667,1,0.1667,
+Vague,2,0.0002,0,0.0,0,0.0,
+Earning concerns,1,0.0001,0,0.0,0,0.0,

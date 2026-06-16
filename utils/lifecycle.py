@@ -6,7 +6,7 @@ import pandas as pd
 
 from utils.analysis import bool_series, derive_cg_timing, link_slack, link_zendesk
 from utils.columns import format_date_for_output
-from utils.io import clean_blank
+from utils.io import clean_blank, display_label
 from utils.text import normalize_creator_name
 
 
@@ -31,6 +31,7 @@ MASTER_COLUMNS = [
     "onboarding_started_date",
     "dropped_date",
     "returned_date",
+    "returned_reason",
     "scheduled_install_date",
     "install_date",
     "days_to_return",
@@ -183,7 +184,7 @@ def _left_raptive_reason(value: object) -> str:
         return clean
     key = _reason_key(clean)
     if key in {"", "noreasonvague", "noreasoncaptured", "nodroppedreasoncaptured", "offboarded"}:
-        clean = "No reason/vague"
+        return "No reason/vague"
     else:
         clean = re.sub(r"\s*/\s*", "/", clean)
     return f"Left Raptive – {clean}"
@@ -227,14 +228,19 @@ def _cadence_has_days(value: object, required_days: set[str]) -> bool:
 
 
 def _outcome_series(df: pd.DataFrame) -> pd.Series:
-    installed = bool_series(_series_or_default(df, "install_completed", False), index=df.index)
-    reengaged = bool_series(_series_or_default(df, "reengaged", False), index=df.index)
-    cadence = _series_or_default(df, "macro_cadence", "None").fillna("").astype(str).str.strip()
-    outcome = pd.Series("Dropped", index=df.index)
-    outcome.loc[reengaged] = "Returned"
-    outcome.loc[installed & cadence.map(lambda value: _cadence_has_days(value, {"3", "5", "7"}))] = (
-        "Re-engaged & Installed"
+    dropped = pd.to_datetime(_series_or_default(df, "dropped_date"), errors="coerce")
+    returned = pd.to_datetime(_series_or_default(df, "returned_date"), errors="coerce")
+    install = pd.to_datetime(_series_or_default(df, "install_date"), errors="coerce")
+
+    has_drop = dropped.notna()
+    returned_after_drop = has_drop & (
+        (returned.notna() & returned.gt(dropped))
+        | (install.notna() & install.gt(dropped))
     )
+
+    outcome = pd.Series("Installed", index=df.index)
+    outcome.loc[has_drop] = "Dropped"
+    outcome.loc[returned_after_drop] = "Returned"
     return outcome
 
 
@@ -245,12 +251,22 @@ def _recalculate_lifecycle_flags(lifecycle: pd.DataFrame) -> pd.DataFrame:
     install = pd.to_datetime(_series_or_default(out, "install_date"), errors="coerce")
     scheduled_install = pd.to_datetime(_series_or_default(out, "scheduled_install_date"), errors="coerce")
 
-    returned = returned.fillna(install).fillna(scheduled_install)
+    has_drop = dropped.notna()
+    returned_from_install = install.where(has_drop & install.notna() & install.gt(dropped))
+    returned_from_schedule = scheduled_install.where(
+        has_drop & scheduled_install.notna() & scheduled_install.gt(dropped)
+    )
+    returned = returned.where(returned.notna(), returned_from_install)
+    returned = returned.where(returned.notna(), returned_from_schedule)
+    valid_return = has_drop & returned.notna() & returned.gt(dropped)
+    returned = returned.where(valid_return)
     out["returned_date"] = format_date_for_output(returned)
     out["days_to_return"] = _format_days((returned - dropped).dt.days)
 
-    install_completed = bool_series(_series_or_default(out, "install_completed", False), index=out.index) | install.notna()
-    reengaged = bool_series(_series_or_default(out, "reengaged", False), index=out.index) | returned.notna()
+    install_completed = bool_series(_series_or_default(out, "install_completed", False), index=out.index) | (
+        ~has_drop & install.notna()
+    ) | valid_return
+    reengaged = valid_return
     converted = bool_series(_series_or_default(out, "converted", False), index=out.index) | install_completed
 
     out["install_completed"] = install_completed
@@ -601,6 +617,7 @@ def _build_snowflake_lifecycle(dropped: pd.DataFrame, returned: pd.DataFrame) ->
     )
     lifecycle["dropped_date"] = format_date_for_output(dropped_date)
     lifecycle["returned_date"] = format_date_for_output(expected_install)
+    lifecycle["returned_reason"] = ""
     lifecycle["scheduled_install_date"] = format_date_for_output(expected_install)
     lifecycle["install_date"] = ""
     lifecycle["days_to_return"] = _format_days((expected_install - dropped_date).dt.days)
@@ -764,6 +781,7 @@ def build_master_creator_lifecycle(
     )
     lifecycle["dropped_date"] = format_date_for_output(dropped_date)
     lifecycle["returned_date"] = format_date_for_output(returned_date)
+    lifecycle["returned_reason"] = ""
     lifecycle["scheduled_install_date"] = format_date_for_output(scheduled_install_date)
     lifecycle["install_date"] = format_date_for_output(install_date)
     lifecycle["days_to_return"] = _format_days(days_to_return)
@@ -852,6 +870,9 @@ def build_master_creator_lifecycle(
     missing_dropped_reason = lifecycle["dropped_reason"].str.lower().isin(generic_reasons)
     lifecycle.loc[missing_dropped_reason, "dropped_reason"] = "No dropped reason captured"
     lifecycle = _format_offboarding_dropped_reasons(lifecycle)
+    for column in ("dropped_reason", "dropped_reason_category", "cancellation_reason", "normalized_reason"):
+        if column in lifecycle.columns:
+            lifecycle[column] = lifecycle[column].map(display_label)
     lifecycle["cg_involvement"] = _cg_involvement_label(lifecycle["cg_involvement"])
     lifecycle["outcome"] = _outcome_series(lifecycle)
     return lifecycle.sort_values(["dropped_date", "creator_project_name"], na_position="last")

@@ -1,4 +1,4 @@
-name: Nightly dropped onboarding analysis
+name: Nightly onboarding lifecycle analysis
 
 on:
   schedule:
@@ -24,6 +24,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Pull Snowflake full site history
       - name: Pull Snowflake cohorts
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
@@ -36,26 +37,7 @@ jobs:
           SNOWFLAKE_ROLE: ${{ vars.SNOWFLAKE_ROLE }}
         run: python scripts/pull_snowflake_data.py --force-api
 
-      - name: Pull Zendesk data
-        env:
-          ZENDESK_SUBDOMAIN: ${{ secrets.ZENDESK_SUBDOMAIN }}
-          ZENDESK_EMAIL: ${{ secrets.ZENDESK_EMAIL }}
-          ZENDESK_API_TOKEN: ${{ secrets.ZENDESK_API_TOKEN }}
-          ZENDESK_SEARCH_QUERY: ${{ vars.ZENDESK_SEARCH_QUERY }}
-        run: python scripts/pull_zendesk_data.py
-
-      - name: Pull Slack data
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL_NAMES: ${{ vars.SLACK_CHANNEL_NAMES }}
-          SLACK_START_DATE: ${{ vars.SLACK_START_DATE }}
-        run: python scripts/pull_slack_data.py
-
       - name: Generate outputs
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
-          USE_OPENAI_CLASSIFICATION: ${{ vars.USE_OPENAI_CLASSIFICATION }}
         run: python scripts/generate_outputs.py
 
       - name: Commit updated outputs
@@ -66,6 +48,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No output changes to commit."
           else
-            git commit -m "Refresh dropped onboarding analysis outputs"
+            git commit -m "Refresh onboarding lifecycle analysis outputs"
             git push
           fi
