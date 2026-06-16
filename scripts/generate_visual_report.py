@@ -1125,6 +1125,13 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return [...document.querySelectorAll('input[name="cadence-day"]:checked')].map(input => input.value);
     }}
 
+    function matchesInstalledYear(row) {{
+      if (!fields.installedYear.value) return true;
+      const outcome = clean(row.outcome);
+      if (fields.outcome.value === 'Onboarding' && outcome === 'Onboarding') return true;
+      return yearValue(row, 'onboard_year', 'install_date') === fields.installedYear.value;
+    }}
+
     function escapeHtml(value) {{
       return text(value).replace(/[&<>"']/g, char => ({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}}[char]));
     }}
@@ -1203,7 +1210,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       const query = fields.search.value.trim().toLowerCase();
       const cadenceDays = selectedCadenceDays();
       return RECORDS.filter(row => {{
-        if (fields.installedYear.value && yearValue(row, 'onboard_year', 'install_date') !== fields.installedYear.value) return false;
+        if (!matchesInstalledYear(row)) return false;
         if (fields.outcome.value && clean(row.outcome) !== fields.outcome.value) return false;
         if (fields.service.value && optionValue(row.service_level) !== fields.service.value) return false;
         if (fields.previousNetwork.value && !previousNetworkParts(row.previous_ad_network).includes(fields.previousNetwork.value)) return false;
