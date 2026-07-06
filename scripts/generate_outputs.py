@@ -21,7 +21,8 @@ from utils.analysis import (
     write_executive_summary,
 )
 from utils.config import ensure_project_dirs, load_settings
-from utils.io import read_csv, write_csv
+from utils.io import read_csv, read_csv_if_exists, write_csv
+from utils.zendesk_context import build_zendesk_context_outputs
 
 
 def run(run_pulls: bool = False, force_salesforce_api: bool = False, force_snowflake_api: bool = False) -> None:
@@ -34,6 +35,9 @@ def run(run_pulls: bool = False, force_salesforce_api: bool = False, force_snowf
     build_master_lifecycle()
 
     master = read_csv(settings.output_dir / "master_creator_lifecycle.csv")
+    zendesk_context = read_csv_if_exists(settings.raw_data_dir / "zendesk_onboarding_context.csv")
+    if zendesk_context.empty:
+        zendesk_context = read_csv_if_exists(settings.raw_data_dir / "zendesk_onboarding_followups.csv")
 
     reengaged_output = build_reengagement_output(master)
     cohort_analysis = build_cohort_analysis(master)
@@ -41,6 +45,7 @@ def run(run_pulls: bool = False, force_salesforce_api: bool = False, force_snowf
     creator_growth_analysis = build_creator_growth_analysis(master)
     rise_creator_analysis = build_rise_creator_analysis(master)
     cadence_analysis = cohort_summary(master, "Macro Cadence", "macro_cadence")
+    zendesk_site_context, zendesk_theme_summary = build_zendesk_context_outputs(master, zendesk_context)
 
     write_csv(master, settings.output_dir / "master_creator_lifecycle.csv")
     write_csv(reengaged_output, settings.output_dir / "reengaged_creators.csv")
@@ -49,6 +54,8 @@ def run(run_pulls: bool = False, force_salesforce_api: bool = False, force_snowf
     write_csv(cancellation_analysis, settings.output_dir / "cancellation_reason_analysis.csv")
     write_csv(creator_growth_analysis, settings.output_dir / "creator_growth_analysis.csv")
     write_csv(rise_creator_analysis, settings.output_dir / "rise_creator_analysis.csv")
+    write_csv(zendesk_site_context, settings.output_dir / "zendesk_context_analysis.csv")
+    write_csv(zendesk_theme_summary, settings.output_dir / "zendesk_context_theme_summary.csv")
     write_executive_summary(
         settings.output_dir / "executive_summary.md",
         master,

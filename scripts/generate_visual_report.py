@@ -15,7 +15,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from utils.config import ensure_project_dirs, load_settings
-from utils.io import read_csv
+from utils.io import read_csv, read_csv_if_exists
 from utils.zendesk_client import format_macro_cadence
 
 
@@ -77,6 +77,35 @@ REPORT_FIELDS = [
     "returning_status",
     "drop_count",
     "site_history_event_count",
+]
+
+CONTEXT_FIELDS = [
+    "site_id",
+    "site_name",
+    "creator_name",
+    "domain",
+    "service_level",
+    "vertical",
+    "previous_ad_network",
+    "onboarding_owner",
+    "outcome",
+    "dropped_date",
+    "dropped_reason_category",
+    "dropped_reason",
+    "zendesk_context_available",
+    "zendesk_ticket_count",
+    "zendesk_ticket_ids",
+    "zendesk_summary",
+    "cancellation_ghosting_themes",
+    "communication_themes",
+    "dropoff_cg_themes",
+    "sentiment",
+    "milestone_stage",
+    "cg_involvement",
+    "cg_escalation_status",
+    "cg_first_touch_at",
+    "cg_days_from_drop",
+    "context_summary",
 ]
 
 DROPPED_REASON_GROUPS = [
@@ -216,6 +245,20 @@ def prepare_records(master: pd.DataFrame) -> list[dict[str, object]]:
     return records
 
 
+def prepare_context_records(context: pd.DataFrame) -> list[dict[str, object]]:
+    if context.empty:
+        return []
+    available_fields = [field for field in CONTEXT_FIELDS if field in context.columns]
+    records = context[available_fields].fillna("").to_dict(orient="records")
+    for record in records:
+        for key, value in list(record.items()):
+            if key in {"zendesk_context_available", "cg_escalation_status"}:
+                record[key] = to_bool(value)
+            else:
+                record[key] = "" if value is None else str(value)
+    return records
+
+
 def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     data_json = json.dumps(records, ensure_ascii=False)
     reason_groups_json = json.dumps(DROPPED_REASON_GROUPS, ensure_ascii=False)
@@ -226,7 +269,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Site Retention &amp; Return Analysis</title>
+  <title>Site Retention Analysis</title>
   <style>
     :root {{
       --bg: #F0EDEB;
@@ -557,9 +600,10 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       padding: 18px;
       border-bottom: 1px solid var(--line);
       display: flex;
-      align-items: baseline;
+      align-items: center;
       justify-content: space-between;
       gap: 12px;
+      flex-wrap: wrap;
     }}
     .table-title {{
       display: grid;
@@ -569,6 +613,8 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
       color: var(--muted);
       font-size: 14px;
       font-weight: 650;
@@ -585,6 +631,50 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       margin: 0;
       padding: 0;
       accent-color: var(--brand);
+    }}
+    .page-size {{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+      white-space: nowrap;
+    }}
+    .page-size select {{
+      width: auto;
+      min-height: 34px;
+      padding: 5px 28px 5px 9px;
+      font-size: 14px;
+    }}
+    .pagination-controls {{
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }}
+    .pager-button {{
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 760;
+      min-height: 34px;
+      padding: 6px 10px;
+    }}
+    .pager-button:disabled {{
+      cursor: not-allowed;
+      opacity: 0.45;
+    }}
+    .page-status {{
+      color: var(--muted);
+      font-size: 13px;
+      min-width: 132px;
+      text-align: center;
+      white-space: nowrap;
     }}
     .table-wrap {{
       overflow: auto;
@@ -701,6 +791,15 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       background: var(--blue);
       color: var(--surface);
     }}
+    .context-link {{
+      color: var(--green);
+      font-weight: 760;
+      text-decoration: none;
+      white-space: nowrap;
+    }}
+    .context-link:hover {{
+      text-decoration: underline;
+    }}
     .hidden-col {{
       display: none;
     }}
@@ -732,7 +831,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     <div class="title-row">
       <div>
         <div class="eyebrow">Reporting</div>
-        <h1>Site Retention &amp; Return Analysis</h1>
+        <h1>Site Retention Analysis</h1>
         <div class="subtitle">Track installed, dropped, returned, and re-engaged sites across onboarding ownership, follow-up cadence, Creator Growth involvement, and drop reasons.</div>
       </div>
       <div class="header-actions">
@@ -810,6 +909,18 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <span class="subtitle" id="row-count"></span>
         </div>
         <div class="table-tools">
+          <label class="page-size">Rows
+            <select id="page-size">
+              <option value="50">50</option>
+              <option value="100" selected>100</option>
+              <option value="250">250</option>
+            </select>
+          </label>
+          <div class="pagination-controls" aria-label="Table pagination">
+            <button class="pager-button" type="button" id="prev-page">Previous</button>
+            <span class="page-status" id="page-status"></span>
+            <button class="pager-button" type="button" id="next-page">Next</button>
+          </div>
           <label class="toggle-line"><input type="checkbox" id="toggle-returned-reason">Returned Reason</label>
         </div>
       </div>
@@ -827,6 +938,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
               <th><button class="sort-button" type="button" data-sort="dropped_date">Dropped Date <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="reason_category">Dropped Reason Category <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="reason">Dropped Reason <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="zendesk_context">Zendesk Context <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="macro_cadence">Follow-up Cadence <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="cg_involvement">CG Involvement <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="returned_date">Returned Date <span class="sort-indicator"></span></button></th>
@@ -862,6 +974,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       'she media': 'SHE Media'
     }};
     const sortState = {{ key: 'activity_date', direction: 'desc' }};
+    const tableState = {{ page: 1, pageSize: 100 }};
     const fields = {{
       search: document.getElementById('search'),
       installedYear: document.getElementById('installed-year'),
@@ -877,7 +990,11 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     const actions = {{
       reset: document.getElementById('reset-filters'),
       exportCsv: document.getElementById('export-csv'),
-      returnedReasonToggle: document.getElementById('toggle-returned-reason')
+      returnedReasonToggle: document.getElementById('toggle-returned-reason'),
+      pageSize: document.getElementById('page-size'),
+      prevPage: document.getElementById('prev-page'),
+      nextPage: document.getElementById('next-page'),
+      pageStatus: document.getElementById('page-status')
     }};
     const filterControls = [
       fields.search,
@@ -1001,6 +1118,29 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       const labels = cadenceItems(row);
       if (!labels.length) return 'None';
       return labels.map(label => `<span class="cadence-pill ${{cadencePillClass(label)}}">${{escapeHtml(label)}}</span>`).join('');
+    }}
+
+    function droppedYear(row) {{
+      const value = clean(row.dropped_date);
+      if (!value) return '';
+      const parsed = new Date(value);
+      if (!Number.isNaN(parsed.getTime())) return String(parsed.getUTCFullYear());
+      return value.slice(0, 4);
+    }}
+
+    function hasZendeskContextPage(row) {{
+      return hasDropSignal(row) && droppedYear(row) === '2026';
+    }}
+
+    function zendeskContextHref(row) {{
+      const siteId = clean(row.site_id);
+      if (siteId) return `zendesk_context.html?site_id=${{encodeURIComponent(siteId)}}`;
+      return `zendesk_context.html?site_name=${{encodeURIComponent(display(row.creator_project_name))}}`;
+    }}
+
+    function zendeskContextCell(row) {{
+      if (!hasZendeskContextPage(row)) return 'N/A';
+      return `<a class="context-link" href="${{escapeAttr(zendeskContextHref(row))}}" target="_blank" rel="noopener">View context</a>`;
     }}
 
     function reasonCategoryValue(row) {{
@@ -1365,6 +1505,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       if (key === 'onboarding_owner') return ownerValue(row);
       if (key === 'returned_reason') return display(row.returned_reason);
       if (key === 'activity_date') return String(activityDateValue(row));
+      if (key === 'zendesk_context') return hasZendeskContextPage(row) ? 'View context' : 'N/A';
       return display(row[key]);
     }}
 
@@ -1416,6 +1557,47 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       return parts.join('\\n');
     }}
 
+    function currentPageSize() {{
+      const value = Number(actions.pageSize.value);
+      return Number.isFinite(value) && value > 0 ? value : 100;
+    }}
+
+    function pageCount(totalRows) {{
+      return Math.max(1, Math.ceil(totalRows / currentPageSize()));
+    }}
+
+    function clampTablePage(totalRows) {{
+      tableState.pageSize = currentPageSize();
+      tableState.page = Math.min(Math.max(tableState.page, 1), pageCount(totalRows));
+    }}
+
+    function visiblePageRows(rows) {{
+      clampTablePage(rows.length);
+      const start = (tableState.page - 1) * tableState.pageSize;
+      return {{
+        start,
+        rows: rows.slice(start, start + tableState.pageSize)
+      }};
+    }}
+
+    function renderPagination(totalRows, start, visibleCount) {{
+      const totalPages = pageCount(totalRows);
+      actions.prevPage.disabled = tableState.page <= 1 || totalRows === 0;
+      actions.nextPage.disabled = tableState.page >= totalPages || totalRows === 0;
+      if (!totalRows) {{
+        actions.pageStatus.textContent = '0 of 0';
+        return;
+      }}
+      const first = start + 1;
+      const last = start + visibleCount;
+      actions.pageStatus.textContent = `${{formatCount(first)}}-${{formatCount(last)}} of ${{formatCount(totalRows)}}`;
+    }}
+
+    function renderFromFirstPage() {{
+      tableState.page = 1;
+      render();
+    }}
+
     function renderTable(rows) {{
       document.getElementById('row-count').textContent = `${{formatCount(rows.length)}} records`;
       const tbody = document.getElementById('creator-rows');
@@ -1424,12 +1606,15 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
         cell.classList.toggle('hidden-col', !showReturnedReason);
       }});
       if (!rows.length) {{
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="${{showReturnedReason ? 15 : 14}}">No records match the current filters.</td></tr>`;
+        renderPagination(0, 0, 0);
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="${{showReturnedReason ? 16 : 15}}">No records match the current filters.</td></tr>`;
         return;
       }}
-      tbody.innerHTML = rows.map((row, index) => `
+      const page = visiblePageRows(rows);
+      renderPagination(rows.length, page.start, page.rows.length);
+      tbody.innerHTML = page.rows.map((row, index) => `
         <tr>
-          <td class="number-col">${{index + 1}}</td>
+          <td class="number-col">${{page.start + index + 1}}</td>
           <td>
             <strong>${{escapeHtml(display(row.creator_project_name))}}</strong>
             ${{number(row.drop_count) > 1 ? `<div class="cell-note">${{number(row.drop_count)}} dropped attempts</div>` : ''}}
@@ -1442,6 +1627,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           <td title="${{escapeAttr(rowDetails(row))}}">${{escapeHtml(display(row.dropped_date))}}</td>
           <td>${{escapeHtml(reasonCategoryValue(row))}}</td>
           <td title="${{escapeAttr(row.raw_description || row.cancellation_reason || row.dropped_reason)}}">${{escapeHtml(reasonValue(row))}}</td>
+          <td>${{zendeskContextCell(row)}}</td>
           <td>${{cadencePills(row)}}</td>
           <td>${{escapeHtml(display(cgDisplayValue(row)))}}</td>
           <td>${{escapeHtml(display(row.returned_date))}}</td>
@@ -1481,6 +1667,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       ['Dropped Date', row => display(row.dropped_date)],
       ['Dropped Reason Category', row => reasonCategoryValue(row)],
       ['Dropped Reason', row => reasonValue(row)],
+      ['Zendesk Context', row => hasZendeskContextPage(row) ? zendeskContextHref(row) : 'N/A'],
       ['Follow-Up Cadence', row => cadenceValue(row)],
       ['CG Involvement', row => display(cgDisplayValue(row))],
       ['Returned Date', row => display(row.returned_date)],
@@ -1501,7 +1688,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       const blob = new Blob([[header, ...body].join('\\n')], {{ type: 'text/csv;charset=utf-8;' }});
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `site-retention-return-analysis-${{new Date().toISOString().slice(0, 10)}}.csv`;
+      link.download = `site-retention-analysis-${{new Date().toISOString().slice(0, 10)}}.csv`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -1520,6 +1707,9 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
       fields.reason.value = '';
       document.querySelectorAll('input[name="cadence-day"]').forEach(input => {{ input.checked = false; }});
       actions.returnedReasonToggle.checked = false;
+      actions.pageSize.value = '100';
+      tableState.page = 1;
+      tableState.pageSize = 100;
       sortState.key = 'activity_date';
       sortState.direction = 'desc';
       populateReasonSelect();
@@ -1527,10 +1717,23 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
     }}
 
     populateFilters();
-    filterControls.forEach(control => control.addEventListener('input', render));
-    filterControls.forEach(control => control.addEventListener('change', render));
+    filterControls.forEach(control => control.addEventListener('input', renderFromFirstPage));
+    filterControls.forEach(control => control.addEventListener('change', renderFromFirstPage));
     fields.reasonCategory.addEventListener('change', () => {{
       populateReasonSelect();
+      renderFromFirstPage();
+    }});
+    actions.pageSize.addEventListener('change', () => {{
+      tableState.page = 1;
+      tableState.pageSize = currentPageSize();
+      render();
+    }});
+    actions.prevPage.addEventListener('click', () => {{
+      tableState.page = Math.max(1, tableState.page - 1);
+      render();
+    }});
+    actions.nextPage.addEventListener('click', () => {{
+      tableState.page = tableState.page + 1;
       render();
     }});
     actions.returnedReasonToggle.addEventListener('change', render);
@@ -1545,7 +1748,7 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
           sortState.key = key;
           sortState.direction = ['dropped_date', 'returned_date', 'install_date', 'activity_date'].includes(key) ? 'desc' : 'asc';
         }}
-        render();
+        renderFromFirstPage();
       }});
     }});
     render();
@@ -1555,6 +1758,602 @@ def render_html(records: list[dict[str, object]], generated_at: str) -> str:
 """
 
 
+def render_context_html(records: list[dict[str, object]], generated_at: str) -> str:
+    data_json = json.dumps(records, ensure_ascii=False)
+    generated = html.escape(generated_at)
+    template = """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zendesk Context - Site Retention Analysis</title>
+  <style>
+    :root {
+      --bg: #F0EDEB;
+      --surface: #FFFFFF;
+      --line: #E1DAD4;
+      --text: #000000;
+      --muted: #354786;
+      --brand: #6B65FF;
+      --brand-soft: #F0F0FF;
+      --spark: #D2FF66;
+      --pink: #ECB5D2;
+      --orange: #FF7858;
+      --green: #00785D;
+      --red: #A23B4C;
+      --blue: #354786;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Roobert Pro", "DM Sans", Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.45;
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+      border-top: 6px solid var(--brand);
+      background: var(--brand-soft);
+      padding: 26px 32px 22px;
+    }
+    .title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .eyebrow {
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 760;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 42px;
+      line-height: 1.15;
+      font-weight: 720;
+    }
+    .subtitle {
+      color: var(--muted);
+      margin-top: 10px;
+      max-width: 980px;
+    }
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 32px 40px;
+    }
+    .button {
+      border: 1px solid var(--green);
+      border-radius: 6px;
+      background: var(--green);
+      color: var(--surface);
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 10px 16px;
+      text-decoration: none;
+      font-weight: 760;
+    }
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+      padding: 18px;
+    }
+    .panel-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    h2 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+    h3 {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 84px;
+    }
+    .metric .label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 760;
+      text-transform: uppercase;
+    }
+    .metric .value {
+      margin-top: 7px;
+      font-size: 17px;
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+    .summary {
+      font-size: 19px;
+      line-height: 1.45;
+    }
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .theme-box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 130px;
+    }
+    .pill {
+      display: inline-flex;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 760;
+      margin: 0 5px 6px 0;
+      padding: 4px 8px;
+    }
+    .pill.warn {
+      background: var(--spark);
+      color: var(--text);
+    }
+    .pill.no {
+      background: var(--red);
+      color: var(--surface);
+    }
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      font: inherit;
+      min-height: 48px;
+      padding: 12px 14px;
+    }
+    select {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      font: inherit;
+      min-height: 38px;
+      padding: 6px 30px 6px 10px;
+    }
+    .list-controls {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+    .pagination-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .page-size {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+    .pager-button {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 760;
+      min-height: 38px;
+      padding: 7px 10px;
+    }
+    .pager-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+    .page-status {
+      color: var(--muted);
+      font-size: 13px;
+      min-width: 132px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .table-wrap {
+      overflow: auto;
+      max-height: 640px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      background: var(--brand-soft);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 760;
+      text-transform: uppercase;
+    }
+    td {
+      font-size: 14px;
+    }
+    .site-link {
+      color: var(--green);
+      font-weight: 760;
+      text-decoration: none;
+    }
+    .site-link:hover {
+      text-decoration: underline;
+    }
+    .empty {
+      color: var(--muted);
+      padding: 20px 0;
+    }
+    @media (max-width: 900px) {
+      header, main { padding-left: 16px; padding-right: 16px; }
+      h1 { font-size: 34px; }
+      .meta-grid, .theme-grid { grid-template-columns: 1fr; }
+      .list-controls { grid-template-columns: 1fr; }
+      .pagination-controls { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title-row">
+      <div>
+        <div class="eyebrow">Zendesk Context</div>
+        <h1>Site Retention Analysis</h1>
+        <div class="subtitle">Dropped/cancelled onboarding context for 2026 sites. Generated __GENERATED__.</div>
+      </div>
+      <a class="button" href="index.html">Back to dashboard</a>
+    </div>
+  </header>
+
+  <main id="app"></main>
+
+  <script>
+    const CONTEXT_RECORDS = __DATA__;
+    const contextListState = { page: 1, pageSize: 100 };
+
+    function text(value) {
+      return (value ?? '').toString();
+    }
+
+    function clean(value) {
+      return text(value).trim();
+    }
+
+    function display(value) {
+      const valueText = clean(value);
+      return valueText || 'N/A';
+    }
+
+    function escapeHtml(value) {
+      return text(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[char]));
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/`/g, '&grave;');
+    }
+
+    function statusPill(value) {
+      const label = display(value);
+      const className = label === 'True' || label === 'true' ? 'pill warn' : label === 'False' || label === 'false' ? 'pill no' : 'pill';
+      return `<span class="${className}">${escapeHtml(label)}</span>`;
+    }
+
+    function splitThemes(value) {
+      return clean(value).split(';').map(item => item.trim()).filter(Boolean);
+    }
+
+    function themePills(value) {
+      const themes = splitThemes(value);
+      if (!themes.length) return '<span class="pill">N/A</span>';
+      return themes.map(theme => `<span class="pill">${escapeHtml(theme)}</span>`).join('');
+    }
+
+    function findSelectedRecord() {
+      const params = new URLSearchParams(window.location.search);
+      const siteId = clean(params.get('site_id'));
+      const siteName = clean(params.get('site_name')).toLowerCase();
+      if (siteId) {
+        const match = CONTEXT_RECORDS.find(record => clean(record.site_id) === siteId);
+        if (match) return match;
+      }
+      if (siteName) {
+        const match = CONTEXT_RECORDS.find(record => clean(record.site_name).toLowerCase() === siteName);
+        if (match) return match;
+      }
+      return null;
+    }
+
+    function renderMetric(label, value) {
+      return `
+        <div class="metric">
+          <div class="label">${escapeHtml(label)}</div>
+          <div class="value">${escapeHtml(display(value))}</div>
+        </div>
+      `;
+    }
+
+    function renderDetail(record) {
+      return `
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>${escapeHtml(display(record.site_name))}</h2>
+              <div class="subtitle">${escapeHtml(display(record.domain))}</div>
+            </div>
+            <div>${statusPill(record.outcome)}</div>
+          </div>
+          <div class="meta-grid">
+            ${renderMetric('Creator', record.creator_name)}
+            ${renderMetric('Dropped Date', record.dropped_date)}
+            ${renderMetric('Dropped Reason Category', record.dropped_reason_category)}
+            ${renderMetric('Dropped Reason', record.dropped_reason)}
+            ${renderMetric('Service Level', record.service_level)}
+            ${renderMetric('Vertical', record.vertical)}
+            ${renderMetric('Previous Ad Network', record.previous_ad_network)}
+            ${renderMetric('Onboarding Owner', record.onboarding_owner)}
+            ${renderMetric('Zendesk Tickets', record.zendesk_ticket_count)}
+            ${renderMetric('Ticket IDs', record.zendesk_ticket_ids)}
+            ${renderMetric('Sentiment', record.sentiment)}
+            ${renderMetric('Milestone Stage', record.milestone_stage)}
+          </div>
+        </section>
+        <section class="panel">
+          <h2>Context Summary</h2>
+          <p class="summary">${escapeHtml(display(record.context_summary))}</p>
+          ${clean(record.zendesk_summary) ? `<p>${escapeHtml(record.zendesk_summary)}</p>` : ''}
+        </section>
+        <section class="panel">
+          <div class="theme-grid">
+            <div class="theme-box">
+              <h3>Cancellation & Ghosting</h3>
+              ${themePills(record.cancellation_ghosting_themes)}
+            </div>
+            <div class="theme-box">
+              <h3>Communication & Sentiment</h3>
+              ${themePills(record.communication_themes)}
+            </div>
+            <div class="theme-box">
+              <h3>Drop-off & Community Growth</h3>
+              ${themePills(record.dropoff_cg_themes)}
+            </div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="meta-grid">
+            ${renderMetric('CG Involvement', record.cg_involvement)}
+            ${renderMetric('CG Escalated', record.cg_escalation_status)}
+            ${renderMetric('CG First Touch', record.cg_first_touch_at)}
+            ${renderMetric('CG Days From Drop', record.cg_days_from_drop)}
+          </div>
+        </section>
+      `;
+    }
+
+    function recordHref(record) {
+      return `zendesk_context.html?site_id=${encodeURIComponent(clean(record.site_id))}`;
+    }
+
+    function renderList(records) {
+      if (!records.length) {
+        return '<div class="empty">No 2026 dropped/cancelled context records are available.</div>';
+      }
+      return `
+        <section class="panel">
+          <div class="panel-header">
+            <h2>2026 Dropped/Cancelled Sites</h2>
+            <span>${records.length.toLocaleString()} records</span>
+          </div>
+          <div class="list-controls">
+            <input id="search" type="search" placeholder="Search site, creator, owner, reason, or context">
+            <div class="pagination-controls" aria-label="Context pagination">
+              <label class="page-size">Rows
+                <select id="context-page-size">
+                  <option value="50">50</option>
+                  <option value="100" selected>100</option>
+                  <option value="250">250</option>
+                </select>
+              </label>
+              <button class="pager-button" type="button" id="context-prev-page">Previous</button>
+              <span class="page-status" id="context-page-status"></span>
+              <button class="pager-button" type="button" id="context-next-page">Next</button>
+            </div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Site</th>
+                  <th>Dropped</th>
+                  <th>Reason</th>
+                  <th>Sentiment</th>
+                  <th>Milestone</th>
+                  <th>Tickets</th>
+                  <th>Context</th>
+                </tr>
+              </thead>
+              <tbody id="context-rows"></tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
+    function contextPageSize() {
+      const select = document.getElementById('context-page-size');
+      const value = Number(select ? select.value : contextListState.pageSize);
+      return Number.isFinite(value) && value > 0 ? value : 100;
+    }
+
+    function contextPageCount(totalRows) {
+      return Math.max(1, Math.ceil(totalRows / contextPageSize()));
+    }
+
+    function contextFilteredRows(records) {
+      const input = document.getElementById('search');
+      const query = clean(input ? input.value : '').toLowerCase();
+      if (!query) return records;
+      return records.filter(record => [
+        record.site_name,
+        record.creator_name,
+        record.onboarding_owner,
+        record.dropped_reason,
+        record.dropped_reason_category,
+        record.context_summary,
+        record.sentiment,
+        record.milestone_stage
+      ].map(text).join(' ').toLowerCase().includes(query));
+    }
+
+    function updateContextPagination(totalRows, start, visibleCount) {
+      const prev = document.getElementById('context-prev-page');
+      const next = document.getElementById('context-next-page');
+      const status = document.getElementById('context-page-status');
+      if (!prev || !next || !status) return;
+      const totalPages = contextPageCount(totalRows);
+      prev.disabled = contextListState.page <= 1 || totalRows === 0;
+      next.disabled = contextListState.page >= totalPages || totalRows === 0;
+      if (!totalRows) {
+        status.textContent = '0 of 0';
+        return;
+      }
+      status.textContent = `${(start + 1).toLocaleString()}-${(start + visibleCount).toLocaleString()} of ${totalRows.toLocaleString()}`;
+    }
+
+    function renderRows(records) {
+      const tbody = document.getElementById('context-rows');
+      if (!tbody) return;
+      contextListState.pageSize = contextPageSize();
+      contextListState.page = Math.min(Math.max(contextListState.page, 1), contextPageCount(records.length));
+      const start = (contextListState.page - 1) * contextListState.pageSize;
+      const pageRows = records.slice(start, start + contextListState.pageSize);
+      updateContextPagination(records.length, start, pageRows.length);
+      if (!pageRows.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">No context records match the current search.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = pageRows.map(record => `
+        <tr>
+          <td><a class="site-link" href="${escapeAttr(recordHref(record))}">${escapeHtml(display(record.site_name))}</a></td>
+          <td>${escapeHtml(display(record.dropped_date))}</td>
+          <td>${escapeHtml(display(record.dropped_reason_category))}<div class="subtitle">${escapeHtml(display(record.dropped_reason))}</div></td>
+          <td>${escapeHtml(display(record.sentiment))}</td>
+          <td>${escapeHtml(display(record.milestone_stage))}</td>
+          <td>${escapeHtml(display(record.zendesk_ticket_count))}</td>
+          <td>${escapeHtml(display(record.context_summary))}</td>
+        </tr>
+      `).join('');
+    }
+
+    function wireSearch(records) {
+      const input = document.getElementById('search');
+      if (!input) return;
+      input.addEventListener('input', () => {
+        contextListState.page = 1;
+        renderRows(contextFilteredRows(records));
+      });
+    }
+
+    function wireContextPagination(records) {
+      const pageSize = document.getElementById('context-page-size');
+      const prev = document.getElementById('context-prev-page');
+      const next = document.getElementById('context-next-page');
+      if (pageSize) {
+        pageSize.addEventListener('change', () => {
+          contextListState.page = 1;
+          contextListState.pageSize = contextPageSize();
+          renderRows(contextFilteredRows(records));
+        });
+      }
+      if (prev) {
+        prev.addEventListener('click', () => {
+          contextListState.page = Math.max(1, contextListState.page - 1);
+          renderRows(contextFilteredRows(records));
+        });
+      }
+      if (next) {
+        next.addEventListener('click', () => {
+          contextListState.page = contextListState.page + 1;
+          renderRows(contextFilteredRows(records));
+        });
+      }
+    }
+
+    function render() {
+      const app = document.getElementById('app');
+      const selected = findSelectedRecord();
+      if (selected) {
+        app.innerHTML = renderDetail(selected);
+        return;
+      }
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('site_id') || params.has('site_name')) {
+        app.innerHTML = `
+          <section class="panel">
+            <h2>Context Not Found</h2>
+            <p class="empty">No Zendesk context row matched this site.</p>
+          </section>
+          ${renderList(CONTEXT_RECORDS)}
+        `;
+      } else {
+        app.innerHTML = renderList(CONTEXT_RECORDS);
+      }
+      renderRows(CONTEXT_RECORDS);
+      wireSearch(CONTEXT_RECORDS);
+      wireContextPagination(CONTEXT_RECORDS);
+    }
+
+    render();
+  </script>
+</body>
+</html>
+"""
+    return template.replace("__DATA__", data_json).replace("__GENERATED__", generated)
+
+
 def run() -> Path:
     settings = load_settings(ROOT)
     ensure_project_dirs(settings)
@@ -1562,20 +2361,29 @@ def run() -> Path:
     if not master_path.exists():
         raise RuntimeError("master_creator_lifecycle.csv is missing. Run generate_outputs.py first.")
     master = read_csv(master_path)
+    context = read_csv_if_exists(settings.output_dir / "zendesk_context_analysis.csv")
     records = prepare_records(master)
+    context_records = prepare_context_records(context)
     html_output = render_html(records, datetime.now().strftime("%Y-%m-%d %H:%M"))
+    context_html_output = render_context_html(context_records, datetime.now().strftime("%Y-%m-%d %H:%M"))
 
     output_path = settings.output_dir / "lifecycle_dashboard.html"
     output_path.write_text(html_output, encoding="utf-8")
+    context_output_path = settings.output_dir / "zendesk_context.html"
+    context_output_path.write_text(context_html_output, encoding="utf-8")
 
     pages_dir = settings.base_dir / "docs"
     pages_dir.mkdir(parents=True, exist_ok=True)
     pages_path = pages_dir / "index.html"
     pages_path.write_text(html_output, encoding="utf-8")
+    context_pages_path = pages_dir / "zendesk_context.html"
+    context_pages_path.write_text(context_html_output, encoding="utf-8")
     (pages_dir / ".nojekyll").write_text("", encoding="utf-8")
 
     print(f"Wrote {output_path}")
+    print(f"Wrote {context_output_path}")
     print(f"Wrote {pages_path}")
+    print(f"Wrote {context_pages_path}")
     return output_path
 
 

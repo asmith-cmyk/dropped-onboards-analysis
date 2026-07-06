@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Site Retention &amp; Return Analysis</title>
+  <title>Site Retention Analysis</title>
   <style>
     :root {
       --bg: #F0EDEB;
@@ -334,9 +334,10 @@
       padding: 18px;
       border-bottom: 1px solid var(--line);
       display: flex;
-      align-items: baseline;
+      align-items: center;
       justify-content: space-between;
       gap: 12px;
+      flex-wrap: wrap;
     }
     .table-title {
       display: grid;
@@ -346,6 +347,8 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
       color: var(--muted);
       font-size: 14px;
       font-weight: 650;
@@ -362,6 +365,50 @@
       margin: 0;
       padding: 0;
       accent-color: var(--brand);
+    }
+    .page-size {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+    .page-size select {
+      width: auto;
+      min-height: 34px;
+      padding: 5px 28px 5px 9px;
+      font-size: 14px;
+    }
+    .pagination-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .pager-button {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 760;
+      min-height: 34px;
+      padding: 6px 10px;
+    }
+    .pager-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+    .page-status {
+      color: var(--muted);
+      font-size: 13px;
+      min-width: 132px;
+      text-align: center;
+      white-space: nowrap;
     }
     .table-wrap {
       overflow: auto;
@@ -478,6 +525,15 @@
       background: var(--blue);
       color: var(--surface);
     }
+    .context-link {
+      color: var(--green);
+      font-weight: 760;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .context-link:hover {
+      text-decoration: underline;
+    }
     .hidden-col {
       display: none;
     }
@@ -509,7 +565,7 @@
     <div class="title-row">
       <div>
         <div class="eyebrow">Reporting</div>
-        <h1>Site Retention &amp; Return Analysis</h1>
+        <h1>Site Retention Analysis</h1>
         <div class="subtitle">Track installed, dropped, returned, and re-engaged sites across onboarding ownership, follow-up cadence, Creator Growth involvement, and drop reasons.</div>
       </div>
       <div class="header-actions">
@@ -587,6 +643,18 @@
           <span class="subtitle" id="row-count"></span>
         </div>
         <div class="table-tools">
+          <label class="page-size">Rows
+            <select id="page-size">
+              <option value="50">50</option>
+              <option value="100" selected>100</option>
+              <option value="250">250</option>
+            </select>
+          </label>
+          <div class="pagination-controls" aria-label="Table pagination">
+            <button class="pager-button" type="button" id="prev-page">Previous</button>
+            <span class="page-status" id="page-status"></span>
+            <button class="pager-button" type="button" id="next-page">Next</button>
+          </div>
           <label class="toggle-line"><input type="checkbox" id="toggle-returned-reason">Returned Reason</label>
         </div>
       </div>
@@ -604,6 +672,7 @@
               <th><button class="sort-button" type="button" data-sort="dropped_date">Dropped Date <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="reason_category">Dropped Reason Category <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="reason">Dropped Reason <span class="sort-indicator"></span></button></th>
+              <th><button class="sort-button" type="button" data-sort="zendesk_context">Zendesk Context <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="macro_cadence">Follow-up Cadence <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="cg_involvement">CG Involvement <span class="sort-indicator"></span></button></th>
               <th><button class="sort-button" type="button" data-sort="returned_date">Returned Date <span class="sort-indicator"></span></button></th>
@@ -639,6 +708,7 @@
       'she media': 'SHE Media'
     };
     const sortState = { key: 'activity_date', direction: 'desc' };
+    const tableState = { page: 1, pageSize: 100 };
     const fields = {
       search: document.getElementById('search'),
       installedYear: document.getElementById('installed-year'),
@@ -654,7 +724,11 @@
     const actions = {
       reset: document.getElementById('reset-filters'),
       exportCsv: document.getElementById('export-csv'),
-      returnedReasonToggle: document.getElementById('toggle-returned-reason')
+      returnedReasonToggle: document.getElementById('toggle-returned-reason'),
+      pageSize: document.getElementById('page-size'),
+      prevPage: document.getElementById('prev-page'),
+      nextPage: document.getElementById('next-page'),
+      pageStatus: document.getElementById('page-status')
     };
     const filterControls = [
       fields.search,
@@ -778,6 +852,29 @@
       const labels = cadenceItems(row);
       if (!labels.length) return 'None';
       return labels.map(label => `<span class="cadence-pill ${cadencePillClass(label)}">${escapeHtml(label)}</span>`).join('');
+    }
+
+    function droppedYear(row) {
+      const value = clean(row.dropped_date);
+      if (!value) return '';
+      const parsed = new Date(value);
+      if (!Number.isNaN(parsed.getTime())) return String(parsed.getUTCFullYear());
+      return value.slice(0, 4);
+    }
+
+    function hasZendeskContextPage(row) {
+      return hasDropSignal(row) && droppedYear(row) === '2026';
+    }
+
+    function zendeskContextHref(row) {
+      const siteId = clean(row.site_id);
+      if (siteId) return `zendesk_context.html?site_id=${encodeURIComponent(siteId)}`;
+      return `zendesk_context.html?site_name=${encodeURIComponent(display(row.creator_project_name))}`;
+    }
+
+    function zendeskContextCell(row) {
+      if (!hasZendeskContextPage(row)) return 'N/A';
+      return `<a class="context-link" href="${escapeAttr(zendeskContextHref(row))}" target="_blank" rel="noopener">View context</a>`;
     }
 
     function reasonCategoryValue(row) {
@@ -1142,6 +1239,7 @@
       if (key === 'onboarding_owner') return ownerValue(row);
       if (key === 'returned_reason') return display(row.returned_reason);
       if (key === 'activity_date') return String(activityDateValue(row));
+      if (key === 'zendesk_context') return hasZendeskContextPage(row) ? 'View context' : 'N/A';
       return display(row[key]);
     }
 
@@ -1193,6 +1291,47 @@
       return parts.join('\n');
     }
 
+    function currentPageSize() {
+      const value = Number(actions.pageSize.value);
+      return Number.isFinite(value) && value > 0 ? value : 100;
+    }
+
+    function pageCount(totalRows) {
+      return Math.max(1, Math.ceil(totalRows / currentPageSize()));
+    }
+
+    function clampTablePage(totalRows) {
+      tableState.pageSize = currentPageSize();
+      tableState.page = Math.min(Math.max(tableState.page, 1), pageCount(totalRows));
+    }
+
+    function visiblePageRows(rows) {
+      clampTablePage(rows.length);
+      const start = (tableState.page - 1) * tableState.pageSize;
+      return {
+        start,
+        rows: rows.slice(start, start + tableState.pageSize)
+      };
+    }
+
+    function renderPagination(totalRows, start, visibleCount) {
+      const totalPages = pageCount(totalRows);
+      actions.prevPage.disabled = tableState.page <= 1 || totalRows === 0;
+      actions.nextPage.disabled = tableState.page >= totalPages || totalRows === 0;
+      if (!totalRows) {
+        actions.pageStatus.textContent = '0 of 0';
+        return;
+      }
+      const first = start + 1;
+      const last = start + visibleCount;
+      actions.pageStatus.textContent = `${formatCount(first)}-${formatCount(last)} of ${formatCount(totalRows)}`;
+    }
+
+    function renderFromFirstPage() {
+      tableState.page = 1;
+      render();
+    }
+
     function renderTable(rows) {
       document.getElementById('row-count').textContent = `${formatCount(rows.length)} records`;
       const tbody = document.getElementById('creator-rows');
@@ -1201,12 +1340,15 @@
         cell.classList.toggle('hidden-col', !showReturnedReason);
       });
       if (!rows.length) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="${showReturnedReason ? 15 : 14}">No records match the current filters.</td></tr>`;
+        renderPagination(0, 0, 0);
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="${showReturnedReason ? 16 : 15}">No records match the current filters.</td></tr>`;
         return;
       }
-      tbody.innerHTML = rows.map((row, index) => `
+      const page = visiblePageRows(rows);
+      renderPagination(rows.length, page.start, page.rows.length);
+      tbody.innerHTML = page.rows.map((row, index) => `
         <tr>
-          <td class="number-col">${index + 1}</td>
+          <td class="number-col">${page.start + index + 1}</td>
           <td>
             <strong>${escapeHtml(display(row.creator_project_name))}</strong>
             ${number(row.drop_count) > 1 ? `<div class="cell-note">${number(row.drop_count)} dropped attempts</div>` : ''}
@@ -1219,6 +1361,7 @@
           <td title="${escapeAttr(rowDetails(row))}">${escapeHtml(display(row.dropped_date))}</td>
           <td>${escapeHtml(reasonCategoryValue(row))}</td>
           <td title="${escapeAttr(row.raw_description || row.cancellation_reason || row.dropped_reason)}">${escapeHtml(reasonValue(row))}</td>
+          <td>${zendeskContextCell(row)}</td>
           <td>${cadencePills(row)}</td>
           <td>${escapeHtml(display(cgDisplayValue(row)))}</td>
           <td>${escapeHtml(display(row.returned_date))}</td>
@@ -1258,6 +1401,7 @@
       ['Dropped Date', row => display(row.dropped_date)],
       ['Dropped Reason Category', row => reasonCategoryValue(row)],
       ['Dropped Reason', row => reasonValue(row)],
+      ['Zendesk Context', row => hasZendeskContextPage(row) ? zendeskContextHref(row) : 'N/A'],
       ['Follow-Up Cadence', row => cadenceValue(row)],
       ['CG Involvement', row => display(cgDisplayValue(row))],
       ['Returned Date', row => display(row.returned_date)],
@@ -1278,7 +1422,7 @@
       const blob = new Blob([[header, ...body].join('\n')], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `site-retention-return-analysis-${new Date().toISOString().slice(0, 10)}.csv`;
+      link.download = `site-retention-analysis-${new Date().toISOString().slice(0, 10)}.csv`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -1297,6 +1441,9 @@
       fields.reason.value = '';
       document.querySelectorAll('input[name="cadence-day"]').forEach(input => { input.checked = false; });
       actions.returnedReasonToggle.checked = false;
+      actions.pageSize.value = '100';
+      tableState.page = 1;
+      tableState.pageSize = 100;
       sortState.key = 'activity_date';
       sortState.direction = 'desc';
       populateReasonSelect();
@@ -1304,10 +1451,23 @@
     }
 
     populateFilters();
-    filterControls.forEach(control => control.addEventListener('input', render));
-    filterControls.forEach(control => control.addEventListener('change', render));
+    filterControls.forEach(control => control.addEventListener('input', renderFromFirstPage));
+    filterControls.forEach(control => control.addEventListener('change', renderFromFirstPage));
     fields.reasonCategory.addEventListener('change', () => {
       populateReasonSelect();
+      renderFromFirstPage();
+    });
+    actions.pageSize.addEventListener('change', () => {
+      tableState.page = 1;
+      tableState.pageSize = currentPageSize();
+      render();
+    });
+    actions.prevPage.addEventListener('click', () => {
+      tableState.page = Math.max(1, tableState.page - 1);
+      render();
+    });
+    actions.nextPage.addEventListener('click', () => {
+      tableState.page = tableState.page + 1;
       render();
     });
     actions.returnedReasonToggle.addEventListener('change', render);
@@ -1322,7 +1482,7 @@
           sortState.key = key;
           sortState.direction = ['dropped_date', 'returned_date', 'install_date', 'activity_date'].includes(key) ? 'desc' : 'asc';
         }
-        render();
+        renderFromFirstPage();
       });
     });
     render();
