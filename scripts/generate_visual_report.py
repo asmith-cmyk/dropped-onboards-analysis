@@ -2380,6 +2380,11 @@ def run() -> Path:
     context_pages_path.write_text(context_html_output, encoding="utf-8")
     (pages_dir / ".nojekyll").write_text("", encoding="utf-8")
 
+    public_dir = settings.base_dir / "public"
+    if public_dir.exists():
+        (public_dir / "dashboard.html").write_text(html_output, encoding="utf-8")
+        (public_dir / "zendesk_context.html").write_text(context_html_output, encoding="utf-8")
+
     print(f"Wrote {output_path}")
     print(f"Wrote {context_output_path}")
     print(f"Wrote {pages_path}")

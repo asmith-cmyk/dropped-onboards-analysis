@@ -3,6 +3,10 @@
 __pycache__/
 *.pyc
 .DS_Store
+node_modules/
+dist/
+.wrangler/
+.next/
 
 # Raw exports can contain sensitive operational data. Nightly automation refreshes them.
 data/raw/*
