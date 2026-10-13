@@ -79,6 +79,7 @@ cg_involvement AS (
 SELECT
     ls.SITE_ID,
     ls.SITE_NAME,
+    ls.URL,
     creator.NAME AS SITE_OWNER_NAME,
     ls.SERVICE_LEVEL,
     COALESCE(ls.PRIMARY_VERTICAL, ls.VERTICALS) AS VERTICAL,
