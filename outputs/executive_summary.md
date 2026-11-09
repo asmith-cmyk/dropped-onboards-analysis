@@ -1,13 +1,13 @@
 # Onboarding Lifecycle Executive Summary
 
-Generated from the master lifecycle dataset with 12570 lifecycle sites and 485 returned sites.
+Generated from the master lifecycle dataset with 12667 lifecycle sites and 495 returned sites.
 
 ## Headline Metrics
 
 - Re-engagement rate: 3.9%
-- Install/conversion rate across filtered lifecycle sites: 68.2%
+- Install/conversion rate across filtered lifecycle sites: 68.4%
 - Median days to return: 246.0
-- Returned after 3, 5, or 7 day follow up cadence: 33/12570
+- Returned after 3, 5, or 7 day follow up cadence: 35/12667
 
 ## Strongest Cohorts
 
@@ -15,21 +15,21 @@ Generated from the master lifecycle dataset with 12570 lifecycle sites and 485 r
 - Previous Ad Network = BlogHer: 33.3% re-engagement (1/3).
 - Previous Ad Network = Newor Media: 25.0% re-engagement (1/4).
 - Vertical = Pregnancy: 20.0% re-engagement (1/5).
-- Onboarding Owner = Antoinette Smith: 15.3% re-engagement (113/738).
-- Previous Ad Network = Mediavine: 15.2% re-engagement (301/1984).
-- Macro Cadence = 5 day follow up: 15.0% re-engagement (3/20).
-- Macro Cadence = 7 day follow up: 14.8% re-engagement (9/61).
+- Macro Cadence = 7 day follow up: 16.4% re-engagement (10/61).
+- Onboarding Owner = Antoinette Smith: 15.6% re-engagement (115/738).
+- Previous Ad Network = Mediavine: 15.5% re-engagement (309/1997).
+- Previous Ad Network = Playwire: 13.3% re-engagement (2/15).
 
 ## Creator Growth
 
-- Assisted: 11.1% re-engagement across 614 creators.
-- Not Assisted: 3.5% re-engagement across 11956 creators.
+- Assisted: 10.9% re-engagement across 640 creators.
+- Not Assisted: 3.5% re-engagement across 12027 creators.
 
 ## Rise Creators
 
-- All Rise: 3.3% re-engagement and 59.2% install rate.
+- All Rise: 3.4% re-engagement and 59.9% install rate.
 - Onboarding Call Offered: 0.0% re-engagement and 0.0% install rate.
-- No Onboarding Call Offered: 3.3% re-engagement and 59.2% install rate.
+- No Onboarding Call Offered: 3.4% re-engagement and 59.9% install rate.
 - Salesloft Meeting Detected: 0.0% re-engagement and 0.0% install rate.
 - Slack Intervention Detected: 0.0% re-engagement and 0.0% install rate.
 

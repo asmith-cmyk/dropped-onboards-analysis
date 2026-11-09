@@ -1,3 +1,3 @@
 cohort_type,cohort_value,total_sites,total_dropped,reengaged_count,reengagement_rate,installed_count,install_rate,converted_count,conversion_rate,median_days_to_return
-Creator Growth,Assisted,614,614,68,0.1107,434,0.7068,434,0.7068,201.5
-Creator Growth,Not Assisted,11956,11956,417,0.0349,8133,0.6802,8133,0.6802,251.0
+Creator Growth,Assisted,640,640,70,0.1094,450,0.7031,450,0.7031,221.0
+Creator Growth,Not Assisted,12027,12027,425,0.0353,8208,0.6825,8208,0.6825,257.0
